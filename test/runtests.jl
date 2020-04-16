@@ -1,6 +1,11 @@
-using ACTRModels
-using Test
+tests = [
+"Memory Tests",
+"Log Normal Race Tests",
+"Utility_Tests"
+]
 
-@testset "ACTRModels.jl" begin
-    # Write your tests here.
+res = map(tests) do t
+    @eval module $(Symbol("Test_", t))
+        include($t * ".jl")
+    end
 end
