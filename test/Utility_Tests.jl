@@ -1,9 +1,11 @@
-using ACTRModels, Test
-include("Utility_Functions.jl")
+using SafeTestsets
 
-@testset "Utility Tests" begin
+@safetestset "Utility Tests" begin
 
-    @testset "findIndex" begin
+    @safetestset "findIndex" begin
+        using ACTRModels, Test
+        include("Utility_Functions.jl")
+
         chunks = populateMemory()
         declarative = Declarative(memory=chunks)
         actr = ACTR(declarative = declarative)
@@ -17,8 +19,11 @@ include("Utility_Functions.jl")
         @test chunks[idx].slots.object == :bird
         @test chunks[idx].slots.attribute == :locomotion
     end
-    
-    @testset "findIndices" begin
+
+    @safetestset "findIndices" begin
+        using ACTRModels, Test
+        include("Utility_Functions.jl")
+
         chunks = populateMemory()
         declarative = Declarative(memory=chunks)
         actr = ACTR(declarative = declarative)

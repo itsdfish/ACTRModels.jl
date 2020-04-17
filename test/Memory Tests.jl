@@ -1,10 +1,12 @@
-using ACTRModels, Test
-import ACTRModels: baseLevel, baseLevel!
-include("memory.jl")
+using SafeTestsets
 
-@testset "Memory Tests" begin
+@safetestset "Memory Tests" begin
 
-    @testset "baseLevel" begin
+    @safetestset "baseLevel" begin
+        using ACTRModels, Test
+        import ACTRModels: baseLevel, baseLevel!
+        include("memory.jl")
+
         lags = [1]
         d = .5
         @test baseLevel(d, lags) == 0
@@ -22,7 +24,11 @@ include("memory.jl")
         @test baseLevel(d, lags) ≈ 0.540936 atol=1e-5
     end
 
-    @testset "baseLevel!" begin
+    @safetestset "baseLevel!" begin
+        using ACTRModels, Test
+        import ACTRModels: baseLevel, baseLevel!
+        include("memory.jl")
+
         actr,memory,chunks = initializeACTR(;bll=true)
         c = getChunk(actr; animal=:dog,name=:Sigma)[1]
         updateLags!(c, 2.0)
@@ -56,14 +62,22 @@ include("memory.jl")
         @test all(c.recent .== [4,2])
     end
 
-    @testset "Chunk" begin
+    @safetestset "Chunk" begin
+        using ACTRModels, Test
+        import ACTRModels: baseLevel, baseLevel!
+        include("memory.jl")
+
         chunk = Chunk(;N=20, animal=:dog, name=:Sigma)
         @test chunk.slots.animal == :dog
         @test chunk.slots.name == :Sigma
         @test chunk.N == 20
     end
 
-    @testset "add Chunk" begin
+    @safetestset "add Chunk" begin
+        using ACTRModels, Test
+        import ACTRModels: baseLevel, baseLevel!
+        include("memory.jl")
+
         actr,memory,chunks = initializeACTR()
         c = getChunk(actr; animal=:human, name=:Wilford, lastName=:Brimley)
         @test isempty(c)
@@ -75,7 +89,11 @@ include("memory.jl")
         @test c[1].N == 2
     end
 
-    @testset "retrievalProb" begin
+    @safetestset "retrievalProb" begin
+        using ACTRModels, Test
+        import ACTRModels: baseLevel, baseLevel!
+        include("memory.jl")
+        
         actr,memory,chunks = initializeACTR()
         @test retrievalProb(actr, chunks[2]; animal=:cat, name=:Butters) == (.5,.5)
         @test retrievalProb(actr, chunks[1]; isa=:mammal) == (0,1)

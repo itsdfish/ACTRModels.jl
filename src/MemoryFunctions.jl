@@ -13,8 +13,8 @@ end
 
 """
 Computes baselevel activation according to the hybrid approximation
-* chunk: chunk object
-* memory: declarative memory object
+* `chunk`: chunk object
+* `memory`: declarative memory object
 """
 function baseLevel!(chunk, memory)
     @unpack N,L,k,lags=chunk
@@ -107,10 +107,15 @@ function mismatch!(memory, chunk; request...)
     return nothing
 end
 
-setNoise!(actr::ACTR, v) = setNoise!(actr.declarative, v)
+"""
+Set noise true or false.
+* `actr`: ACTR object
+* `v`: boolean value
+"""
+setNoise!(actr::ACTR, b) = setNoise!(actr.declarative, b)
 
-function setNoise!(memory::Declarative, v)
-    memory.parms.noise = v
+function setNoise!(memory::Declarative, b)
+    memory.parms.noise = b
 end
 
 spreadingActivation!(actr, chunk) = spreadingActivation!(actr.declarative, actr.imaginal, chunk)
@@ -164,8 +169,14 @@ function countValues(chunk, value)
     return count(x->x==value, values(chunk.slots))
 end
 
+"""
+Adds a new timestamp to chunk and removes oldest timestamp if
+length equals k.
+* `chunk`: memory chunk object
+* `curTime`: current time in seconds
+"""
 function updateRecent!(chunk, curTime)
-    k = chunk.k;recent = chunk.recent
+    k = chunk.k; recent = chunk.recent
     if length(recent) == k
         pop!(recent)
     end
@@ -184,7 +195,7 @@ function retrievalProb(actr::ACTR, target::Array{<:Chunk,1}, curTime=0.0; reques
     @unpack τ,s,noise = actr.declarative.parms
     σ′ = s*sqrt(2)
     chunks = retrievalRequest(actr; request...)
-    filter!(x->(x ∈ chunks),target)
+    filter!(x->(x ∈ chunks), target)
     isempty(target) ? (return (0.0,1.0)) : nothing
     setNoise!(actr, false)
     computeActivation!(actr, chunks, curTime; request...)
@@ -253,9 +264,9 @@ end
 
 """
 Adds new chunk to declarative memory or updates existing chunk with new use
-* memory: declarative memory object
-* curTime: current time, default = 0.0
-* slots: optional keyword arguments corresponding to slot-value pairs, e.g. name=:Bob
+* `memory`: declarative memory object
+* `curTime`: current time, default = 0.0
+* `slots`: optional keyword arguments corresponding to slot-value pairs, e.g. name=:Bob
 """
 function addChunk!(memory::Declarative, curTime=0.0; act=0.0, slots...)
     chunk = getChunk(memory; slots...)
@@ -280,14 +291,14 @@ function getChunk(memory::Vector{<:Chunk}; args...)
     return c
 end
 
-getChunk(d::Declarative; args...) = getChunk(d.memory; args...)
-
-getChunk(a::ACTR; args...) = getChunk(a.declarative.memory; args...)
-
 function getChunk(memory::Vector{<:Chunk}, funs...; args...)
     c = filter(x->Match(x, funs...; args...), memory)
     return c
 end
+
+getChunk(d::Declarative; args...) = getChunk(d.memory; args...)
+
+getChunk(a::ACTR; args...) = getChunk(a.declarative.memory; args...)
 
 getChunk(d::Declarative, funs...; args...) = getChunk(d.memory, funs...; args...)
 
@@ -330,8 +341,6 @@ function Match(chunk, request)
      return true
 end
 
-Match(chunk; request...) = Match(chunk, request)
-
 function Match(chunk, f, request)
     slots = chunk.slots
     i = 1
@@ -344,12 +353,9 @@ function Match(chunk, f, request)
      return true
 end
 
-Match(chunk, funs...; request...) = Match(chunk, funs, request)
+Match(chunk; request...) = Match(chunk, request)
 
-function getSubSet(;request...)
-    return Iterators.filter(x->(x[1]==:isa) || (x[1]==:retrieved),
-    request)
-end
+Match(chunk, funs...; request...) = Match(chunk, funs, request)
 
 function getSubSet(;request...)
     return Iterators.filter(x->(x[1]==:isa) || (x[1]==:retrieved),
@@ -358,16 +364,16 @@ end
 
 """
 Returns chunks matching a retrieval request.
-* Memory: declarative memory object
-* request: optional keyword arguments corresponding to retrieval request e.g. dog= :fiddo
+* `memory`: declarative memory object
+* `request`: optional keyword arguments corresponding to retrieval request e.g. dog= :fiddo
 """
-function retrievalRequest(Memory::Declarative; request...)
-    @unpack mmp=Memory.parms
+function retrievalRequest(memory::Declarative; request...)
+    @unpack mmp=memory.parms
     if !mmp
-        return getChunk(Memory; request...)
+        return getChunk(memory; request...)
     end
     c = getSubSet(;request...)
-    return getChunk(Memory; c...)
+    return getChunk(memory; c...)
 end
 
 retrievalRequest(a::ACTR; request...) =  retrievalRequest(a.declarative; request...)
@@ -435,4 +441,9 @@ end
 
 computeRT(actr::ACTR, chunk) = computeRT(actr.declarative, chunk)
 
+"""
+Returns a miscelleneous parameter
+* `actr`: ACTR object
+* ` p`: parameter name
+"""
 get_parm(actr, p) = actr.declarative.parms.misc[p]
