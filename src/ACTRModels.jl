@@ -15,5 +15,4 @@ module ACTRModels
     include("MemoryFunctions.jl")
     include("LogNormalRace/LogNormalRace.jl")
     include("Utilities/Turing Utilities.jl")
-    include("Utilities/install.jl")
 end
