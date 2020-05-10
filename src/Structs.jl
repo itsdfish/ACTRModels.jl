@@ -168,13 +168,13 @@ end
 
 Imaginal(;chunk=Chunk(), ω=1.0, denoms=Int64[]) = Imaginal(chunk, ω, denoms)
 
-
+abstract type AbstractACTR end
 """
 ACTR model object
 * `declarative`: declarative memory module
 * `imaginal`: imaginal memory module
 """
-mutable struct ACTR{T1,T2}
+mutable struct ACTR{T1,T2} <: AbstractACTR
     declarative::T1
     imaginal::T2
 end

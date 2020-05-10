@@ -40,7 +40,7 @@ Computes the activation of a chunk or set of chunks
 * `curTime`: current time. Default 0.0 used when bll is false
 * `request`: optional NamedTuple for retrieval request
 """
-function computeActivation!(actr::ACTR, chunks::Vector{<:Chunk}, curTime::Float64=0.0; request...)
+function computeActivation!(actr::AbstractACTR, chunks::Vector{<:Chunk}, curTime::Float64=0.0; request...)
     memory = actr.declarative
     @unpack sa,noise=memory.parms
     if sa
@@ -56,7 +56,7 @@ end
 
 computeActivation!(actr, chunk::Chunk, curTime=0.0; request...) = computeActivation!(actr, [chunk], curTime; request...)
 
-computeActivation!(actr::ACTR, curTime::Float64=0.0; request...) = computeActivation!(actr, actr.declarative.memory, curTime; request...)
+computeActivation!(actr::AbstractACTR, curTime::Float64=0.0; request...) = computeActivation!(actr, actr.declarative.memory, curTime; request...)
 
 """
 Computes activation for a given chunk
@@ -112,7 +112,7 @@ Set noise true or false.
 * `actr`: ACTR object
 * `v`: boolean value
 """
-setNoise!(actr::ACTR, b) = setNoise!(actr.declarative, b)
+setNoise!(actr::AbstractACTR, b) = setNoise!(actr.declarative, b)
 
 function setNoise!(memory::Declarative, b)
     memory.parms.noise = b
@@ -191,7 +191,7 @@ Computes the retrieval probability of a single chunk or the marginal probability
 * `curTime`: current time. Default 0.0 to be used when bll is false
 * `request`: optional NamedTuple for retrieval request
 """
-function retrievalProb(actr::ACTR, target::Array{<:Chunk,1}, curTime=0.0; request...)
+function retrievalProb(actr::AbstractACTR, target::Array{<:Chunk,1}, curTime=0.0; request...)
     @unpack τ,s,noise = actr.declarative.parms
     σ′ = s*sqrt(2)
     chunks = retrievalRequest(actr; request...)
@@ -209,7 +209,7 @@ function retrievalProb(actr::ACTR, target::Array{<:Chunk,1}, curTime=0.0; reques
     return prob,fail
 end
 
-function retrievalProb(actr::ACTR, chunk::Chunk, curTime=0.0; request...)
+function retrievalProb(actr::AbstractACTR, chunk::Chunk, curTime=0.0; request...)
     @unpack τ,s,noise = actr.declarative.parms
     σ′ = s*sqrt(2)
     chunks = retrievalRequest(actr; request...)
@@ -231,7 +231,7 @@ Computes the retrieval probability for each chunk matching the retrieval request
 * `curTime`: current time. Default 0.0 to be used when bll is false
 * `request`: optional NamedTuple for retrieval request
 """
-function retrievalProbs(actr::ACTR, curTime=0.0; request...)
+function retrievalProbs(actr::AbstractACTR, curTime=0.0; request...)
     @unpack τ,s,γ,noise = actr.declarative.parms
     σ′ = s*sqrt(2)
     setNoise!(actr, false)
@@ -252,7 +252,7 @@ function updateLags!(chunk::Chunk, curTime)
     return nothing
 end
 
-updateLags!(actr::ACTR, curTime) = updateLags!(actr.declarative, curTime)
+updateLags!(actr::AbstractACTR, curTime) = updateLags!(actr.declarative, curTime)
 
 updateLags!(memory::Declarative, curTime) = updateLags!.(memory.memory, curTime)
 
@@ -298,11 +298,11 @@ end
 
 getChunk(d::Declarative; args...) = getChunk(d.memory; args...)
 
-getChunk(a::ACTR; args...) = getChunk(a.declarative.memory; args...)
+getChunk(a::AbstractACTR; args...) = getChunk(a.declarative.memory; args...)
 
 getChunk(d::Declarative, funs...; args...) = getChunk(d.memory, funs...; args...)
 
-getChunk(a::ACTR, funs...; args...) = getChunk(a.declarative.memory, funs...; args...)
+getChunk(a::AbstractACTR, funs...; args...) = getChunk(a.declarative.memory, funs...; args...)
 
 """
 Returns the first chunk in memory that matches a set of criteria
@@ -322,7 +322,7 @@ end
 
 firstChunk(d::Declarative; args...) = firstChunk(d.memory; args...)
 
-firstChunk(a::ACTR; args...) = firstChunk(a.declarative.memory; args...)
+firstChunk(a::AbstractACTR; args...) = firstChunk(a.declarative.memory; args...)
 
 """
 Returns boolean indicating whether a request matches a chunk.
@@ -376,7 +376,7 @@ function retrievalRequest(memory::Declarative; request...)
     return getChunk(memory; c...)
 end
 
-retrievalRequest(a::ACTR; request...) =  retrievalRequest(a.declarative; request...)
+retrievalRequest(a::AbstractACTR; request...) =  retrievalRequest(a.declarative; request...)
 
 """
 Modfy fields of an object
@@ -396,7 +396,7 @@ Retrieves a chunk given a retrieval request
 * `curTime`: current time, default 0.0 (use when base level learning is false)
 * `request`: optional keyword arguments representing a retrieval request, e.g. person=:bob
 """
-function retrieve(actr::ACTR, curTime=0.0; request...)
+function retrieve(actr::AbstractACTR, curTime=0.0; request...)
     memory = actr.declarative
     arr = Array{eltype(memory.memory), 1}()
     chunks = retrievalRequest(actr; request...)
