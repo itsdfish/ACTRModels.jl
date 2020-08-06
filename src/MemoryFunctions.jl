@@ -17,15 +17,15 @@ Computes baselevel activation according to the hybrid approximation
 * `memory`: declarative memory object
 """
 function baseLevel!(chunk, memory)
-    @unpack N,L,k,lags=chunk
+    @unpack N,L,k,lags = chunk
     d = memory.parms.d
     exact = baseLevel(d, lags)
     approx = 0.0
     if N > k
         tk = lags[k]
-        x1 = (N-k)*(L^(1-d)-tk^(1-d))
-        x2 = (1-d)*(L-tk)
-        approx = x1/x2
+        x1 = (N - k) * (L^(1 - d) - tk^(1 - d))
+        x2 = (1 - d) * (L - tk)
+        approx = x1 / x2
     end
     chunk.act_bll = log(exp(exact) + approx)
     return nothing
@@ -42,12 +42,12 @@ Computes the activation of a chunk or set of chunks
 """
 function computeActivation!(actr::AbstractACTR, chunks::Vector{<:Chunk}, curTime::Float64=0.0; request...)
     memory = actr.declarative
-    @unpack sa,noise=memory.parms
+    @unpack sa,noise = memory.parms
     if sa
-        #Cache denoms in spreading activation for effeciency
+        # Cache denoms in spreading activation for effeciency
         spreadingActivation!(actr)
     end
-    #compute activation for each chunk
+    # compute activation for each chunk
     for chunk in chunks
         activation!(actr, chunk, curTime; request...)
     end
@@ -67,8 +67,9 @@ Computes activation for a given chunk
 """
 function activation!(actr, chunk::Chunk, curTime=0.0; request...)
     memory = actr.declarative
-    @unpack bll,mmp,sa,noise,blc,τ=memory.parms
+    @unpack bll,mmp,sa,noise,blc,τ = memory.parms
     memory.parms.τ′ = τ
+    reset_activation!(chunk)
     chunk.act_blc = blc + chunk.bl
     if bll
         updateLags!(chunk, curTime)
@@ -87,6 +88,13 @@ function activation!(actr, chunk::Chunk, curTime=0.0; request...)
     return nothing
 end
 
+function reset_activation!(chunk)
+    chunk.act_bll = zero(chunk.act)
+    chunk.act_pm = zero(chunk.act)
+    chunk.act_sa = zero(chunk.act)
+    chunk.act_noise = zero(chunk.act)
+end
+
 function total_activation!(chunk)
     chunk.act = chunk.act_blc + chunk.act_bll - chunk.act_pm +
         chunk.act_sa + chunk.act_noise
@@ -95,7 +103,7 @@ end
 
 function addNoise!(memory, chunk)
     @unpack τ,s = memory.parms
-    σ = s*pi/sqrt(3)
+    σ = s * pi / sqrt(3)
     chunk.act_noise = rand(Normal(0, σ))
     memory.parms.τ′ = rand(Normal(τ, σ))
     return nothing
@@ -128,24 +136,24 @@ Computes the spreading activation for a given chunk
 """
 function spreadingActivation!(memory, imaginal, chunk)
     w = computeWeights(imaginal)
-    r=0.0; sa=0.0; γ=memory.parms.γ
+    r = 0.0; sa = 0.0; γ = memory.parms.γ
     slots = imaginal.chunk.slots
     denoms = imaginal.denoms
     for (v,d) in zip(slots, denoms)
         num = countValues(chunk, v)
-        fan = num/(d+1)
-        fan == 0 ? r=0.0 : r=γ+log(fan)
-        sa += w*r
+        fan = num / (d + 1)
+        fan == 0 ? r = 0.0 : r = γ + log(fan)
+        sa += w * r
     end
-    chunk.act_sa = sa#max(0.0,sa)#causes errors in gradient
+    chunk.act_sa = sa# max(0.0,sa)#causes errors in gradient
     return nothing
 end
 
-#Caches the denominator of spreading activation
+# Caches the denominator of spreading activation
 function spreadingActivation!(actr)
-    @unpack imaginal,declarative=actr
+    @unpack imaginal,declarative = actr
     slots = imaginal.chunk.slots
-    denoms = fill(0,length(slots))
+    denoms = fill(0, length(slots))
     for (i,v) in enumerate(slots)
         denoms[i] = computeDenom(declarative, v)
     end
@@ -154,7 +162,7 @@ function spreadingActivation!(actr)
 end
 
 function computeWeights(mod)
-    return mod.ω/length(mod.chunk.slots)
+    return mod.ω / length(mod.chunk.slots)
 end
 
 function computeDenom(memory, value)
@@ -166,7 +174,7 @@ function computeDenom(memory, value)
 end
 
 function countValues(chunk, value)
-    return count(x->x==value, values(chunk.slots))
+    return count(x -> x == value, values(chunk.slots))
 end
 
 """
@@ -193,34 +201,34 @@ Computes the retrieval probability of a single chunk or the marginal probability
 """
 function retrievalProb(actr::AbstractACTR, target::Array{<:Chunk,1}, curTime=0.0; request...)
     @unpack τ,s,noise = actr.declarative.parms
-    σ′ = s*sqrt(2)
+    σ′ = s * sqrt(2)
     chunks = retrievalRequest(actr; request...)
-    filter!(x->(x ∈ chunks), target)
+    filter!(x -> (x ∈ chunks), target)
     isempty(target) ? (return (0.0,1.0)) : nothing
     setNoise!(actr, false)
     computeActivation!(actr, chunks, curTime; request...)
-    denom = fill(target[1].act, length(chunks)+1)
-    map!(x->exp(x.act/σ′), denom, chunks)
-    denom[end]=exp(τ/σ′)
-    num = map(x->exp(x.act/σ′), target)
-    prob = sum(num)/sum(denom)
-    fail = denom[end]/sum(denom)
+    denom = fill(target[1].act, length(chunks) + 1)
+    map!(x -> exp(x.act / σ′), denom, chunks)
+    denom[end] = exp(τ / σ′)
+    num = map(x -> exp(x.act / σ′), target)
+    prob = sum(num) / sum(denom)
+    fail = denom[end] / sum(denom)
     setNoise!(actr, noise)
     return prob,fail
 end
 
 function retrievalProb(actr::AbstractACTR, chunk::Chunk, curTime=0.0; request...)
     @unpack τ,s,noise = actr.declarative.parms
-    σ′ = s*sqrt(2)
+    σ′ = s * sqrt(2)
     chunks = retrievalRequest(actr; request...)
     !(chunk ∈ chunks) ? (return (0.0,1.0)) : nothing
     setNoise!(actr, false)
     computeActivation!(actr, chunks, curTime; request...)
-    v = fill(chunk.act, length(chunks)+1)
-    map!(x->exp(x.act/σ′), v, chunks)
-    v[end]=exp(τ/σ′)
-    prob = exp(chunk.act/σ′)/sum(v)
-    fail = v[end]/sum(v)
+    v = fill(chunk.act, length(chunks) + 1)
+    map!(x -> exp(x.act / σ′), v, chunks)
+    v[end] = exp(τ / σ′)
+    prob = exp(chunk.act / σ′) / sum(v)
+    fail = v[end] / sum(v)
     setNoise!(actr, noise)
     return prob,fail
 end
@@ -233,15 +241,15 @@ Computes the retrieval probability for each chunk matching the retrieval request
 """
 function retrievalProbs(actr::AbstractACTR, curTime=0.0; request...)
     @unpack τ,s,γ,noise = actr.declarative.parms
-    σ′ = s*sqrt(2)
+    σ′ = s * sqrt(2)
     setNoise!(actr, false)
     chunks = retrievalRequest(actr; request...)
     isempty(chunks) ? (return ([0.0],chunks)) : nothing
     computeActivation!(actr, chunks, curTime; request...)
-    v = Array{typeof(chunks[1].act), 1}(undef, length(chunks)+1)
-    map!(x->exp(x.act/σ′), v, chunks)
-    v[end] = exp(τ/σ′)
-    p = v./sum(v)
+    v = Array{typeof(chunks[1].act),1}(undef, length(chunks) + 1)
+    map!(x -> exp(x.act / σ′), v, chunks)
+    v[end] = exp(τ / σ′)
+    p = v ./ sum(v)
     setNoise!(actr, noise)
     return p,chunks
 end
@@ -287,12 +295,12 @@ Returns all chunks that matches a set criteria
 * `args`: optional keyword arguments corresponding to critiria for matching chunk
 """
 function getChunk(memory::Vector{<:Chunk}; args...)
-    c = filter(x->Match(x, args), memory)
+    c = filter(x -> Match(x, args), memory)
     return c
 end
 
 function getChunk(memory::Vector{<:Chunk}, funs...; args...)
-    c = filter(x->Match(x, funs...; args...), memory)
+    c = filter(x -> Match(x, funs...; args...), memory)
     return c
 end
 
@@ -310,7 +318,7 @@ Returns the first chunk in memory that matches a set of criteria
 * `args`: optional keyword arguments corresponding to critiria for matching chunk
 """
 function firstChunk(memory::Vector{<:Chunk}; args...)
-    chunk = Array{eltype(memory), 1}()
+    chunk = Array{eltype(memory),1}()
     for m in memory
         if Match(m, args)
             push!(chunk, m)
@@ -337,8 +345,8 @@ function Match(chunk, request)
         if !(k ∈ keys(slots)) || (slots[k] != v)
             return false
         end
-     end
-     return true
+    end
+    return true
 end
 
 function Match(chunk, f, request)
@@ -349,8 +357,8 @@ function Match(chunk, f, request)
             return false
         end
         i += 1
-     end
-     return true
+    end
+    return true
 end
 
 Match(chunk; request...) = Match(chunk, request)
@@ -358,7 +366,7 @@ Match(chunk; request...) = Match(chunk, request)
 Match(chunk, funs...; request...) = Match(chunk, funs, request)
 
 function getSubSet(;request...)
-    return Iterators.filter(x->(x[1]==:isa) || (x[1]==:retrieved),
+    return Iterators.filter(x -> (x[1] == :isa) || (x[1] == :retrieved),
     request)
 end
 
@@ -368,7 +376,7 @@ Returns chunks matching a retrieval request.
 * `request`: optional keyword arguments corresponding to retrieval request e.g. dog= :fiddo
 """
 function retrievalRequest(memory::Declarative; request...)
-    @unpack mmp=memory.parms
+    @unpack mmp = memory.parms
     if !mmp
         return getChunk(memory; request...)
     end
@@ -398,11 +406,11 @@ Retrieves a chunk given a retrieval request
 """
 function retrieve(actr::AbstractACTR, curTime=0.0; request...)
     memory = actr.declarative
-    arr = Array{eltype(memory.memory), 1}()
+    arr = Array{eltype(memory.memory),1}()
     chunks = retrievalRequest(actr; request...)
     isempty(chunks) ? (return arr) : nothing
     computeActivation!(actr, chunks, curTime; request...)
-    τ′= memory.parms.τ′
+    τ′ = memory.parms.τ′
     best = getMaxActive(chunks)
     if best[1].act >= τ′
         return best
@@ -434,9 +442,9 @@ Samples a reaction time for retrieving a chunk
 function computeRT(memory::Declarative, chunk)
     @unpack τ′,lf = memory.parms
     if isempty(chunk)
-         return lf*exp(-τ′)
+        return lf * exp(-τ′)
     end
-    return lf*exp(-chunk[1].act)
+    return lf * exp(-chunk[1].act)
 end
 
 computeRT(actr::ACTR, chunk) = computeRT(actr.declarative, chunk)
