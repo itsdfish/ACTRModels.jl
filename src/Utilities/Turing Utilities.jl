@@ -1,29 +1,29 @@
 import Distributions: rand, logpdf, pdf, estimate
 
-function sampleChain(chain)
+function sample_chain(chain)
     parms = (Symbol.(chain.name_map.parameters)...,)
     idx = rand(1:length(chain))
     vals = map(x -> chain[x][idx], parms)
     return NamedTuple{parms}(vals)
 end
 
-function posteriorPredictive(m, chain, f=x -> x)
-    parms = sampleChain(chain)
+function posterior_predictive(m, chain, f=x -> x)
+    parms = sample_chain(chain)
     return f(m(parms))
 end
 
-function posteriorPredictive(model, chain, Nsamples::Int, f=x -> x)
-    return map(x -> posteriorPredictive(model, chain, f), 1:Nsamples)
+function posterior_predictive(model, chain, Nsamples::Int, f=x -> x)
+    return map(x -> posterior_predictive(model, chain, f), 1:Nsamples)
 end
 
-function reduceData(Data)
+function reduce_data(Data)
     U = unique(Data)
     cnt = map(x -> count(c -> c == x, Data), U)
-    newData = NamedTuple[]
+    new_data = NamedTuple[]
     for (u,c) in zip(U, cnt)
-        push!(newData, (u...,N = c))
+        push!(new_data, (u...,N = c))
     end
-    return newData
+    return new_data
 end
 
 function logNormParms(μ, σ)
@@ -32,27 +32,27 @@ function logNormParms(μ, σ)
     return μ′,σ′
 end
 
-findIndex(actr::ACTR;criteria...) = findIndex(actr.declarative.memory;criteria...)
+find_index(actr::ACTR;criteria...) = find_index(actr.declarative.memory;criteria...)
 
-function findIndex(chunks::Array{<:Chunk,1}; criteria...)
+function find_index(chunks::Array{<:Chunk,1}; criteria...)
     for (i,c) in enumerate(chunks)
         Match(c;criteria...) ? (return i) : nothing
     end
     return -100
 end
 
-findIndex(actr::ACTR, funs...; criteria...) = findIndex(actr.declarative.memory, funs...; criteria...)
+find_index(actr::ACTR, funs...; criteria...) = find_index(actr.declarative.memory, funs...; criteria...)
 
-function findIndex(chunks::Array{<:Chunk,1}, funs...; criteria...)
+function find_index(chunks::Array{<:Chunk,1}, funs...; criteria...)
     for (i,c) in enumerate(chunks)
         Match(c, funs...; criteria...) ? (return i) : nothing
     end
     return -100
 end
 
-findIndices(actr::ACTR; criteria...) = findIndices(actr.declarative.memory; criteria...)
+find_indices(actr::ACTR; criteria...) = find_indices(actr.declarative.memory; criteria...)
 
-function findIndices(chunks::Array{<:Chunk,1}; criteria...)
+function find_indices(chunks::Array{<:Chunk,1}; criteria...)
     idx = Int64[]
     for (i,c) in enumerate(chunks)
         Match(c; criteria...) ? push!(idx, i) : nothing
@@ -60,9 +60,9 @@ function findIndices(chunks::Array{<:Chunk,1}; criteria...)
     return idx
 end
 
-findIndices(actr::ACTR, funs...; criteria...) = findIndices(actr.declarative.memory, funs...; criteria...)
+find_indices(actr::ACTR, funs...; criteria...) = find_indices(actr.declarative.memory, funs...; criteria...)
 
-function findIndices(chunks::Array{<:Chunk,1}, funs...; criteria...)
+function find_indices(chunks::Array{<:Chunk,1}, funs...; criteria...)
     idx = Int64[]
     for (i,c) in enumerate(chunks)
         Match(c, funs...; criteria...) ? push!(idx, i) : nothing

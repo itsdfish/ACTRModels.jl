@@ -5,11 +5,11 @@ module ACTRModels
     @reexport using Distributions, Parameters, Distributed, Random, StatsFuns, StatsBase
     import Distributions: pdf, logpdf
     import Base: rand
-    export ACTR, Declarative, Imaginal, Chunk, defaultFun, LNR, reduceData
-    export getChunk, updateLags!, updateRecent!, updateChunk!, modify!, addChunk!
-    export retrievalProb, retrievalProbs, retrieve, computeActivation!, get_parm
-    export spreadingActivation!, Match, computeRT, retrievalRequest, getSubSet
-    export firstChunk, posteriorPredictive, LogNormal′, findIndex, findIndices
+    export ACTR, Declarative, Imaginal, Chunk, defaultFun, LNR, reduce_data
+    export get_chunk, update_lags!, update_recent!, update_chunk!, modify!, add_chunk!
+    export retrieval_prob, retrieval_probs, retrieve, compute_activation!, get_parm
+    export spreading_activation!, Match, compute_RT, retrieval_request, get_subset
+    export first_chunk, posterior_predictive, LogNormal′, find_index, find_indices
 
     include("Structs.jl")
     include("MemoryFunctions.jl")

@@ -43,7 +43,7 @@ end
 Declarative Memory Chunk
 * `N`: number of uses
 * `L`: lifetime of chunk
-* `created`: time of creation
+* `time_created`: time at which the chunk was created
 * `k`: number of chunks in recent set (k=1 is sufficient)
 * `act`: total activation
 * `act_blc`: base level constant component of activation
@@ -62,13 +62,13 @@ Declarative Memory Chunk
 ```
 Example:
 
-chunk = Chunk(;created=4.0, person=:hippie, place=:park)
+chunk = Chunk(;time_created=4.0, person=:hippie, place=:park)
 ```
 """
 mutable struct Chunk{T1,T2}
   N::Int
   L::Float64
-  created::Float64
+  time_created::Float64
   k::Int
   act::T2
   act_blc::T2
@@ -83,7 +83,7 @@ mutable struct Chunk{T1,T2}
   bl::T2
 end
 
-function Chunk(;N=1, L=1.0, created=0.0, k=1, act=0.0, recent=[0.0],
+function Chunk(;N=1, L=1.0, time_created=0.0, k=1, act=0.0, recent=[0.0],
     reps=0, lags=Float64[], dynamic=false, bl=zero(typeof(act)), slots...)
     T = typeof(act)
     act_pm = zero(T)
@@ -93,10 +93,10 @@ function Chunk(;N=1, L=1.0, created=0.0, k=1, act=0.0, recent=[0.0],
     act_sa = zero(T)
     if dynamic
         slots = Dict(k=>v for (k,v) in pairs(slots))
-        return Chunk(N, L, created, k, act, act_blc, act_bll, act_pm, act_sa, act_noise,
+        return Chunk(N, L, time_created, k, act, act_blc, act_bll, act_pm, act_sa, act_noise,
             slots, reps, recent, lags, bl)
     end
-    return Chunk(N, L, created, k, act, act_blc, act_bll, act_pm, act_sa, act_noise,
+    return Chunk(N, L, time_created, k, act, act_blc, act_bll, act_pm, act_sa, act_noise,
         slots.data, reps, recent, lags, bl)
 end
 
