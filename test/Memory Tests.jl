@@ -145,4 +145,24 @@ using SafeTestsets
         p2,_ = retrieval_prob(actr, c)
         @test p2 > p1
     end
+
+    @safetestset "modify!" begin
+        using ACTRModels, Test
+        chunks = Chunk[Chunk(;isa=:bafoon,animal=:dog,name=:Sigma,retrieved=[false]),
+        Chunk(;isa=:mammal,animal=:cat,name=:Butters, retrieved=[false])]
+        memory = Declarative(;memory=chunks)
+        actr = ACTR(;declarative=memory)
+        modify!(chunks[2].slots, retrieved=true)
+        @test chunks[2].slots.retrieved[1] == true 
+    end
+
+    @safetestset "filter" begin
+        using ACTRModels, Test
+        chunks = Chunk[Chunk(;isa=:bafoon,animal=:dog,name=:Sigma,retrieved=[false]),
+        Chunk(;isa=:mammal,animal=:cat,name=:Butters, retrieved=[false])]
+        memory = Declarative(;memory=chunks, mmp=true)
+        actr = ACTR(;declarative=memory)
+        request = retrieval_request(actr; isa=:mammal)
+        @test request[1].slots.name == :Butters
+    end
 end

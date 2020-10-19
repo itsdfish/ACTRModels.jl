@@ -365,22 +365,26 @@ Match(chunk; request...) = Match(chunk, request)
 
 Match(chunk, funs...; request...) = Match(chunk, funs, request)
 
-function get_subset(;request...)
-    return Iterators.filter(x -> (x[1] == :isa) || (x[1] == :retrieved),
+"""
+Returns a filtered subset of the retrieval request when partial matching is on.
+By default, slot values for isa and retrieved must match exactly.
+"""
+function get_subset(declarative; request...)
+    return Iterators.filter(x -> any(s->s == x[1], declarative.filtered),
     request)
 end
 
 """
 Returns chunks matching a retrieval request.
 * `memory`: declarative memory object
-* `request`: optional keyword arguments corresponding to retrieval request e.g. dog= :fiddo
+* `request`: optional keyword arguments corresponding to retrieval request e.g. dog = :fiddo
 """
 function retrieval_request(memory::Declarative; request...)
     @unpack mmp = memory.parms
     if !mmp
         return get_chunk(memory; request...)
     end
-    c = get_subset(;request...)
+    c = get_subset(memory; request...)
     return get_chunk(memory; c...)
 end
 
@@ -394,6 +398,13 @@ Modfy fields of an object
 function modify!(c; args...)
     for (k,v) in args
         setfield!(c, k, v)
+    end
+    return nothing
+end
+
+function modify!(c::NamedTuple; args...)
+    for (k,v) in args
+        c[k][1] = v
     end
     return nothing
 end

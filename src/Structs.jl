@@ -123,15 +123,18 @@ Stores an array of chunks and a parameter object with the following default para
 * `sa`: spreading activatin on
 * `noise`: noise on
 * `misc`: NamedTuple of extra parameters
+* `filtered:` a list of slots that must absolutely match with mismatch penalty. isa and retrieval are included
+    by default
 """
-mutable struct Declarative{T1,T2} <: Mod
+mutable struct Declarative{T1,T2,T3} <: Mod
     memory::Array{T1,1}
     parms::T2
+    filtered::T3
 end
 
-function Declarative(;memory=Chunk[], parms...)
+function Declarative(;memory=Chunk[], filtered=(:isa,:retrieved), parms...)
     parms′ = Parms(;parms...)
-    return  Declarative(memory, parms′)
+    return  Declarative(memory, parms′, filtered)
 end
 
 """
