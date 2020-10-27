@@ -458,7 +458,14 @@ function compute_RT(memory::Declarative, chunk)
     return lf * exp(-chunk[1].act)
 end
 
+function compute_RT(memory::Declarative, chunk::Chunk)
+    @unpack lf = memory.parms
+    return lf * exp(-chunk.act)
+end
+
 compute_RT(actr::ACTR, chunk) = compute_RT(actr.declarative, chunk)
+compute_RT(actr::ACTR, chunk::Chunk) = compute_RT(actr.declarative, chunk)
+
 
 """
 Returns a miscelleneous parameter
