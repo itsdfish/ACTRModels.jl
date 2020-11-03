@@ -472,4 +472,10 @@ Returns a miscelleneous parameter
 * `actr`: ACTR object
 * ` p`: parameter name
 """
-get_parm(actr, p) = actr.declarative.parms.misc[p]
+function get_parm(actr, p)
+    misc = actr.declarative.parms.misc
+    if p in misc
+        return misc[p]
+    end
+    return getfield(actr.declarative.parms, p)
+end
