@@ -474,7 +474,7 @@ Returns a miscelleneous parameter
 """
 function get_parm(actr, p)
     misc = actr.declarative.parms.misc
-    if p in misc
+    if p in keys(misc)
         return misc[p]
     end
     return getfield(actr.declarative.parms, p)
