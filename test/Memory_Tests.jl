@@ -120,7 +120,7 @@ using SafeTestsets
         c = get_chunk(actr; animal=:rat, name=:Joy)
         update_lags!(actr, 1.0)
         p1,_ = retrieval_prob(actr, c, 1.0)
-        update_lags!(actr,3.0)
+        update_lags!(actr, 3.0)
         p2,_ = retrieval_prob(actr, c, 3.0)
         memory.parms.d = .8
         p3,_ = retrieval_prob(actr, c, 3.0)
@@ -148,7 +148,7 @@ using SafeTestsets
 
     @safetestset "modify!" begin
         using ACTRModels, Test
-        chunks = Chunk[Chunk(;isa=:bafoon,animal=:dog,name=:Sigma,retrieved=[false]),
+        chunks = Chunk[Chunk(;isa=:bafoon, animal=:dog,name=:Sigma, retrieved=[false]),
         Chunk(;isa=:mammal,animal=:cat,name=:Butters, retrieved=[false])]
         memory = Declarative(;memory=chunks)
         actr = ACTR(;declarative=memory)
@@ -158,11 +158,165 @@ using SafeTestsets
 
     @safetestset "filter" begin
         using ACTRModels, Test
-        chunks = Chunk[Chunk(;isa=:bafoon,animal=:dog,name=:Sigma,retrieved=[false]),
+        chunks = Chunk[Chunk(;isa=:bafoon, animal=:dog,name=:Sigma, retrieved=[false]),
         Chunk(;isa=:mammal,animal=:cat,name=:Butters, retrieved=[false])]
         memory = Declarative(;memory=chunks, mmp=true)
         actr = ACTR(;declarative=memory)
         request = retrieval_request(actr; isa=:mammal)
         @test request[1].slots.name == :Butters
+    end
+
+    @safetestset "count_values" begin
+        using ACTRModels, Test
+        import ACTRModels: count_values
+        chunk = Chunk(a=:a, b=:a, c=:v)
+        @test count_values(chunk, :a) == 2
+        @test count_values(chunk, :v) == 1
+        @test count_values(chunk, :c) == 0
+    end
+
+    @safetestset "update_recent!" begin
+        using ACTRModels, Test
+        chunk = Chunk(a=:a, b=:a, c=:v)
+        update_recent!(chunk, .10)
+        @test chunk.recent[1] == .1
+        update_recent!(chunk, .20)
+        @test chunk.recent[1] == .2
+        @test length(chunk.recent) == 1
+        chunk.k = 2
+        update_recent!(chunk, .10)
+        update_recent!(chunk, .20)
+        update_recent!(chunk, .30)
+        @test chunk.recent[1] == .3
+        @test chunk.recent[2] == .2
+        @test length(chunk.recent) == 2
+    end
+
+    @safetestset "update_lags!" begin
+        using ACTRModels, Test
+        chunk = Chunk(a=:a, b=:a, c=:v, k=2)
+        update_recent!(chunk, .10)
+        update_recent!(chunk, .20)
+        update_lags!(chunk, 1.0)
+        @test chunk.lags[1] == 1 - .2
+        @test chunk.lags[2] == 1 - .1
+    end
+
+    @safetestset "update_chunk!" begin
+        using ACTRModels, Test
+        chunk = Chunk(a=:a, b=:a, c=:v)
+        update_chunk!(chunk, .10)
+        @test chunk.recent[1] == .1
+        @test chunk.N == 2
+        update_chunk!(chunk, .20)
+        @test chunk.recent[1] == .2
+        @test chunk.N == 3
+        @test length(chunk.recent) == 1
+    end
+
+    @safetestset "spreading activation" begin
+        using ACTRModels, Test
+        chunks = [Chunk(a=:a, b=:b, c=:c), Chunk(a=:a, b=:b, c=:a)]
+        memory = Declarative(memory=chunks, γ=1.6)
+        imaginal = Imaginal(chunk=Chunk(a=:a, b=:b))
+        actr = ACTR(declarative=memory, imaginal=imaginal)
+        compute_activation!(actr)
+        @test chunks[1].act == 0.0
+        @test chunks[2].act == 0.0
+        memory.parms.sa = true
+        compute_activation!(actr)
+        @test chunks[1].act ≈ 0.3575467 atol = 1e-5
+        @test chunks[2].act ≈ 0.7041203 atol = 1e-5
+    end
+
+    @safetestset "partial matching" begin
+        using ACTRModels, Test
+        chunk = Chunk(a=:a, b=:b)
+        memory = Declarative(memory=[chunk], mmp=true, δ=1.0)
+        actr = ACTR(declarative=memory)
+        compute_activation!(actr)
+        @test chunk.act == 0.0
+        compute_activation!(actr; a=:a)
+        @test chunk.act == 0.0
+        compute_activation!(actr; a=:a, b=:b)
+        @test chunk.act == 0.0
+        compute_activation!(actr; a=:b, b=:b)
+        @test chunk.act == -1.0
+        compute_activation!(actr; a=:a, b=:a)
+        @test chunk.act == -1.0
+        compute_activation!(actr; a=:c, b=:c)
+        @test chunk.act == -2.0
+    end 
+
+    @safetestset "get_chunk" begin
+        using ACTRModels, Test
+        chunks = [Chunk(a=:a, b=:c),Chunk(a=:a, b=:b)]
+        memory = Declarative(memory=chunks)
+        actr = ACTR(declarative=memory)
+        result = get_chunk(actr; a=:b)
+        @test isempty(result)
+
+        result = get_chunk(actr; a=:a)
+        @test !isempty(result)
+        @test length(result) == 2
+        @test result[1].slots.a == :a
+        @test result[1].slots.b == :c
+        @test result[2].slots.a == :a
+        @test result[2].slots.b == :b
+
+       result = get_chunk(actr; a=:a, b=:b)
+       @test !isempty(result)
+       @test length(result) == 1
+       @test result[1].slots.a == :a
+       @test result[1].slots.b == :b
+    end 
+
+    @safetestset "first_chunk" begin
+        using ACTRModels, Test
+        chunks = [Chunk(a=:a, b=:c),Chunk(a=:a, b=:b)]
+        memory = Declarative(memory=chunks)
+        actr = ACTR(declarative=memory)
+        result = get_chunk(actr; a=:b)
+        @test isempty(result)
+
+        result = first_chunk(actr; a=:a)
+        @test !isempty(result)
+        @test length(result) == 1
+        @test result[1].slots.a == :a
+        @test result[1].slots.b == :c
+    end 
+
+    @safetestset "reset_activation!" begin
+        using ACTRModels, Test
+        import ACTRModels: reset_activation!
+        chunks = [Chunk(a=:a, b=:b, c=:c), Chunk(a=:a, b=:b, c=:a)]
+        chunk = chunks[1]
+        memory = Declarative(memory=chunks, mmp=true, noise=true, bll=true, sa=true, γ=1.6,
+            δ=1.0)
+        imaginal = Imaginal(chunk=Chunk(a=:a, b=:b))
+        actr = ACTR(declarative=memory, imaginal=imaginal)
+        compute_activation!(actr, 3.0; a=:b)
+        @test chunk.act_bll != 0
+        @test chunk.act_pm != 0
+        @test chunk.act_sa != 0
+        @test chunk.act_noise != 0
+        reset_activation!(chunk)
+        @test chunk.act_bll == 0
+        @test chunk.act_pm == 0
+        @test chunk.act_sa == 0
+        @test chunk.act_noise == 0 
+    end
+
+    @safetestset "total_activation!" begin
+        using ACTRModels, Test
+        import ACTRModels: total_activation!
+        chunk = Chunk()
+        chunk.act_blc = .5
+        chunk.act_bll = 1.0
+        chunk.act_pm = 1.0
+        chunk.act_sa = 1.0
+        chunk.act_noise = 1.0
+        total_activation!(chunk)
+        @test chunk.act ≈ 2.5 atol = 1e-5
     end
 end

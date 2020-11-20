@@ -89,10 +89,13 @@ function activation!(actr, chunk::Chunk, cur_time=0.0; request...)
 end
 
 function reset_activation!(chunk)
-    chunk.act_bll = zero(chunk.act)
-    chunk.act_pm = zero(chunk.act)
-    chunk.act_sa = zero(chunk.act)
-    chunk.act_noise = zero(chunk.act)
+    a = chunk.act
+    chunk.act_blc = zero(a)
+    chunk.act_bll = zero(a)
+    chunk.act_pm = zero(a)
+    chunk.act_sa = zero(a)
+    chunk.act_noise = zero(a)
+    chunk.act = zero(a)
 end
 
 function total_activation!(chunk)
@@ -142,7 +145,7 @@ function spreading_activation!(memory, imaginal, chunk)
     for (v,d) in zip(slots, denoms)
         num = count_values(chunk, v)
         fan = num / (d + 1)
-        fan == 0 ? r = 0.0 : r = γ + log(fan)
+        r = fan == 0 ? 0.0 : γ + log(fan)
         sa += w * r
     end
     chunk.act_sa = sa# max(0.0,sa)#causes errors in gradient
@@ -201,16 +204,16 @@ Computes the retrieval probability of a single chunk or the marginal probability
 """
 function retrieval_prob(actr::AbstractACTR, target::Array{<:Chunk,1}, cur_time=0.0; request...)
     @unpack τ,s,noise = actr.declarative.parms
-    σ′ = s * sqrt(2)
+    σ = s * sqrt(2)
     chunks = retrieval_request(actr; request...)
     filter!(x -> (x ∈ chunks), target)
     isempty(target) ? (return (0.0,1.0)) : nothing
     set_noise!(actr, false)
     compute_activation!(actr, chunks, cur_time; request...)
     denom = fill(target[1].act, length(chunks) + 1)
-    map!(x -> exp(x.act / σ′), denom, chunks)
-    denom[end] = exp(τ / σ′)
-    num = map(x -> exp(x.act / σ′), target)
+    map!(x -> exp(x.act / σ), denom, chunks)
+    denom[end] = exp(τ / σ)
+    num = map(x -> exp(x.act / σ), target)
     prob = sum(num) / sum(denom)
     fail = denom[end] / sum(denom)
     set_noise!(actr, noise)
@@ -219,15 +222,15 @@ end
 
 function retrieval_prob(actr::AbstractACTR, chunk::Chunk, cur_time=0.0; request...)
     @unpack τ,s,noise = actr.declarative.parms
-    σ′ = s * sqrt(2)
+    σ = s * sqrt(2)
     chunks = retrieval_request(actr; request...)
     !(chunk ∈ chunks) ? (return (0.0,1.0)) : nothing
     set_noise!(actr, false)
     compute_activation!(actr, chunks, cur_time; request...)
     v = fill(chunk.act, length(chunks) + 1)
-    map!(x -> exp(x.act / σ′), v, chunks)
-    v[end] = exp(τ / σ′)
-    prob = exp(chunk.act / σ′) / sum(v)
+    map!(x -> exp(x.act / σ), v, chunks)
+    v[end] = exp(τ / σ)
+    prob = exp(chunk.act / σ) / sum(v)
     fail = v[end] / sum(v)
     set_noise!(actr, noise)
     return prob,fail
@@ -241,14 +244,14 @@ Computes the retrieval probability for each chunk matching the retrieval request
 """
 function retrieval_probs(actr::AbstractACTR, cur_time=0.0; request...)
     @unpack τ,s,γ,noise = actr.declarative.parms
-    σ′ = s * sqrt(2)
+    σ = s * sqrt(2)
     set_noise!(actr, false)
     chunks = retrieval_request(actr; request...)
     isempty(chunks) ? (return ([0.0],chunks)) : nothing
     compute_activation!(actr, chunks, cur_time; request...)
     v = Array{typeof(chunks[1].act),1}(undef, length(chunks) + 1)
-    map!(x -> exp(x.act / σ′), v, chunks)
-    v[end] = exp(τ / σ′)
+    map!(x -> exp(x.act / σ), v, chunks)
+    v[end] = exp(τ / σ)
     p = v ./ sum(v)
     set_noise!(actr, noise)
     return p,chunks
@@ -295,12 +298,12 @@ Returns all chunks that matches a set criteria
 * `args`: optional keyword arguments corresponding to critiria for matching chunk
 """
 function get_chunk(memory::Vector{<:Chunk}; args...)
-    c = filter(x -> Match(x, args), memory)
+    c = filter(x -> match(x, args), memory)
     return c
 end
 
 function get_chunk(memory::Vector{<:Chunk}, funs...; args...)
-    c = filter(x -> Match(x, funs...; args...), memory)
+    c = filter(x -> match(x, funs...; args...), memory)
     return c
 end
 
@@ -320,7 +323,7 @@ Returns the first chunk in memory that matches a set of criteria
 function first_chunk(memory::Vector{<:Chunk}; args...)
     chunk = Array{eltype(memory),1}()
     for m in memory
-        if Match(m, args)
+        if match(m, args)
             push!(chunk, m)
             return chunk
         end
@@ -339,7 +342,7 @@ of the slot does not match the request value.
 * `chunk`: chunk object
 * `request`: a NamedTuple of slot value pairs
 """
-function Match(chunk, request)
+function match(chunk::Chunk, request)
     slots = chunk.slots
     for (k,v) in request
         if !(k ∈ keys(slots)) || (slots[k] != v)
@@ -349,7 +352,7 @@ function Match(chunk, request)
     return true
 end
 
-function Match(chunk, f, request)
+function match(chunk::Chunk, f, request)
     slots = chunk.slots
     i = 1
     for (k,v) in request
@@ -361,9 +364,9 @@ function Match(chunk, f, request)
     return true
 end
 
-Match(chunk; request...) = Match(chunk, request)
+match(chunk::Chunk; request...) = match(chunk, request)
 
-Match(chunk, funs...; request...) = Match(chunk, funs, request)
+match(chunk::Chunk, funs...; request...) = match(chunk, funs, request)
 
 """
 Returns a filtered subset of the retrieval request when partial matching is on.

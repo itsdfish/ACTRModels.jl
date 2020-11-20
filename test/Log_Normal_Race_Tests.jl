@@ -2,6 +2,7 @@ using SafeTestsets
 
 @safetestset "LogNormal Race Tests" begin
     using ACTRModels, Test, Distributions, Random
+    Random.seed!(54054)
     d1 = LNR(;μ=[1.0], σ=1.0, ϕ=.1)
     v1 = .3
     p1 = pdf(d1, 1, v1)

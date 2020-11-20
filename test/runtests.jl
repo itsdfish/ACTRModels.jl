@@ -1,6 +1,6 @@
 tests = [
-"Memory Tests",
-"Log Normal Race Tests",
+"Memory_Tests",
+"Log_Normal_Race_Tests",
 "Utility_Tests"
 ]
 
