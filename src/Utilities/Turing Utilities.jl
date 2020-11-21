@@ -2,7 +2,8 @@ import Distributions: rand, logpdf, pdf, estimate
 
 function sample_chain(chain)
     parms = (Symbol.(chain.name_map.parameters)...,)
-    idx = rand(1:length(chain))
+    n = size(chain, 1)*size(chain, 3)
+    idx = rand(1:n)
     vals = map(x -> chain[x][idx], parms)
     return NamedTuple{parms}(vals)
 end
