@@ -17,22 +17,6 @@ function posterior_predictive(model, chain, n_samples::Int, f=x -> x)
     return map(x -> posterior_predictive(model, chain, f), 1:n_samples)
 end
 
-function reduce_data(Data)
-    U = unique(Data)
-    cnt = map(x -> count(c -> c == x, Data), U)
-    new_data = NamedTuple[]
-    for (u,c) in zip(U, cnt)
-        push!(new_data, (u...,N = c))
-    end
-    return new_data
-end
-
-function logNormParms(μ, σ)
-    μ′ = log(μ^2 / sqrt(σ^2 + μ^2))
-    σ′ = sqrt(log(1 + σ^2 / (μ^2)))
-    return μ′,σ′
-end
-
 find_index(actr::ACTR;criteria...) = find_index(actr.declarative.memory;criteria...)
 
 function find_index(chunks::Array{<:Chunk,1}; criteria...)

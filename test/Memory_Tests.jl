@@ -319,4 +319,55 @@ using SafeTestsets
         total_activation!(chunk)
         @test chunk.act ≈ 2.5 atol = 1e-5
     end
+
+    @safetestset "get_parm" begin
+        using ACTRModels, Test
+        chunks = [Chunk(a=:a, b=:b, c=:c), Chunk(a=:a, b=:b, c=:a)]
+        chunk = chunks[1]
+        memory = Declarative(memory=chunks, mmp=true, noise=true, bll=true, sa=true, γ=1.6,
+            δ=1.0, Σ=.3)
+        actr = ACTR(declarative=memory)
+        @test get_parm(actr, :δ) ≈ 1.0 atol = 1e-5
+        @test get_parm(actr, :Σ) ≈ 0.3 atol = 1e-5
+        @test get_parm(actr, :noise) 
+    end
+
+    @safetestset "compute_RT" begin
+        using ACTRModels, Test, Distributions, Random
+        Random.seed!(41140)
+        chunks = [Chunk(a=:a, b=:b, c=:c), Chunk(a=:a, b=:b, c=:a)]
+        chunk = chunks[1]
+        memory = Declarative(memory=chunks, blc=1.5)
+        actr = ACTR(declarative=memory)
+        retrieved = retrieve(actr; a=:a, b=:b, c=:c)
+        rt = compute_RT(actr, retrieved)
+        @test rt ≈ exp(-1.5) atol = 1e-5
+
+        retrieved = retrieve(actr; a=:z)
+        rt = compute_RT(actr, retrieved)
+        @test rt ≈ exp(0.0) atol = 1e-5
+
+        chunks = [Chunk(a=:a, b=:b, c=:c), Chunk(a=:a, b=:b, c=:a)]
+        chunk = chunks[1]
+        s = .2
+        memory = Declarative(memory=chunks, blc=1.5, noise=true, s=s)
+        actr = ACTR(declarative=memory)
+        retrieved = retrieve(actr; a=:a, b=:b, c=:c)
+        function sim(actr, chunk)
+            compute_activation!(actr, chunk)
+            return compute_RT(actr, retrieved)
+        end
+        σ = s * pi / sqrt(3)
+        rts = map(_->sim(actr, retrieved), 1:20_000)
+        @test mean(rts) ≈ mean(LogNormal(-1.5, σ)) atol = 1e-3
+        @test std(rts) ≈ std(LogNormal(-1.5, σ)) atol = 1e-3
+    end
+
+    @safetestset "match" begin
+        using ACTRModels, Test
+        chunk = Chunk(a=:a, b=:b, c=:c)
+        @test match(chunk, a=:a)
+        @test !match(chunk, a=:b)
+        @test match(chunk, !=, ==, a=:b, b=:b)
+    end
 end
