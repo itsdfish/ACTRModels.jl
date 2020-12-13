@@ -17,7 +17,7 @@ function posterior_predictive(model, chain, n_samples::Int, f=x -> x)
     return map(x -> posterior_predictive(model, chain, f), 1:n_samples)
 end
 
-find_index(actr::ACTR;criteria...) = find_index(actr.declarative.memory;criteria...)
+find_index(actr::ACTR; criteria...) = find_index(actr.declarative.memory;criteria...)
 
 function find_index(chunks::Array{<:Chunk,1}; criteria...)
     for (i,c) in enumerate(chunks)
