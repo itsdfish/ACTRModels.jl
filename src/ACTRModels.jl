@@ -40,7 +40,7 @@ to see documentation for `print_memory`.
 """
 module ACTRModels
     using Reexport
-    @reexport using Distributions, Parameters, Random
+    @reexport using Distributions, Parameters, Random, StatsBase, StatsFuns
     import Distributions: pdf, logpdf
     import SequentialSamplingModels: LNR
     import Base: rand, match

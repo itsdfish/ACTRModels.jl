@@ -12,9 +12,9 @@ Random.seed!(87545)
 chunks = [Chunk(;name=:Bob, department=:accounting),
     Chunk(;name=:Alice, department=:HR)]
 
-memory = Declarative(memory=chunks, mmp=true, δ=1.0, noise=true, s=.2)
+memory = Declarative(memory=chunks)
 
-actr = ACTR(;declarative=memory)
+actr = ACTR(;declarative=memory, mmp=true, δ=1.0, noise=true, s=.2)
 
 chunk = retrieve(actr; department=:accounting)
 rt = compute_RT(actr, chunk)
