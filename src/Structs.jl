@@ -1,3 +1,5 @@
+abstract type AbstractParms end
+
 """
 Default parameter for the declarative memory module.
 
@@ -16,7 +18,7 @@ Default parameter for the declarative memory module.
 * `noise`: noise on
 * `misc`: NamedTuple of extra parameters
 """
-mutable struct Parms{T1,T2,T3,T4,T5,T6,T7,T8,T9,T10,T11}
+mutable struct Parms{T1,T2,T3,T4,T5,T6,T7,T8,T9,T10,T11} <: AbstractParms
     d::T1
     τ::T2
     s::T3
@@ -130,15 +132,13 @@ Example:
 declarative = Declarative(memory=chunks, d=.5, s=.3)
 ````
 """
-mutable struct Declarative{T1,T2,T3} <: Mod
+mutable struct Declarative{T1,T2} <: Mod
     memory::Array{T1,1}
-    parms::T2
-    filtered::T3
+    filtered::T2
 end
 
-function Declarative(;memory=Chunk[], filtered=(:isa,:retrieved), parms...)
-    parms′ = Parms(;parms...)
-    return  Declarative(memory, parms′, filtered)
+function Declarative(;memory=Chunk[], filtered=(:isa,:retrieved))
+    return  Declarative(memory, filtered)
 end
 
 """
@@ -148,9 +148,9 @@ slot does not exist or slot value does not match
 * `chunk`: memory chunk object
 * `request`: `NamedTuple` of slot-value pairs for the retrieval request
 """
-function defaultFun(memory, chunk; request...)
+function defaultFun(actr, chunk; request...)
     slots = chunk.slots
-    p = 0.0; δ = memory.parms.δ
+    p = 0.0; δ = actr.parms.δ
     for (k,v) in request
         if !(k ∈ keys(slots)) || (slots[k] != v)
             p += δ
@@ -181,11 +181,15 @@ ACTR model object
 * `declarative`: declarative memory module
 * `imaginal`: imaginal memory module
 """
-mutable struct ACTR{T1,T2} <: AbstractACTR
+mutable struct ACTR{T1,T2,T3} <: AbstractACTR
     declarative::T1
     imaginal::T2
+    parms::T3
 end
 
 Broadcast.broadcastable(x::ACTR) = Ref(x)
 
-ACTR(;declarative=Declarative(), imaginal=Imaginal()) = ACTR(declarative, imaginal)
+function ACTR(;T=Parms, declarative=Declarative(), imaginal=Imaginal(), parms...) 
+    parms′ = T(;parms...)
+    ACTR(declarative, imaginal, parms′)
+end

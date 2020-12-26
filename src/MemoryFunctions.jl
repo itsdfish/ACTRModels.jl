@@ -16,9 +16,9 @@ Computes baselevel activation according to the hybrid approximation
 * `chunk`: chunk object
 * `memory`: declarative memory object
 """
-function baselevel!(chunk, memory)
+function baselevel!(actr, chunk)
     @unpack N,L,k,lags = chunk
-    d = memory.parms.d
+    d = actr.parms.d
     exact = baselevel(d, lags)
     approx = 0.0
     if N > k
@@ -31,7 +31,7 @@ function baselevel!(chunk, memory)
     return nothing
 end
 
-baselevel!(memory) = activation!.(memory.memory, memory)
+baselevel!(actr) = activation!.(actr, memory.memory)
 
 """
 Computes the activation of a chunk or set of chunks
@@ -41,8 +41,7 @@ Computes the activation of a chunk or set of chunks
 * `request`: optional NamedTuple for retrieval request
 """
 function compute_activation!(actr::AbstractACTR, chunks::Vector{<:Chunk}, cur_time::Float64=0.0; request...)
-    memory = actr.declarative
-    @unpack sa,noise = memory.parms
+    @unpack sa,noise = actr.parms
     if sa
         # Cache denoms in spreading activation for effeciency
         spreading_activation!(actr)
@@ -67,22 +66,22 @@ Computes activation for a given chunk
 """
 function activation!(actr, chunk::Chunk, cur_time=0.0; request...)
     memory = actr.declarative
-    @unpack bll,mmp,sa,noise,blc,τ = memory.parms
-    memory.parms.τ′ = τ
+    @unpack bll,mmp,sa,noise,blc,τ = actr.parms
+    actr.parms.τ′ = τ
     reset_activation!(chunk)
     chunk.act_blc = blc + chunk.bl
     if bll
         update_lags!(chunk, cur_time)
-        baselevel!(chunk, memory)
+        baselevel!(actr, chunk)
     end
     if mmp
-        mismatch!(memory, chunk; request...)
+        mismatch!(actr, chunk; request...)
     end
     if sa
         spreading_activation!(actr, chunk)
     end
     if noise
-        add_noise!(memory, chunk)
+        add_noise!(actr, chunk)
     end
     total_activation!(chunk)
     return nothing
@@ -104,16 +103,16 @@ function total_activation!(chunk)
     return nothing
 end
 
-function add_noise!(memory, chunk)
-    @unpack τ,s = memory.parms
+function add_noise!(actr, chunk)
+    @unpack τ,s = actr.parms
     σ = s * pi / sqrt(3)
     chunk.act_noise = rand(Normal(0, σ))
-    memory.parms.τ′ = rand(Normal(τ, σ))
+    actr.parms.τ′ = rand(Normal(τ, σ))
     return nothing
 end
 
-function mismatch!(memory, chunk; request...)
-    p = memory.parms.mmpFun(memory, chunk; request...)
+function mismatch!(actr, chunk; request...)
+    p = actr.parms.mmpFun(actr, chunk; request...)
     chunk.act_pm = p
     return nothing
 end
@@ -129,13 +128,13 @@ set_noise!(actr::AbstractACTR, b)
 set_noise!(memory::Declarative, b)
 ````
 """
-set_noise!(actr::AbstractACTR, b) = set_noise!(actr.declarative, b)
+# set_noise!(actr::AbstractACTR, b) = set_noise!(actr.declarative, b)
 
-function set_noise!(memory::Declarative, b)
-    memory.parms.noise = b
+function set_noise!(actr, b)
+    actr.parms.noise = b
 end
 
-spreading_activation!(actr, chunk) = spreading_activation!(actr.declarative, actr.imaginal, chunk)
+# spreading_activation!(actr, chunk) = spreading_activation!(actr.declarative, actr.imaginal, chunk)
 
 """
 **spreading_activation** computes the spreading activation for a given chunk
@@ -148,9 +147,10 @@ Function Signature
 spreading_activation!(memory, imaginal, chunk)
 ````
 """
-function spreading_activation!(memory, imaginal, chunk)
+function spreading_activation!(actr, chunk)
+    imaginal = actr.imaginal
     w = compute_weights(imaginal)
-    r = 0.0; sa = 0.0; γ = memory.parms.γ
+    r = 0.0; sa = 0.0; γ = actr.parms.γ
     slots = imaginal.chunk.slots
     denoms = imaginal.denoms
     for (v,d) in zip(slots, denoms)
@@ -224,7 +224,7 @@ retrieval_prob(actr::AbstractACTR, target::Array{<:Chunk,1}, cur_time=0.0; reque
 ````
 """
 function retrieval_prob(actr::AbstractACTR, target::Array{<:Chunk,1}, cur_time=0.0; request...)
-    @unpack τ,s,noise = actr.declarative.parms
+    @unpack τ,s,noise = actr.parms
     σ = s * sqrt(2)
     chunks = retrieval_request(actr; request...)
     filter!(x -> (x ∈ chunks), target)
@@ -254,7 +254,7 @@ retrieval_prob(actr::AbstractACTR, chunk::Chunk, cur_time=0.0; request...)
 ````
 """
 function retrieval_prob(actr::AbstractACTR, chunk::Chunk, cur_time=0.0; request...)
-    @unpack τ,s,noise = actr.declarative.parms
+    @unpack τ,s,noise = actr.parms
     σ = s * sqrt(2)
     chunks = retrieval_request(actr; request...)
     !(chunk ∈ chunks) ? (return (0.0,1.0)) : nothing
@@ -281,7 +281,7 @@ retrieval_probs(actr::AbstractACTR, cur_time=0.0; request...)
 ````
 """
 function retrieval_probs(actr::AbstractACTR, cur_time=0.0; request...)
-    @unpack τ,s,γ,noise = actr.declarative.parms
+    @unpack τ,s,γ,noise = actr.parms
     σ = s * sqrt(2)
     set_noise!(actr, false)
     chunks = retrieval_request(actr; request...)
@@ -440,8 +440,8 @@ match(chunk::Chunk, funs...; request...) = match(chunk, funs, request)
 Returns a filtered subset of the retrieval request when partial matching is on.
 By default, slot values for isa and retrieved must match exactly.
 """
-function get_subset(declarative; request...)
-    return Iterators.filter(x -> any(s->s == x[1], declarative.filtered),
+function get_subset(actr; request...)
+    return Iterators.filter(x -> any(s->s == x[1], actr.declarative.filtered),
     request)
 end
 
@@ -450,16 +450,16 @@ Returns chunks matching a retrieval request.
 * `memory`: declarative memory object
 * `request`: optional keyword arguments corresponding to retrieval request e.g. dog = :fiddo
 """
-function retrieval_request(memory::Declarative; request...)
-    @unpack mmp = memory.parms
+function retrieval_request(actr::AbstractACTR; request...)
+    @unpack mmp = actr.parms
     if !mmp
-        return get_chunks(memory; request...)
+        return get_chunks(actr; request...)
     end
-    c = get_subset(memory; request...)
-    return get_chunks(memory; c...)
+    c = get_subset(actr; request...)
+    return get_chunks(actr; c...)
 end
 
-retrieval_request(a::AbstractACTR; request...) =  retrieval_request(a.declarative; request...)
+#retrieval_request(a::AbstractACTR; request...) =  retrieval_request(a.declarative; request...)
 
 """
 Modfy fields of an object
@@ -492,7 +492,7 @@ function retrieve(actr::AbstractACTR, cur_time=0.0; request...)
     chunks = retrieval_request(actr; request...)
     isempty(chunks) ? (return arr) : nothing
     compute_activation!(actr, chunks, cur_time; request...)
-    τ′ = memory.parms.τ′
+    τ′ = actr.parms.τ′
     best = get_max_active(chunks)
     if best[1].act >= τ′
         return best
@@ -521,21 +521,21 @@ Samples a reaction time for retrieving a chunk
 * `memory`: declarative memory object
 * `chunk`: target chunk for reaction time
 """
-function compute_RT(memory::Declarative, chunk)
-    @unpack τ′,lf = memory.parms
+function compute_RT(actr, chunk)
+    @unpack τ′,lf = actr.parms
     if isempty(chunk)
         return lf * exp(-τ′)
     end
     return lf * exp(-chunk[1].act)
 end
 
-function compute_RT(memory::Declarative, chunk::Chunk)
-    @unpack lf = memory.parms
+function compute_RT(actr, chunk::Chunk)
+    @unpack lf = actr.parms
     return lf * exp(-chunk.act)
 end
 
-compute_RT(actr::ACTR, chunk) = compute_RT(actr.declarative, chunk)
-compute_RT(actr::ACTR, chunk::Chunk) = compute_RT(actr.declarative, chunk)
+#compute_RT(actr::ACTR, chunk) = compute_RT(actr.declarative, chunk)
+#compute_RT(actr::ACTR, chunk::Chunk) = compute_RT(actr.declarative, chunk)
 
 
 """
@@ -544,9 +544,9 @@ Returns a miscelleneous parameter
 * ` p`: parameter name
 """
 function get_parm(actr, p)
-    misc = actr.declarative.parms.misc
+    misc = actr.parms.misc
     if p in keys(misc)
         return misc[p]
     end
-    return getfield(actr.declarative.parms, p)
+    return getfield(actr.parms, p)
 end

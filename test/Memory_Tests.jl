@@ -32,21 +32,21 @@ using SafeTestsets
         actr,memory,chunks = initializeACTR(;bll=true)
         c = get_chunks(actr; animal=:dog,name=:Sigma)[1]
         update_lags!(c, 2.0)
-        baselevel!(c, memory)
+        baselevel!(actr, c)
         @test c.act_bll ≈ -0.346573 atol=1e-5
         c.act_bll = 0.0
         update_lags!(c, 5.0)
-        baselevel!(c, memory)
+        baselevel!(actr, c)
         @test c.act_bll ≈ -0.80471 atol=1e-5
         c.act_bll = 0.0
         update_recent!(c, 10.0)
         update_chunk!(c, 12)
         update_lags!(c, 14)
-        baselevel!(c, memory)
+        baselevel!(actr, c)
         @test c.act_bll ≈ 0.09076 atol=1e-5
         c.act_bll = 0.0
-        memory.parms.d = .8
-        baselevel!(c, memory)
+        actr.parms.d = .8
+        baselevel!(actr, c)
         @test c.act_bll ≈ -0.220564 atol=1e-5
 
         actr,memory,chunks = initializeACTR(; bll=true)
@@ -79,13 +79,13 @@ using SafeTestsets
         include("memory.jl")
 
         actr,memory,chunks = initializeACTR()
-        c = get_chunks(actr; animal=:human, name=:Wilford, lastName=:Brimley)
+        c = get_chunks(actr; animal=:human, name=:Wilford, last_name=:Brimley)
         @test isempty(c)
-        add_chunk!(actr, 10.0; animal=:human, name=:Wilford, lastName=:Brimley)
-        c = get_chunks(actr; animal=:human, name=:Wilford, lastName=:Brimley)
+        add_chunk!(actr, 10.0; animal=:human, name=:Wilford, last_name=:Brimley)
+        c = get_chunks(actr; animal=:human, name=:Wilford, last_name=:Brimley)
         @test !isempty(c)
         @test c[1].N == 1
-        add_chunk!(actr, 10.0; animal=:human, name=:Wilford, lastName=:Brimley)
+        add_chunk!(actr, 10.0; animal=:human, name=:Wilford, last_name=:Brimley)
         @test c[1].N == 2
     end
 
@@ -122,7 +122,7 @@ using SafeTestsets
         p1,_ = retrieval_prob(actr, c, 1.0)
         update_lags!(actr, 3.0)
         p2,_ = retrieval_prob(actr, c, 3.0)
-        memory.parms.d = .8
+        actr.parms.d = .8
         p3,_ = retrieval_prob(actr, c, 3.0)
         @test p1 > p2 > p3
 
@@ -160,8 +160,8 @@ using SafeTestsets
         using ACTRModels, Test
         chunks = Chunk[Chunk(;isa=:bafoon, animal=:dog,name=:Sigma, retrieved=[false]),
         Chunk(;isa=:mammal,animal=:cat,name=:Butters, retrieved=[false])]
-        memory = Declarative(;memory=chunks, mmp=true)
-        actr = ACTR(;declarative=memory)
+        memory = Declarative(;memory=chunks)
+        actr = ACTR(;declarative=memory, mmp=true)
         request = retrieval_request(actr; isa=:mammal)
         @test request[1].slots.name == :Butters
     end
@@ -217,13 +217,13 @@ using SafeTestsets
     @safetestset "spreading activation" begin
         using ACTRModels, Test
         chunks = [Chunk(a=:a, b=:b, c=:c), Chunk(a=:a, b=:b, c=:a)]
-        memory = Declarative(memory=chunks, γ=1.6)
+        memory = Declarative(memory=chunks)
         imaginal = Imaginal(chunk=Chunk(a=:a, b=:b))
-        actr = ACTR(declarative=memory, imaginal=imaginal)
+        actr = ACTR(declarative=memory, imaginal=imaginal, γ=1.6)
         compute_activation!(actr)
         @test chunks[1].act == 0.0
         @test chunks[2].act == 0.0
-        memory.parms.sa = true
+        actr.parms.sa = true
         compute_activation!(actr)
         @test chunks[1].act ≈ 0.3575467 atol = 1e-5
         @test chunks[2].act ≈ 0.7041203 atol = 1e-5
@@ -232,8 +232,8 @@ using SafeTestsets
     @safetestset "partial matching" begin
         using ACTRModels, Test
         chunk = Chunk(a=:a, b=:b)
-        memory = Declarative(memory=[chunk], mmp=true, δ=1.0)
-        actr = ACTR(declarative=memory)
+        memory = Declarative(memory=[chunk])
+        actr = ACTR(declarative=memory, mmp=true, δ=1.0)
         compute_activation!(actr)
         @test chunk.act == 0.0
         compute_activation!(actr; a=:a)
@@ -291,10 +291,10 @@ using SafeTestsets
         import ACTRModels: reset_activation!
         chunks = [Chunk(a=:a, b=:b, c=:c), Chunk(a=:a, b=:b, c=:a)]
         chunk = chunks[1]
-        memory = Declarative(memory=chunks, mmp=true, noise=true, bll=true, sa=true, γ=1.6,
-            δ=1.0)
+        memory = Declarative(memory=chunks)
         imaginal = Imaginal(chunk=Chunk(a=:a, b=:b))
-        actr = ACTR(declarative=memory, imaginal=imaginal)
+        actr = ACTR(declarative=memory, imaginal=imaginal, mmp=true, noise=true, bll=true, 
+            sa=true, γ=1.6, δ=1.0)
         compute_activation!(actr, 3.0; a=:b)
         @test chunk.act_bll != 0
         @test chunk.act_pm != 0
@@ -324,9 +324,9 @@ using SafeTestsets
         using ACTRModels, Test
         chunks = [Chunk(a=:a, b=:b, c=:c), Chunk(a=:a, b=:b, c=:a)]
         chunk = chunks[1]
-        memory = Declarative(memory=chunks, mmp=true, noise=true, bll=true, sa=true, γ=1.6,
-            δ=1.0, Σ=.3)
-        actr = ACTR(declarative=memory)
+        memory = Declarative(memory=chunks)
+        actr = ACTR(declarative=memory, mmp=true, noise=true, bll=true, sa=true, γ=1.6,
+        δ=1.0, Σ=.3)
         @test get_parm(actr, :δ) ≈ 1.0 atol = 1e-5
         @test get_parm(actr, :Σ) ≈ 0.3 atol = 1e-5
         @test get_parm(actr, :noise) 
@@ -337,8 +337,8 @@ using SafeTestsets
         Random.seed!(41140)
         chunks = [Chunk(a=:a, b=:b, c=:c), Chunk(a=:a, b=:b, c=:a)]
         chunk = chunks[1]
-        memory = Declarative(memory=chunks, blc=1.5)
-        actr = ACTR(declarative=memory)
+        memory = Declarative(memory=chunks)
+        actr = ACTR(declarative=memory, blc=1.5)
         retrieved = retrieve(actr; a=:a, b=:b, c=:c)
         rt = compute_RT(actr, retrieved)
         @test rt ≈ exp(-1.5) atol = 1e-5
@@ -350,8 +350,8 @@ using SafeTestsets
         chunks = [Chunk(a=:a, b=:b, c=:c), Chunk(a=:a, b=:b, c=:a)]
         chunk = chunks[1]
         s = .2
-        memory = Declarative(memory=chunks, blc=1.5, noise=true, s=s)
-        actr = ACTR(declarative=memory)
+        memory = Declarative(memory=chunks)
+        actr = ACTR(declarative=memory, blc=1.5, noise=true, s=s)
         retrieved = retrieve(actr; a=:a, b=:b, c=:c)
         function sim(actr, chunk)
             compute_activation!(actr, chunk)
