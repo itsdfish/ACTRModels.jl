@@ -59,11 +59,10 @@ Declarative Memory Chunk
 * `lags`: lags for recent retrievals (L - recent)
 * `bl`: baselevel constant added to chunks activation
 
-```
 Example:
-
+````julia
 chunk = Chunk(;time_created=4.0, person=:hippie, place=:park)
-```
+````
 """
 mutable struct Chunk{T1,T2}
   N::Int
@@ -125,6 +124,11 @@ Stores an array of chunks and a parameter object with the following default para
 * `misc`: NamedTuple of extra parameters
 * `filtered:` a list of slots that must absolutely match with mismatch penalty. isa and retrieval are included
     by default
+    
+Example:
+````julia
+declarative = Declarative(memory=chunks, d=.5, s=.3)
+````
 """
 mutable struct Declarative{T1,T2,T3} <: Mod
     memory::Array{T1,1}

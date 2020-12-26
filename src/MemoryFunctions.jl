@@ -119,9 +119,15 @@ function mismatch!(memory, chunk; request...)
 end
 
 """
-Set noise true or false.
+**set_noise!** sets noise true or false.
 * `actr`: ACTR object
-* `v`: boolean value
+* `b`: boolean value
+
+Function Signature
+````julia
+set_noise!(actr::AbstractACTR, b)
+set_noise!(memory::Declarative, b)
+````
 """
 set_noise!(actr::AbstractACTR, b) = set_noise!(actr.declarative, b)
 
@@ -132,10 +138,15 @@ end
 spreading_activation!(actr, chunk) = spreading_activation!(actr.declarative, actr.imaginal, chunk)
 
 """
-Computes the spreading activation for a given chunk
+**spreading_activation** computes the spreading activation for a given chunk
 * `actr`: actr object or declarative memory object
 * `imaginal`: imaginal object
 * `chunk`: the chunk for which spreading activation is computed
+
+Function Signature
+````julia
+spreading_activation!(memory, imaginal, chunk)
+````
 """
 function spreading_activation!(memory, imaginal, chunk)
     w = compute_weights(imaginal)
@@ -181,10 +192,15 @@ function count_values(chunk, value)
 end
 
 """
-Adds a new timestamp to chunk and removes oldest timestamp if
+**update_recent** adds a new timestamp to chunk and removes oldest timestamp if
 length equals k.
 * `chunk`: memory chunk object
 * `cur_time`: current time in seconds
+
+Function Signature
+````julia
+update_recent!(chunk, cur_time)
+````
 """
 function update_recent!(chunk, cur_time)
     k = chunk.k; recent = chunk.recent
@@ -196,11 +212,16 @@ function update_recent!(chunk, cur_time)
 end
 
 """
-Computes the retrieval probability of a single chunk or the marginal probability of retrieving any chunk from a set of chunks.
+**retrieval_prob** computes the retrieval probability of one chunk from a set of chunks defined in `target`.
 * `actr`: an actr object
-* `chunk`: a chunk or array of chunks
+* `chunk`: a chunk
 * `cur_time`: current time. Default 0.0 to be used when bll is false
 * `request`: optional NamedTuple for retrieval request
+
+Function Signature
+````julia
+retrieval_prob(actr::AbstractACTR, target::Array{<:Chunk,1}, cur_time=0.0; request...)
+````
 """
 function retrieval_prob(actr::AbstractACTR, target::Array{<:Chunk,1}, cur_time=0.0; request...)
     @unpack τ,s,noise = actr.declarative.parms
@@ -220,6 +241,18 @@ function retrieval_prob(actr::AbstractACTR, target::Array{<:Chunk,1}, cur_time=0
     return prob,fail
 end
 
+"""
+**retrieval_prob** computes the retrieval probability of retrieving a chunk.
+* `actr`: an actr object
+* `chunk`: a chunk
+* `cur_time`: current time. Default 0.0 to be used when bll is false
+* `request`: optional NamedTuple for retrieval request
+
+Function Signature
+````julia
+retrieval_prob(actr::AbstractACTR, chunk::Chunk, cur_time=0.0; request...)
+````
+"""
 function retrieval_prob(actr::AbstractACTR, chunk::Chunk, cur_time=0.0; request...)
     @unpack τ,s,noise = actr.declarative.parms
     σ = s * sqrt(2)
@@ -237,10 +270,15 @@ function retrieval_prob(actr::AbstractACTR, chunk::Chunk, cur_time=0.0; request.
 end
 
 """
-Computes the retrieval probability for each chunk matching the retrieval request.
+**retrieval_probs** computes the retrieval probability for each chunk matching the retrieval request.
 * `actr`: an actr object
 * `cur_time`: current time. Default 0.0 to be used when bll is false
 * `request`: optional NamedTuple for retrieval request
+
+Function Signature
+````julia
+retrieval_probs(actr::AbstractACTR, cur_time=0.0; request...)
+````
 """
 function retrieval_probs(actr::AbstractACTR, cur_time=0.0; request...)
     @unpack τ,s,γ,noise = actr.declarative.parms
@@ -257,14 +295,44 @@ function retrieval_probs(actr::AbstractACTR, cur_time=0.0; request...)
     return p,chunks
 end
 
+"""
+**update_lags** compute lags for each use of a chunk.
+* `chunk`: a chunk
+* `cur_time`: current time. Default 0.0 to be used when bll is false
+
+Function Signature
+````julia
+update_lags!(chunk::Chunk, cur_time)
+````
+"""
 function update_lags!(chunk::Chunk, cur_time)
     chunk.L = cur_time - chunk.time_created
     chunk.lags = cur_time .- chunk.recent
     return nothing
 end
 
+"""
+**update_lags** compute lags for each use of a chunk. Applies to all chunks in declarative memory.
+* `actr`: an ACTR object
+* `cur_time`: current time. Default 0.0 to be used when bll is false
+
+Function Signature
+````julia
+update_lags!(actr::AbstractACTR, cur_time)
+````
+"""
 update_lags!(actr::AbstractACTR, cur_time) = update_lags!(actr.declarative, cur_time)
 
+"""
+**update_lags** compute lags for each use of a chunk. Applies to all chunks in declarative memory.
+* `memory`: a declarative memory object object
+* `cur_time`: current time. Default 0.0 to be used when bll is false
+
+Function Signature
+````julia
+update_lags!(memory::Declarative, cur_time)
+````
+"""
 update_lags!(memory::Declarative, cur_time) = update_lags!.(memory.memory, cur_time)
 
 function update_chunk!(chunk, cur_time)
@@ -280,7 +348,7 @@ Adds new chunk to declarative memory or updates existing chunk with new use
 * `slots`: optional keyword arguments corresponding to slot-value pairs, e.g. name=:Bob
 """
 function add_chunk!(memory::Declarative, cur_time=0.0; act=0.0, slots...)
-    chunk = get_chunk(memory; slots...)
+    chunk = get_chunks(memory; slots...)
     if isempty(chunk)
         c = Chunk(;act=act, time_created=cur_time, recent=[cur_time], slots...)
         push!(memory.memory, c)
@@ -297,23 +365,23 @@ Returns all chunks that matches a set criteria
 * `memory`: vector of chunk objects
 * `args`: optional keyword arguments corresponding to critiria for matching chunk
 """
-function get_chunk(memory::Vector{<:Chunk}; args...)
+function get_chunks(memory::Vector{<:Chunk}; args...)
     c = filter(x -> match(x, args), memory)
     return c
 end
 
-function get_chunk(memory::Vector{<:Chunk}, funs...; args...)
+function get_chunks(memory::Vector{<:Chunk}, funs...; args...)
     c = filter(x -> match(x, funs...; args...), memory)
     return c
 end
 
-get_chunk(d::Declarative; args...) = get_chunk(d.memory; args...)
+get_chunks(d::Declarative; args...) = get_chunks(d.memory; args...)
 
-get_chunk(a::AbstractACTR; args...) = get_chunk(a.declarative.memory; args...)
+get_chunks(a::AbstractACTR; args...) = get_chunks(a.declarative.memory; args...)
 
-get_chunk(d::Declarative, funs...; args...) = get_chunk(d.memory, funs...; args...)
+get_chunks(d::Declarative, funs...; args...) = get_chunks(d.memory, funs...; args...)
 
-get_chunk(a::AbstractACTR, funs...; args...) = get_chunk(a.declarative.memory, funs...; args...)
+get_chunks(a::AbstractACTR, funs...; args...) = get_chunks(a.declarative.memory, funs...; args...)
 
 """
 Returns the first chunk in memory that matches a set of criteria
@@ -385,10 +453,10 @@ Returns chunks matching a retrieval request.
 function retrieval_request(memory::Declarative; request...)
     @unpack mmp = memory.parms
     if !mmp
-        return get_chunk(memory; request...)
+        return get_chunks(memory; request...)
     end
     c = get_subset(memory; request...)
-    return get_chunk(memory; c...)
+    return get_chunks(memory; c...)
 end
 
 retrieval_request(a::AbstractACTR; request...) =  retrieval_request(a.declarative; request...)

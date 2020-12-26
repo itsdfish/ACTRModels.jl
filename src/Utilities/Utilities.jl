@@ -8,17 +8,44 @@ function sample_chain(chain)
     return NamedTuple{parms}(vals)
 end
 
-function posterior_predictive(m, chain, f=x -> x)
+function _posterior_predictive(m, chain, f=x -> x)
     parms = sample_chain(chain)
     return f(m(parms))
 end
 
+"""
+**posterior_predictive** returns posterior predictive distribution and optionally applies function to samples 
+    on each replication
+- `model`: the data generating function of a model 
+- `chain`: an MCMCChains chain object
+- `n_samples`: the number of samples 
+- `f`: a function that is applied to each sample from posterior predictive distribution
+Function Signature
+````julia
+posterior_predictive(model, chain, n_samples::Int, f=x -> x)
+````
+"""
 function posterior_predictive(model, chain, n_samples::Int, f=x -> x)
-    return map(x -> posterior_predictive(model, chain, f), 1:n_samples)
+    return map(x -> _posterior_predictive(model, chain, f), 1:n_samples)
 end
 
-find_index(actr::ACTR; criteria...) = find_index(actr.declarative.memory;criteria...)
+find_index(actr::AbstractACTR; criteria...) = find_index(actr.declarative.memory; criteria...)
 
+"""
+**find_index** returns the index of first chunk that matches a set of criteria
+- `chunks`: an array of chunks
+- `criteria`: a set of keyword arguments for slot-value pairs
+
+Function Signature
+````julia
+find_index(chunks::Array{<:Chunk,1}; criteria...)
+````
+## Example
+````julia
+chunks = [Chunk(animal=:dog), Chunk(animal=cat)]
+find_index(chunks; animal=:dog)
+````
+"""
 function find_index(chunks::Array{<:Chunk,1}; criteria...)
     for (i,c) in enumerate(chunks)
         match(c;criteria...) ? (return i) : nothing
@@ -26,8 +53,40 @@ function find_index(chunks::Array{<:Chunk,1}; criteria...)
     return -100
 end
 
+"""
+**find_index** returns the index of first chunk that matches a set of criteria
+- `actr`: ACTR object
+- `funs`: a set of functions
+- `criteria`: a set of keyword arguments for slot-value pairs
+
+Function Signature
+````julia
+find_index(actr::ACTR, funs...; criteria...)
+````
+## Example
+````julia
+chunks = [Chunk(animal=:dog), Chunk(animal=cat)]
+find_index(chunks; animal=:dog)
+````
+"""
 find_index(actr::ACTR, funs...; criteria...) = find_index(actr.declarative.memory, funs...; criteria...)
 
+"""
+**find_index** returns the index of first chunk that matches a set of criteria
+- `chunks`: an array of chunks
+- `funs`: a set of functions
+- `criteria`: a set of keyword arguments for slot-value pairs
+
+Function Signature
+````julia
+find_index(chunks::Array{<:Chunk,1}; criteria...)
+````
+## Example
+````julia
+chunks = [Chunk(animal=:dog), Chunk(animal=cat)]
+find_index(chunks; animal=:dog)
+````
+"""
 function find_index(chunks::Array{<:Chunk,1}, funs...; criteria...)
     for (i,c) in enumerate(chunks)
         match(c, funs...; criteria...) ? (return i) : nothing
@@ -35,8 +94,38 @@ function find_index(chunks::Array{<:Chunk,1}, funs...; criteria...)
     return -100
 end
 
+"""
+**find_indices** returns the index of first chunk that matches a set of criteria
+- `actr`: an ACTR object
+- `criteria`: a set of keyword arguments for slot-value pairs
+
+Function Signature
+````julia
+find_indices(actr::ACTR; criteria...)
+````
+## Example
+````julia
+chunks = [Chunk(animal=:dog), Chunk(animal=:dog), Chunk(animal=cat)]
+find_indices(chunks; animal=:dog)
+````
+"""
 find_indices(actr::ACTR; criteria...) = find_indices(actr.declarative.memory; criteria...)
 
+"""
+**find_indices** returns the index of first chunk that matches a set of criteria
+- `chunks`: an array of chunks
+- `criteria`: a set of keyword arguments for slot-value pairs
+
+Function Signature
+````julia
+find_indices(actr::ACTR; criteria...)
+````
+## Example
+````julia
+chunks = [Chunk(animal=:dog), Chunk(animal=:dog), Chunk(animal=cat)]
+find_indices(chunks; animal=:dog)
+````
+"""
 function find_indices(chunks::Array{<:Chunk,1}; criteria...)
     idx = Int64[]
     for (i,c) in enumerate(chunks)
@@ -45,8 +134,40 @@ function find_indices(chunks::Array{<:Chunk,1}; criteria...)
     return idx
 end
 
+"""
+**find_indices** returns the index of first chunk that matches a set of criteria
+- `actr`: an ACTR object
+- `funs`: a set of functions
+- `criteria`: a set of keyword arguments for slot-value pairs
+
+Function Signature
+````julia
+find_indices(actr::ACTR; criteria...)
+````
+## Example
+````julia
+chunks = [Chunk(animal=:dog), Chunk(animal=:dog), Chunk(animal=cat)]
+find_indices(chunks; animal=:dog)
+````
+"""
 find_indices(actr::ACTR, funs...; criteria...) = find_indices(actr.declarative.memory, funs...; criteria...)
 
+"""
+**find_indices** returns the index of first chunk that matches a set of criteria
+- `chunks`: an array of chunks
+- `funs`: a set of functions
+- `criteria`: a set of keyword arguments for slot-value pairs
+
+Function Signature
+````julia
+find_indices(actr::ACTR; criteria...)
+````
+## Example
+````julia
+chunks = [Chunk(animal=:dog), Chunk(animal=:dog), Chunk(animal=cat)]
+find_indices(chunks; animal=:dog)
+````
+"""
 function find_indices(chunks::Array{<:Chunk,1}, funs...; criteria...)
     idx = Int64[]
     for (i,c) in enumerate(chunks)
@@ -56,74 +177,9 @@ function find_indices(chunks::Array{<:Chunk,1}, funs...; criteria...)
 end
 
 """
-**print_memory** prints all chunks in declarative memory and returns a DataFrame.
-- `actr`: an ACTR object
-- `fields`: a keyword argument of tuple of symbols of fields to print. See function signature below for default values.
-    Pass fields = :all to print all fields.
-
-Function signature
-````julia
-print_memory(actr::AbstractACTR; fields=(:slots,:act_blc,:act_bll,:act_pm,:act_sa,:act_noise,:act))
-````
+**import_printing** import printing functions `print_chunk` and `print_memory`
 """
-function print_memory(actr::AbstractACTR; fields=(:slots,:act_blc,:act_bll,
-    :act_pm,:act_sa,:act_noise,:act))
-    return print_memory(actr.declarative; fields=fields)
-end
-
-"""
-**print_memory** prints all chunks in declarative memory and returns a DataFrame.
-- `memory`: a declarative memory object
-- `fields`: a keyword argument of tuple of symbols of fields to print. See function signature below for default values.
-    Pass fields = :all to print all fields.
-
-Function signature
-````julia
-print_memory(memory::Declarative; fields=(:slots,:act_blc,:act_bll,:act_pm,:act_sa,:act_noise,:act))
-````
-"""
-function print_memory(memory::Declarative; fields=(:slots,:act_blc,:act_bll,
-    :act_pm,:act_sa,:act_noise,:act))
-    return print_memory(memory.memory; fields=fields)
-end
-
-"""
-**print_memory** prints all chunks in declarative memory and returns a DataFrame.
-- `chunks`: a vector of chunks
-- `fields`: a keyword argument of tuple of symbols of fields to print. See function signature below for default values.
-    Pass fields = :all to print all fields.
-
-Function signature
-````julia
-print_memory(chunks; fields=(:slots,:act_blc,:act_bll,:act_pm,:act_sa,:act_noise,:act))
-````
-"""
-function print_memory(chunks; fields=(:slots,:act_blc,:act_bll,
-    :act_pm,:act_sa,:act_noise,:act))
-    df = DataFrame(chunks)
-    slots = map(x->x.slots, chunks)
-    df_slots = DataFrame()
-    for chunk in chunks
-        push!(df_slots, chunk.slots; cols=:union)
-    end
-    fields == :all ? nothing : select!(df, fields...)
-    df = [df_slots df]
-    select!(df, Not(:slots))
-    return df
-end
-
-"""
-**print_chunk** prints the contents of a chunk and returns a DataFrame.
-- `chunk`: a chunk
-- `fields`: a keyword argument of tuple of symbols of fields to print. See function signature below for default values.
-    Pass fields = :all to print all fields.
-
-Function signature
-````julia
-print_chunk(chunk; fields=(:slots,:act_blc, :act_bll,:act_pm,:act_sa,:act_noise,:act))
-````
-"""
-function print_chunk(chunk; fields=(:slots,:act_blc, :act_bll,
-    :act_pm,:act_sa,:act_noise,:act))
-    return print_memory([chunk]; fields=fields)
+function import_printing()
+    path = pathof(ACTRModels) |> dirname |> x->joinpath(x, "Utilities/")
+    include(path*"Printing.jl")
 end

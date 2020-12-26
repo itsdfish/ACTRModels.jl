@@ -41,6 +41,7 @@ using SafeTestsets
     @safetestset "print_memory" begin
         using ACTRModels, Test
         include("Utility_Functions.jl")
+        import_printing()
         chunks = populateMemory()
         declarative = Declarative(memory=chunks)
         actr = ACTR(declarative = declarative)
@@ -52,6 +53,7 @@ using SafeTestsets
     @safetestset "print_chunk" begin
         using ACTRModels, Test
         include("Utility_Functions.jl")
+        import_printing()
         chunks = populateMemory()
         print_chunk(chunks[1])
     end

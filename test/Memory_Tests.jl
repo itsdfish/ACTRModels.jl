@@ -30,7 +30,7 @@ using SafeTestsets
         include("memory.jl")
 
         actr,memory,chunks = initializeACTR(;bll=true)
-        c = get_chunk(actr; animal=:dog,name=:Sigma)[1]
+        c = get_chunks(actr; animal=:dog,name=:Sigma)[1]
         update_lags!(c, 2.0)
         baselevel!(c, memory)
         @test c.act_bll ≈ -0.346573 atol=1e-5
@@ -50,7 +50,7 @@ using SafeTestsets
         @test c.act_bll ≈ -0.220564 atol=1e-5
 
         actr,memory,chunks = initializeACTR(; bll=true)
-        c = get_chunk(actr; animal=:dog, name=:Sigma)[1]
+        c = get_chunks(actr; animal=:dog, name=:Sigma)[1]
         c.k = 2
         update_chunk!(c, 1)
         update_chunk!(c, 2)
@@ -79,10 +79,10 @@ using SafeTestsets
         include("memory.jl")
 
         actr,memory,chunks = initializeACTR()
-        c = get_chunk(actr; animal=:human, name=:Wilford, lastName=:Brimley)
+        c = get_chunks(actr; animal=:human, name=:Wilford, lastName=:Brimley)
         @test isempty(c)
         add_chunk!(actr, 10.0; animal=:human, name=:Wilford, lastName=:Brimley)
-        c = get_chunk(actr; animal=:human, name=:Wilford, lastName=:Brimley)
+        c = get_chunks(actr; animal=:human, name=:Wilford, lastName=:Brimley)
         @test !isempty(c)
         @test c[1].N == 1
         add_chunk!(actr, 10.0; animal=:human, name=:Wilford, lastName=:Brimley)
@@ -99,11 +99,11 @@ using SafeTestsets
         @test retrieval_prob(actr, chunks[1]; isa=:mammal) == (0,1)
 
         actr,memory,chunks = initializeACTR(;τ=.5)
-        c = get_chunk(actr; animal=:rat)
+        c = get_chunks(actr; animal=:rat)
         @test retrieval_prob(actr, c; animal=:rat)[1] ≈ 0.38098 atol=1e-5
 
         actr,memory,chunks = initializeACTR(;τ=.5, mmp=true, δ=1.0)
-        c = get_chunk(actr; animal=:rat, name=:Joy)
+        c = get_chunks(actr; animal=:rat, name=:Joy)
         p1,_ = retrieval_prob(actr, c)
         @test p1 ≈ 0.137939 atol=1e-5
 
@@ -117,7 +117,7 @@ using SafeTestsets
         @test p3 == 0
 
         actr,memory,chunks = initializeACTR(;τ=.5, bll=true)
-        c = get_chunk(actr; animal=:rat, name=:Joy)
+        c = get_chunks(actr; animal=:rat, name=:Joy)
         update_lags!(actr, 1.0)
         p1,_ = retrieval_prob(actr, c, 1.0)
         update_lags!(actr, 3.0)
@@ -127,7 +127,7 @@ using SafeTestsets
         @test p1 > p2 > p3
 
         actr,memory,chunks = initializeACTR(;d=.5, bll=true)
-        c = get_chunk(actr; animal=:rat, name=:Joy)
+        c = get_chunks(actr; animal=:rat, name=:Joy)
         update_recent!.(c, 5.0)
         update_lags!(actr, 7)
         p1,_ = retrieval_prob(actr, c, 7.0)
@@ -138,7 +138,7 @@ using SafeTestsets
         @test p1 < p2 < p3
 
         actr,memory,chunks = initializeACTR(;sa=true, γ=1.0)
-        c = get_chunk(actr; animal=:rat, name=:Joy)
+        c = get_chunks(actr; animal=:rat, name=:Joy)
         actr.imaginal.chunk = Chunk(;animal=:rat)
         p1,_ = retrieval_prob(actr, c)
         actr.imaginal.chunk = Chunk(;name=:Joy)
@@ -248,15 +248,15 @@ using SafeTestsets
         @test chunk.act == -2.0
     end 
 
-    @safetestset "get_chunk" begin
+    @safetestset "get_chunks" begin
         using ACTRModels, Test
         chunks = [Chunk(a=:a, b=:c),Chunk(a=:a, b=:b)]
         memory = Declarative(memory=chunks)
         actr = ACTR(declarative=memory)
-        result = get_chunk(actr; a=:b)
+        result = get_chunks(actr; a=:b)
         @test isempty(result)
 
-        result = get_chunk(actr; a=:a)
+        result = get_chunks(actr; a=:a)
         @test !isempty(result)
         @test length(result) == 2
         @test result[1].slots.a == :a
@@ -264,7 +264,7 @@ using SafeTestsets
         @test result[2].slots.a == :a
         @test result[2].slots.b == :b
 
-       result = get_chunk(actr; a=:a, b=:b)
+       result = get_chunks(actr; a=:a, b=:b)
        @test !isempty(result)
        @test length(result) == 1
        @test result[1].slots.a == :a
@@ -276,7 +276,7 @@ using SafeTestsets
         chunks = [Chunk(a=:a, b=:c),Chunk(a=:a, b=:b)]
         memory = Declarative(memory=chunks)
         actr = ACTR(declarative=memory)
-        result = get_chunk(actr; a=:b)
+        result = get_chunks(actr; a=:b)
         @test isempty(result)
 
         result = first_chunk(actr; a=:a)
