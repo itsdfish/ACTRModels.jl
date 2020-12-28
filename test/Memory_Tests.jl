@@ -139,9 +139,9 @@ using SafeTestsets
 
         actr,memory,chunks = initializeACTR(;sa=true, γ=1.0)
         c = get_chunks(actr; animal=:rat, name=:Joy)
-        actr.imaginal.chunk = Chunk(;animal=:rat)
+        actr.imaginal.buffer[1] = Chunk(;animal=:rat)
         p1,_ = retrieval_prob(actr, c)
-        actr.imaginal.chunk = Chunk(;name=:Joy)
+        actr.imaginal.buffer[1] = Chunk(;name=:Joy)
         p2,_ = retrieval_prob(actr, c)
         @test p2 > p1
     end

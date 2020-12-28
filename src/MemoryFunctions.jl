@@ -222,7 +222,7 @@ function spreading_activation!(actr, chunk)
     imaginal = actr.imaginal
     w = compute_weights(imaginal)
     r = 0.0; sa = 0.0; γ = actr.parms.γ
-    slots = imaginal.chunk.slots
+    slots = imaginal.buffer[1].slots
     denoms = imaginal.denoms
     for (v,d) in zip(slots, denoms)
         num = count_values(chunk, v)
@@ -237,7 +237,7 @@ end
 # Caches the denominator of spreading activation
 function spreading_activation!(actr)
     @unpack imaginal,declarative = actr
-    slots = imaginal.chunk.slots
+    slots = imaginal.buffer[1].slots
     denoms = fill(0, length(slots))
     for (i,v) in enumerate(slots)
         denoms[i] = compute_denom(declarative, v)
@@ -247,7 +247,7 @@ function spreading_activation!(actr)
 end
 
 function compute_weights(mod)
-    return mod.ω / length(mod.chunk.slots)
+    return mod.ω / length(mod.buffer[1].slots)
 end
 
 function compute_denom(memory, value)

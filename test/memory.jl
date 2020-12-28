@@ -1,11 +1,16 @@
 #Allows chunk to have hetergenious type
-mutable struct Imaginal1{T1}
-    chunk::Chunk
-    ω::T1
+mutable struct Imaginal1
+    buffer::Array{Chunk,1}
+    state::BufferState
+    ω::Float64
     denoms::Vector{Int64}
 end
 
-Imaginal1(;chunk=Chunk(), ω=1.0, denoms=Int64[])=Imaginal1(chunk, ω, denoms)
+function Imaginal1(;chunk=Chunk(), ω=1.0, denoms=Int64[]) 
+    state = BufferState()
+    Imaginal1([chunk], state, ω, denoms)
+end
+
 
 function initializeACTR(;parms...)
     chunks = Chunk[Chunk(;isa=:bafoon,animal=:dog,name=:Sigma),

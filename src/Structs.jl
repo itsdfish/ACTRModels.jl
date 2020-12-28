@@ -1,22 +1,47 @@
+"""
+**BufferState**
+
+An object representing the state of the buffer.
+
+- `busy`: busy if true
+- `error`: error if true
+- `empty`: empty if true
+
+Constructor
+
+````julia 
+BufferState(;busy=false, error=false, empty=true)
+````
+"""
+mutable struct BufferState
+    busy::Bool
+    error::Bool
+    empty::Bool
+end
+
+BufferState(;busy=false, error=false, empty=true) = BufferState(busy, error, empty)
+
 abstract type AbstractParms end
 
 """
 Default parameter for the declarative memory module.
 
-* `d`: decay
-* `τ`: threshold
-* `s`: noise
-* `γ`: maximum associative strength
-* `blc`: base level constant
-* `δ`: mismatch penalty
-* `ter`: a constant for encoding and responding time
-* `mmpFun`: mismatch penalty function. Default substracts δ from each non-matching slot value
-* `lf:` latency factor parameter
-* `bll`: decay and learning on
-* `mmp`: mismatch penalty on
-* `sa`: spreading activatin on
-* `noise`: noise on
-* `misc`: NamedTuple of extra parameters
+    * `d`: decay
+    * `τ`: threshold
+    * `s`: noise
+    * `γ`: maximum associative strength
+    * `blc`: base level constant
+    * `δ`: mismatch penalty
+    * `ter`: a constant for encoding and responding time
+    * `mmpFun`: mismatch penalty function. Default substracts δ from each non-matching slot value
+    * `lf:` latency factor parameter
+    * `bll`: decay and learning on
+    * `mmp`: mismatch penalty on
+    * `sa`: spreading activatin on
+    * `noise`: noise on
+    * `misc`: NamedTuple of extra parameters
+    * `filtered:` a list of slots that must absolutely match with mismatch penalty. isa and retrieval are included
+        by default
 """
 mutable struct Parms{T1,T2,T3,T4,T5,T6,T7,T8,T9,T10,T11} <: AbstractParms
     d::T1
@@ -42,7 +67,9 @@ function Parms(;d=.5, τ=0.0, s=.3, γ=0.0, δ=0.0, blc=0.0, ter=0.0, mmpFun=def
 end
 
 """
-Declarative Memory Chunk
+**Chunk**
+
+A declarative memory chunk
 * `N`: number of uses
 * `L`: lifetime of chunk
 * `time_created`: time at which the chunk was created
@@ -106,39 +133,34 @@ Broadcast.broadcastable(x::Chunk) = Ref(x)
 abstract type Mod end
 
 """
-Default parameter for the declarative memory module.
+**Declarative***
 
-Stores an array of chunks and a parameter object with the following default parameters:
+Declarative Memory Module
+- `memory`: array of chunks
+- `filtered`:
+- `buffer`: an array containing one chunk
+- `state`: buffer state
 
-* `d`: decay
-* `τ`: threshold
-* `s`: noise
-* `γ`: maximum associative strength
-* `blc`: base level constant
-* `δ`: mismatch penalty
-* `ter`: a constant for encoding and responding time
-* `mmpFun`: mismatch penalty function. Default substracts δ from each non-matching slot value
-* `lf:` latency factor parameter
-* `bll`: decay and learning on
-* `mmp`: mismatch penalty on
-* `sa`: spreading activatin on
-* `noise`: noise on
-* `misc`: NamedTuple of extra parameters
-* `filtered:` a list of slots that must absolutely match with mismatch penalty. isa and retrieval are included
-    by default
-    
+Constructor:
+````julia 
+Declarative(;memory=Chunk[], filtered=(:isa,:retrieved))
+````
+
 Example:
 ````julia
-declarative = Declarative(memory=chunks, d=.5, s=.3)
+declarative = Declarative(memory=chunks)
 ````
 """
 mutable struct Declarative{T1,T2} <: Mod
     memory::Array{T1,1}
     filtered::T2
+    buffer::Array{T1,1}
+    state::BufferState
 end
 
 function Declarative(;memory=Chunk[], filtered=(:isa,:retrieved))
-    return  Declarative(memory, filtered)
+    state = BufferState()
+    return  Declarative(memory, filtered, typeof(memory)(), state)
 end
 
 """
@@ -162,34 +184,46 @@ end
 Broadcast.broadcastable(x::Declarative) = Ref(x)
 
 """
-Imaginal Module
+**Imaginal**
+
+Imaginal Module.
 * `chunk`: chunk in the imaginal module
 * `ω`: fan weight. Default is 1.
 * `denoms`: cached value for the denominator of the fan calculation
 """
 mutable struct Imaginal{T1,T2} <: Mod
-    chunk::T1
+    buffer::Array{T1,1}
+    state::BufferState
     ω::T2
     denoms::Vector{Int64}
 end
 
-Imaginal(;chunk=Chunk(), ω=1.0, denoms=Int64[]) = Imaginal(chunk, ω, denoms)
+function Imaginal(;chunk=Chunk(), ω=1.0, denoms=Int64[]) 
+    state = BufferState()
+    Imaginal([chunk], state, ω, denoms)
+end
 
 abstract type AbstractACTR end
 """
+**ACTR**
+
 ACTR model object
-* `declarative`: declarative memory module
-* `imaginal`: imaginal memory module
+- `declarative`: declarative memory module
+- `imaginal`: imaginal memory module
+- `parms`: model parameters
+-  `scheduler`: event scheduler
 """
-mutable struct ACTR{T1,T2,T3} <: AbstractACTR
+mutable struct ACTR{T1,T2,T3,T4} <: AbstractACTR
     declarative::T1
     imaginal::T2
     parms::T3
+    scheduler::T4
 end
 
 Broadcast.broadcastable(x::ACTR) = Ref(x)
 
-function ACTR(;T=Parms, declarative=Declarative(), imaginal=Imaginal(), parms...) 
+function ACTR(;T=Parms, declarative=Declarative(), imaginal=Imaginal(), 
+    scheduler=nothing, parms...) 
     parms′ = T(;parms...)
-    ACTR(declarative, imaginal, parms′)
+    ACTR(declarative, imaginal, parms′, scheduler)
 end
