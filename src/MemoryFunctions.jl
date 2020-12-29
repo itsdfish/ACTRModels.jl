@@ -220,6 +220,7 @@ spreading_activation!(actr, chunk)
 """
 function spreading_activation!(actr, chunk)
     imaginal = actr.imaginal
+    isempty(imaginal.buffer) ? (return nothing) : nothing 
     w = compute_weights(imaginal)
     r = 0.0; sa = 0.0; γ = actr.parms.γ
     slots = imaginal.buffer[1].slots
@@ -237,6 +238,7 @@ end
 # Caches the denominator of spreading activation
 function spreading_activation!(actr)
     @unpack imaginal,declarative = actr
+    isempty(imaginal.buffer) ? (return nothing) : nothing 
     slots = imaginal.buffer[1].slots
     denoms = fill(0, length(slots))
     for (i,v) in enumerate(slots)

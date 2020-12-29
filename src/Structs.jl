@@ -160,15 +160,22 @@ end
 
 function Declarative(;memory=Chunk[], filtered=(:isa,:retrieved))
     state = BufferState()
-    return  Declarative(memory, filtered, typeof(memory)(), state)
+    return  Declarative(memory, filtered, typeof(memory)(undef,1), state)
 end
 
 """
+**defaultFun**
+
 A default function for mismatch penalty. Subtracts δ if
 slot does not exist or slot value does not match
 * `memory`: declarative memory object
 * `chunk`: memory chunk object
 * `request`: `NamedTuple` of slot-value pairs for the retrieval request
+
+Function Signature
+````julia 
+defaultFun(actr, chunk; request...)
+````
 """
 function defaultFun(actr, chunk; request...)
     slots = chunk.slots
@@ -187,9 +194,15 @@ Broadcast.broadcastable(x::Declarative) = Ref(x)
 **Imaginal**
 
 Imaginal Module.
-* `chunk`: chunk in the imaginal module
-* `ω`: fan weight. Default is 1.
-* `denoms`: cached value for the denominator of the fan calculation
+- `buffer`: an array holding up to one chunk
+- `state`: buffer state
+- `ω`: fan weight. Default is 1.
+- `denoms`: cached value for the denominator of the fan calculation
+
+Constructor
+````julia 
+Imaginal(;chunk=Chunk(), ω=1.0, denoms=Int64[]) 
+````
 """
 mutable struct Imaginal{T1,T2} <: Mod
     buffer::Array{T1,1}
@@ -198,9 +211,66 @@ mutable struct Imaginal{T1,T2} <: Mod
     denoms::Vector{Int64}
 end
 
-function Imaginal(;chunk=Chunk(), ω=1.0, denoms=Int64[]) 
+function Imaginal(;buffer=Chunk[Chunk()], ω=1.0, denoms=Int64[]) 
     state = BufferState()
-    Imaginal([chunk], state, ω, denoms)
+    Imaginal(buffer, state, ω, denoms)
+end
+
+
+Imaginal(chunk::Chunk, state, ω, denoms) = Imaginal([chunk], state, ω, denoms)
+Imaginal(T::DataType, state, ω, denoms) = Imaginal(T(undef,1), state, ω, denoms)
+
+"""
+**Visual**
+
+Visual Module.
+- `buffer`: an array holding up to one chunk
+- `state`: buffer state
+
+Constructor
+````julia 
+Visual(;chunk=Chunk()) 
+````
+"""
+mutable struct Visual{T1} <: Mod
+    buffer::Array{T1,1}
+    state::BufferState
+end
+
+Visual(;buffer=Chunk[Chunk()]) = Visual(buffer, BufferState())
+Visual(chunk::Chunk, state) = Visual([chunk], state)
+Visual(T::DataType, state) = Visual(T(undef,1), state)
+
+"""
+**VisualLocation**
+
+Visual Location Module.
+- `buffer`: an array holding up to one chunk
+- `state`: buffer state
+
+Constructor
+````julia 
+VisualLocation(;chunk=Chunk()) 
+````
+"""
+mutable struct VisualLocation{T1} <: Mod
+    buffer::Array{T1,1}
+    state::BufferState
+    visicon::Array{T1,1}
+    iconic_memory::Array{T1,1}
+end
+
+function VisualLocation(;buffer=Chunk[Chunk()]) 
+    VisualLocation(buffer, BufferState())
+end
+
+function VisualLocation(chunk::Chunk, state)
+    T = typeof(chunk)
+     VisualLocation([chunk], state, Vector{T}(undef,1), Vector{T}(undef,1))
+end
+
+function VisualLocation(T::DataType, state)
+    VisualLocation(T(undef,1), state, T(undef,1), T(undef,1))
 end
 
 abstract type AbstractACTR end
@@ -212,18 +282,26 @@ ACTR model object
 - `imaginal`: imaginal memory module
 - `parms`: model parameters
 -  `scheduler`: event scheduler
+
+Constructor
+````julia 
+ACTR(;T=Parms, declarative=Declarative(), imaginal=Imaginal(), 
+    scheduler=nothing, parms...)
+````
 """
-mutable struct ACTR{T1,T2,T3,T4} <: AbstractACTR
+mutable struct ACTR{T1,T2,T3,T4,T5,T6} <: AbstractACTR
     declarative::T1
     imaginal::T2
-    parms::T3
-    scheduler::T4
+    visual::T3
+    visual_location::T4
+    parms::T5
+    scheduler::T6
 end
 
 Broadcast.broadcastable(x::ACTR) = Ref(x)
 
 function ACTR(;T=Parms, declarative=Declarative(), imaginal=Imaginal(), 
-    scheduler=nothing, parms...) 
+    scheduler=nothing, visual=nothing, visual_location=nothing, parms...) 
     parms′ = T(;parms...)
-    ACTR(declarative, imaginal, parms′, scheduler)
+    ACTR(declarative, imaginal, visual, visual_location, parms′, scheduler)
 end

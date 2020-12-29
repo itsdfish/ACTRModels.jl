@@ -218,7 +218,7 @@ using SafeTestsets
         using ACTRModels, Test
         chunks = [Chunk(a=:a, b=:b, c=:c), Chunk(a=:a, b=:b, c=:a)]
         memory = Declarative(memory=chunks)
-        imaginal = Imaginal(chunk=Chunk(a=:a, b=:b))
+        imaginal = Imaginal(buffer=Chunk(a=:a, b=:b))
         actr = ACTR(declarative=memory, imaginal=imaginal, γ=1.6)
         compute_activation!(actr)
         @test chunks[1].act == 0.0
@@ -227,6 +227,48 @@ using SafeTestsets
         compute_activation!(actr)
         @test chunks[1].act ≈ 0.3575467 atol = 1e-5
         @test chunks[2].act ≈ 0.7041203 atol = 1e-5
+    end
+
+    @safetestset "spreading activation zero" begin
+        using ACTRModels, Test
+        chunks = [Chunk(;isa=:mammal, animal=:dog,name=:Sigma),
+        Chunk(;isa=:mammal,animal=:cat,name=:Butters)]
+        memory = Declarative(;memory=chunks)
+        actr = ACTR(;declarative=memory, sa=true, γ=1.0)
+        p,_ = retrieval_probs(actr)
+        sa = map(x->x.act_sa, chunks)
+        @test sa[1] ≈ 0.0 atol = 1e-10
+        @test sa[2] ≈ 0.0 atol = 1e-10
+
+        memory = Declarative(;memory=chunks)
+        T = typeof(chunks)
+        imaginal = Imaginal(buffer=T)
+        empty!(imaginal.buffer)
+        actr = ACTR(;declarative=memory, imaginal=imaginal, sa=true, γ=1.0)
+        p,_ = retrieval_probs(actr)
+        sa = map(x->x.act_sa, chunks)
+        @test sa[1] ≈ 0.0 atol = 1e-10
+        @test sa[2] ≈ 0.0 atol = 1e-10
+
+        chunk = Chunk(;isa=:mammal,animal=:cat,name=:Butters)
+        push!(imaginal.buffer, chunk)
+        p,_ = retrieval_probs(actr)
+        sa = map(x->x.act_sa, chunks)
+        @test sa[1] != 0.0 
+        @test sa[2] != 0.0 
+
+        empty!(imaginal.buffer)
+        p,_ = retrieval_probs(actr)
+        sa = map(x->x.act_sa, chunks)
+        @test sa[1] ≈ 0.0 atol = 1e-10
+        @test sa[2] ≈ 0.0 atol = 1e-10 
+
+        chunk = Chunk(;isa=:arachnid,animal=:spider,name=:Soen)
+        push!(imaginal.buffer, chunk)
+        p,_ = retrieval_probs(actr)
+        sa = map(x->x.act_sa, chunks)
+        @test sa[1] ≈ 0.0 atol = 1e-10
+        @test sa[2] ≈ 0.0 atol = 1e-10 
     end
 
     @safetestset "partial matching" begin
@@ -292,7 +334,7 @@ using SafeTestsets
         chunks = [Chunk(a=:a, b=:b, c=:c), Chunk(a=:a, b=:b, c=:a)]
         chunk = chunks[1]
         memory = Declarative(memory=chunks)
-        imaginal = Imaginal(chunk=Chunk(a=:a, b=:b))
+        imaginal = Imaginal(buffer=Chunk(a=:a, b=:b))
         actr = ACTR(declarative=memory, imaginal=imaginal, mmp=true, noise=true, bll=true, 
             sa=true, γ=1.6, δ=1.0)
         compute_activation!(actr, 3.0; a=:b)
