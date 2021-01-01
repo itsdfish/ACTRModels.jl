@@ -12,10 +12,17 @@ to see documentation for `print_memory`.
 ## Types
 - `ACTR`
 - `Declarative`
+- `Goal`
 - `Imaginal`
 - `Chunk`
+- `Visual`
+- `VisualLocation`
 ## Functions 
 - `get_chunks`
+- `get_iconic_memory`
+- `get_visicon`
+- `get_buffer`
+- `set_buffer!`
 - `update_lags!`
 - `update_recent!`
 - `update_chunk!`
@@ -44,13 +51,14 @@ module ACTRModels
     import Distributions: pdf, logpdf
     import SequentialSamplingModels: LNR
     import Base: rand, match
-    export ACTR, Declarative, Imaginal, Chunk, BufferState, Mod
-    export defaultFun, LNR, reduce_data 
+    export ACTR, Declarative, Imaginal, Chunk, BufferState, Mod 
+    export Goal, Visual, VisualLocation
+    export defaultFun, LNR, reduce_data, get_buffer, set_buffer! 
     export get_chunks, update_lags!, update_recent!, update_chunk!, modify!, add_chunk!
     export retrieval_prob, retrieval_probs, retrieve, compute_activation!, get_parm
     export spreading_activation!, match, compute_RT, retrieval_request, get_subset
     export first_chunk, posterior_predictive, find_index, find_indices
-    export import_printing, print_chunk, print_memory
+    export import_printing, print_chunk, print_memory, get_visicon, get_iconic_memory
 
     include("Structs.jl")
     include("MemoryFunctions.jl")

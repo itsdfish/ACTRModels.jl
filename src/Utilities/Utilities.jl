@@ -14,7 +14,9 @@ function _posterior_predictive(m, chain, f=x -> x)
 end
 
 """
-**posterior_predictive** returns posterior predictive distribution and optionally applies function to samples 
+**posterior_predictive** 
+
+Returns posterior predictive distribution and optionally applies function to samples 
     on each replication
 - `model`: the data generating function of a model 
 - `chain`: an MCMCChains chain object
@@ -32,7 +34,9 @@ end
 find_index(actr::AbstractACTR; criteria...) = find_index(actr.declarative.memory; criteria...)
 
 """
-**find_index** returns the index of first chunk that matches a set of criteria
+**find_index** 
+
+Returns the index of first chunk that matches a set of criteria
 - `chunks`: an array of chunks
 - `criteria`: a set of keyword arguments for slot-value pairs
 
@@ -54,7 +58,9 @@ function find_index(chunks::Array{<:Chunk,1}; criteria...)
 end
 
 """
-**find_index** returns the index of first chunk that matches a set of criteria
+**find_index** 
+
+Returns the index of first chunk that matches a set of criteria
 - `actr`: ACTR object
 - `funs`: a set of functions
 - `criteria`: a set of keyword arguments for slot-value pairs
@@ -72,7 +78,9 @@ find_index(chunks; animal=:dog)
 find_index(actr::ACTR, funs...; criteria...) = find_index(actr.declarative.memory, funs...; criteria...)
 
 """
-**find_index** returns the index of first chunk that matches a set of criteria
+**find_index** 
+
+Returns the index of first chunk that matches a set of criteria
 - `chunks`: an array of chunks
 - `funs`: a set of functions
 - `criteria`: a set of keyword arguments for slot-value pairs
@@ -95,7 +103,9 @@ function find_index(chunks::Array{<:Chunk,1}, funs...; criteria...)
 end
 
 """
-**find_indices** returns the index of first chunk that matches a set of criteria
+**find_indices** 
+
+Returns the index of first chunk that matches a set of criteria
 - `actr`: an ACTR object
 - `criteria`: a set of keyword arguments for slot-value pairs
 
@@ -112,7 +122,9 @@ find_indices(chunks; animal=:dog)
 find_indices(actr::ACTR; criteria...) = find_indices(actr.declarative.memory; criteria...)
 
 """
-**find_indices** returns the index of first chunk that matches a set of criteria
+**find_indices** 
+
+Returns the index of first chunk that matches a set of criteria
 - `chunks`: an array of chunks
 - `criteria`: a set of keyword arguments for slot-value pairs
 
@@ -135,7 +147,9 @@ function find_indices(chunks::Array{<:Chunk,1}; criteria...)
 end
 
 """
-**find_indices** returns the index of first chunk that matches a set of criteria
+**find_indices** 
+
+Returns the index of first chunk that matches a set of criteria
 - `actr`: an ACTR object
 - `funs`: a set of functions
 - `criteria`: a set of keyword arguments for slot-value pairs
@@ -177,9 +191,79 @@ function find_indices(chunks::Array{<:Chunk,1}, funs...; criteria...)
 end
 
 """
-**import_printing** import printing functions `print_chunk` and `print_memory`
+**import_printing** 
+
+Import printing functions `print_chunk` and `print_memory`
 """
 function import_printing()
     path = pathof(ACTRModels) |> dirname |> x->joinpath(x, "Utilities/")
     include(path*"Printing.jl")
 end
+
+"""
+**get_iconic_memory** 
+
+Returns array of chunks or visual objects representing iconic memory 
+- `actr`: an ACTR object
+
+Function Signature
+````julia
+get_iconic_memory(actr)
+````
+"""
+get_iconic_memory(actr) = actr.visual_location.iconic_memory 
+
+"""
+**get_visicon** 
+
+Returns array of chunks or visual objects representing all visual objects
+within the simulation
+
+Function Signature
+````julia
+get_visicon(actr)
+````
+"""
+get_visicon(actr) = actr.visual_location.visicon
+
+"""
+**get_buffer** 
+
+Returns posterior predictive distribution and optionally applies function to samples 
+    on each replication
+- `actr`: an ACTR object
+- `m`: name of module as a symbol
+
+
+Function Signature
+````julia
+get_buffer(actr, m)
+````
+
+Example
+````julia
+get_buffer(actr, :imaginal)
+````
+"""
+get_buffer(actr, m) = getfield(actr, m).buffer
+"""
+**get_buffer** 
+
+Returns posterior predictive distribution and optionally applies function to samples 
+    on each replication
+- `actr`: an ACTR object
+- `m`: name of module as a symbol
+- `v`: new value
+
+
+Function Signature
+````julia
+set_buffer!(actr, m, v)
+````
+
+Example
+````julia
+set_buffer!(actr, :imaginal, [chunk])
+````
+"""
+set_buffer!(actr, m, v) = getfield(actr, m).buffer = v

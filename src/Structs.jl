@@ -235,11 +235,12 @@ Visual(;chunk=Chunk())
 mutable struct Visual{T1} <: Mod
     buffer::Array{T1,1}
     state::BufferState
+    focus::Vector{Float64}
 end
 
-Visual(;buffer=Chunk[Chunk()]) = Visual(buffer, BufferState())
-Visual(chunk::Chunk, state) = Visual([chunk], state)
-Visual(T::DataType, state) = Visual(T(undef,1), state)
+Visual(;buffer=Chunk[Chunk()]) = Visual(buffer, BufferState(), fill(0.0,2))
+Visual(chunk::Chunk, state, focus) = Visual([chunk], state, focus)
+Visual(T::DataType, state, focus) = Visual(T(undef,1), state, focus)
 
 """
 **VisualLocation**
@@ -273,6 +274,40 @@ function VisualLocation(T::DataType, state)
     VisualLocation(T(undef,1), state, T(undef,1), T(undef,1))
 end
 
+function VisualLocation(chunks, state)
+    c_chunks = copy(chunks)
+    VisualLocation(chunks, state, c_chunks, c_chunks)
+end
+
+"""
+**Goal**
+
+Goal Module.
+- `buffer`: an array holding up to one chunk
+- `state`: buffer state
+
+Constructor
+````julia 
+Goal(;chunk=Chunk()) 
+````
+"""
+mutable struct Goal{T1} <: Mod
+    buffer::Array{T1,1}
+    state::BufferState
+end
+
+function Goal(;buffer=Chunk[Chunk()]) 
+    Goal(buffer, BufferState())
+end
+
+function Goal(chunk::Chunk, state)
+    Goal([chunk], state)
+end
+
+function Goal(T::DataType, state)
+    Goal(T(undef,1), state)
+end
+
 abstract type AbstractACTR end
 """
 **ACTR**
@@ -289,19 +324,22 @@ ACTR(;T=Parms, declarative=Declarative(), imaginal=Imaginal(),
     scheduler=nothing, parms...)
 ````
 """
-mutable struct ACTR{T1,T2,T3,T4,T5,T6} <: AbstractACTR
+mutable struct ACTR{T1,T2,T3,T4,T5,T6,T7} <: AbstractACTR
     declarative::T1
     imaginal::T2
     visual::T3
     visual_location::T4
-    parms::T5
-    scheduler::T6
+    goal::T5
+    parms::T6
+    scheduler::T7
+    time::Float64
 end
 
 Broadcast.broadcastable(x::ACTR) = Ref(x)
 
-function ACTR(;T=Parms, declarative=Declarative(), imaginal=Imaginal(), 
-    scheduler=nothing, visual=nothing, visual_location=nothing, parms...) 
-    parms′ = T(;parms...)
-    ACTR(declarative, imaginal, visual, visual_location, parms′, scheduler)
+function ACTR(;declarative=Declarative(), imaginal=Imaginal(), 
+    goal = Goal(), scheduler=nothing, visual=nothing, visual_location=nothing, 
+    time = 0.0, parms...) 
+    parms′ = Parms(;parms...)
+    ACTR(declarative, imaginal, visual, visual_location, goal, parms′, scheduler, time)
 end
