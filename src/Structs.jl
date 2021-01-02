@@ -80,9 +80,7 @@ A declarative memory chunk
 * `act_pm`: partial matching component of activation
 * `act_sa`: spreading activation component of activation
 * `act_noise`: noise component of activation
-* `dynamic`: slot values are mutable (default: false)
-* `slots`: chunk slots. If dynamic, slots are a dictionary. If not dynamic
-(default), chunks are an immutable NamedTuple.
+* `slots`: chunk slot-value pairs
 * `reps`: number of identical chunks. This can be used in simple cases to speed up the code.
 * `recent`: time stamps for k recent retrievals
 * `lags`: lags for recent retrievals (L - recent)
@@ -112,20 +110,28 @@ mutable struct Chunk{T1,T2}
 end
 
 function Chunk(;N=1, L=1.0, time_created=0.0, k=1, act=0.0, recent=[0.0],
-    reps=0, lags=Float64[], dynamic=false, bl=zero(typeof(act)), slots...)
+    reps=0, lags=Float64[], bl=zero(typeof(act)), slots...)
     T = typeof(act)
     act_pm = zero(T)
     act_blc = zero(T)
     act_bll = zero(T)
     act_noise = zero(T)
     act_sa = zero(T)
-    if dynamic
-        slots = Dict(k=>v for (k,v) in pairs(slots))
-        return Chunk(N, L, time_created, k, act, act_blc, act_bll, act_pm, act_sa, act_noise,
-            slots, reps, recent, lags, bl)
-    end
     return Chunk(N, L, time_created, k, act, act_blc, act_bll, act_pm, act_sa, act_noise,
         slots.data, reps, recent, lags, bl)
+end
+
+function Chunk(dynamic::Bool; N=1, L=1.0, time_created=0.0, k=1, act=0.0, recent=[0.0],
+    reps=0, lags=Float64[], bl=zero(typeof(act)), slots...)
+    T = typeof(act)
+    act_pm = zero(T)
+    act_blc = zero(T)
+    act_bll = zero(T)
+    act_noise = zero(T)
+    act_sa = zero(T)
+    slots = Dict(k=>v for (k,v) in pairs(slots))
+    return Chunk(N, L, time_created, k, act, act_blc, act_bll, act_pm, act_sa, act_noise,
+        slots, reps, recent, lags, bl)
 end
 
 Broadcast.broadcastable(x::Chunk) = Ref(x)

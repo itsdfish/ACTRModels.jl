@@ -128,11 +128,11 @@ Returns the index of first chunk that matches a set of criteria
 - `chunks`: an array of chunks
 - `criteria`: a set of keyword arguments for slot-value pairs
 
-Function Signature
+**Function Signature**
 ````julia
 find_indices(actr::ACTR; criteria...)
 ````
-## Example
+**Example**
 ````julia
 chunks = [Chunk(animal=:dog), Chunk(animal=:dog), Chunk(animal=cat)]
 find_indices(chunks; animal=:dog)
@@ -154,11 +154,11 @@ Returns the index of first chunk that matches a set of criteria
 - `funs`: a set of functions
 - `criteria`: a set of keyword arguments for slot-value pairs
 
-Function Signature
+**Function Signature**
 ````julia
 find_indices(actr::ACTR; criteria...)
 ````
-## Example
+**Example**
 ````julia
 chunks = [Chunk(animal=:dog), Chunk(animal=:dog), Chunk(animal=cat)]
 find_indices(chunks; animal=:dog)
@@ -167,16 +167,18 @@ find_indices(chunks; animal=:dog)
 find_indices(actr::ACTR, funs...; criteria...) = find_indices(actr.declarative.memory, funs...; criteria...)
 
 """
-**find_indices** returns the index of first chunk that matches a set of criteria
+**find_indices** 
+
+Returns the index of first chunk that matches a set of criteria
 - `chunks`: an array of chunks
 - `funs`: a set of functions
 - `criteria`: a set of keyword arguments for slot-value pairs
 
-Function Signature
+**Function Signature**
 ````julia
 find_indices(actr::ACTR; criteria...)
 ````
-## Example
+** Example**
 ````julia
 chunks = [Chunk(animal=:dog), Chunk(animal=:dog), Chunk(animal=cat)]
 find_indices(chunks; animal=:dog)
@@ -193,7 +195,12 @@ end
 """
 **import_printing** 
 
-Import printing functions `print_chunk` and `print_memory`
+Import printing functions `print_chunk` and `print_memory`.
+
+**Function Signature**
+````julia
+import_printing()
+````
 """
 function import_printing()
     path = pathof(ACTRModels) |> dirname |> x->joinpath(x, "Utilities/")
@@ -206,7 +213,7 @@ end
 Returns array of chunks or visual objects representing iconic memory 
 - `actr`: an ACTR object
 
-Function Signature
+**Function Signature**
 ````julia
 get_iconic_memory(actr)
 ````
@@ -219,7 +226,7 @@ get_iconic_memory(actr) = actr.visual_location.iconic_memory
 Returns array of chunks or visual objects representing all visual objects
 within the simulation
 
-Function Signature
+**Function Signature**
 ````julia
 get_visicon(actr)
 ````
@@ -235,12 +242,12 @@ Returns posterior predictive distribution and optionally applies function to sam
 - `m`: name of module as a symbol
 
 
-Function Signature
+**Function Signature**
 ````julia
 get_buffer(actr, m)
 ````
 
-Example
+**Example**
 ````julia
 get_buffer(actr, :imaginal)
 ````
@@ -256,7 +263,7 @@ Returns posterior predictive distribution and optionally applies function to sam
 - `v`: new value
 
 
-Function Signature
+**Function Signature**
 ````julia
 set_buffer!(actr, m, v)
 ````
