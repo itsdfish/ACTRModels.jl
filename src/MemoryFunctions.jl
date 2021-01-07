@@ -193,6 +193,13 @@ function add_noise!(actr, chunk)
     return nothing
 end
 
+function add_noise!(actr)
+    @unpack τ,s = actr.parms
+    σ = s * pi / sqrt(3)
+    actr.parms.τ′ = rand(Normal(τ, σ))
+    nothing
+end
+
 """
 **partial_matching!** 
 
@@ -866,9 +873,10 @@ compute_RT(actr, chunk)
 ````
 """
 function compute_RT(actr, chunk)
-    @unpack τ′,lf = actr.parms
+    @unpack lf, noise = actr.parms
     if isempty(chunk)
-        return lf * exp(-τ′)
+        noise ? add_noise!(actr) : nothing
+        return lf * exp(-actr.parms.τ′)
     end
     return lf * exp(-chunk[1].act)
 end
