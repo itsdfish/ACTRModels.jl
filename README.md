@@ -1,6 +1,6 @@
 # ACTRModels
 
-ACTRModels.jl provides basic functionality for ACT-R's declarative memory system. The library can be extended to provide functionaty for other modules.
+ACTRModels.jl provides basic functionality for ACT-R's declarative memory system. The library can be extended to provide functionality for other modules.
 
 ## Example
 The following example demonstrates how to construct an ACTR object containing declarative memory, retrieve a memory, and compute retrieval time. 
