@@ -217,7 +217,7 @@ mutable struct Imaginal{T1,T2} <: Mod
     denoms::Vector{Int64}
 end
 
-function Imaginal(;buffer=Chunk[Chunk()], ω=1.0, denoms=Int64[]) 
+function Imaginal(;buffer=Chunk[], ω=1.0, denoms=Int64[]) 
     state = BufferState()
     Imaginal(buffer, state, ω, denoms)
 end
@@ -244,9 +244,35 @@ mutable struct Visual{T1} <: Mod
     focus::Vector{Float64}
 end
 
-Visual(;buffer=Chunk[Chunk()]) = Visual(buffer, BufferState(), fill(0.0,2))
+Visual(;buffer=Chunk[]) = Visual(buffer, BufferState(), fill(0.0,2))
 Visual(chunk::Chunk, state, focus) = Visual([chunk], state, focus)
 Visual(T::DataType, state, focus) = Visual(T(undef,1), state, focus)
+
+"""
+**VisualObject**
+
+Visual Location Module.
+- `buffer`: an array holding up to one chunk
+- `state`: buffer state
+
+Constructor
+````julia 
+VisualObject(;x=300.0, y=300.0, color=:black, text="", shape=:_, width=30.0, height=30.0) 
+````
+"""
+mutable struct VisualObject
+    x::Float64
+    y::Float64
+    color::Symbol
+    shape::Symbol
+    text::String
+    width::Float64
+    height::Float64
+end
+
+function VisualObject(;x=300.0, y=300.0, color=:black, text="", shape=:_, width=30.0, height=30.0)
+    return VisualObject(x, y, color, shape, text, width, height)
+end
 
 """
 **VisualLocation**
@@ -263,26 +289,26 @@ VisualLocation(;chunk=Chunk())
 mutable struct VisualLocation{T1} <: Mod
     buffer::Array{T1,1}
     state::BufferState
-    visicon::Array{T1,1}
+    visicon::Vector{VisualObject}
     iconic_memory::Array{T1,1}
 end
 
-function VisualLocation(;buffer=Chunk[Chunk()]) 
-    VisualLocation(buffer, BufferState())
+function VisualLocation(;buffer=Chunk[], visicon=VisualObject[]) 
+    VisualLocation(buffer, BufferState(), visicon)
 end
 
-function VisualLocation(chunk::Chunk, state)
+function VisualLocation(chunk::Chunk, state, visicon)
     T = typeof(chunk)
-     VisualLocation([chunk], state, Vector{T}(undef,1), Vector{T}(undef,1))
+     VisualLocation([chunk], state, visicon, Vector{T}(undef,1))
 end
 
-function VisualLocation(T::DataType, state)
-    VisualLocation(T(undef,1), state, T(undef,1), T(undef,1))
+function VisualLocation(T::DataType, state, visicon)
+    VisualLocation(T(undef,1), state, visicon, T(undef,1))
 end
 
-function VisualLocation(chunks, state)
+function VisualLocation(chunks, state, visicon)
     c_chunks = copy(chunks)
-    VisualLocation(chunks, state, c_chunks, c_chunks)
+    VisualLocation(chunks, state, visicon, c_chunks)
 end
 
 """
@@ -305,8 +331,8 @@ mutable struct Rule{C,A}
     action::A
 end
 
-function Rule(;utility=0.0, conditions, action, args=(), kwargs...) 
-     Rule(utility, ()->conditions(args...; kwargs...), ()->action(args...; kwargs...))
+function Rule(;utility=0.0, conditions, actr, task, action, args=(), kwargs...) 
+     Rule(utility, map(x->()->x(actr, args...; kwargs...), conditions), ()->action(actr, task, args...; kwargs...))
 end
 
 """
@@ -322,24 +348,21 @@ Procedural(;chunk=Chunk())
 ````
 """
 mutable struct Procedural{R} <: Mod
+    id::String
+    rules::R
     state::BufferState
-    rules::Vector{R}
 end
 
-function Procedural(;rules=Rule[]) 
-    Procedural(rules, BufferState())
+function Procedural(;rules=Rule[], id="") 
+    Procedural(id, rules, BufferState())
 end
 
-function Procedural(rule::Rule, state)
-    Procedural([rule], state)
+function Procedural(rule::Rule, state, id)
+    Procedural(id, [rule], state)
 end
 
-function Procedural(T::DataType, state)
-    Procedural(T(undef,1), state)
-end
-
-function Procedural(rules, state)
-    Procedural(rules, state)
+function Procedural(T::DataType, state, id)
+    Procedural(id, T(undef,1), state)
 end
 
 """
@@ -359,7 +382,7 @@ mutable struct Goal{T1} <: Mod
     state::BufferState
 end
 
-function Goal(;buffer=Chunk[Chunk()]) 
+function Goal(;buffer=Chunk[]) 
     Goal(buffer, BufferState())
 end
 
@@ -369,6 +392,35 @@ end
 
 function Goal(T::DataType, state)
     Goal(T(undef,1), state)
+end
+
+"""
+**Motor**
+
+Motor Module.
+- `buffer`: an array holding up to one chunk
+- `state`: buffer state
+
+Constructor
+````julia 
+Motor(;chunk=Chunk()) 
+````
+"""
+mutable struct Motor{T1} <: Mod
+    buffer::Array{T1,1}
+    state::BufferState
+end
+
+function Motor(;buffer=Chunk[]) 
+    Motor(buffer, BufferState())
+end
+
+function Motor(chunk::Chunk, state)
+    Motor([chunk], state)
+end
+
+function Motor(T::DataType, state)
+    Motor(T(undef,1), state)
 end
 
 abstract type AbstractACTR end
@@ -387,24 +439,25 @@ ACTR(;T=Parms, declarative=Declarative(), imaginal=Imaginal(),
     scheduler=nothing, parms...)
 ````
 """
-mutable struct ACTR{T1,T2,T3,T4,T5,T6,T7} <: AbstractACTR
+mutable struct ACTR{T1,T2,T3,T4,T5,T6,T7,T8,T9} <: AbstractACTR
     declarative::T1
     imaginal::T2
     visual::T3
     visual_location::T4
     goal::T5
-    parms::T6
-    scheduler::T7
-    time::Float64
+    procedural::T6
+    motor::T7
+    parms::T8
+    scheduler::T9
 end
 
 Broadcast.broadcastable(x::ACTR) = Ref(x)
 
 function ACTR(;declarative=Declarative(), imaginal=Imaginal(), 
     goal = Goal(), scheduler=nothing, visual=nothing, visual_location=nothing, 
-    time = 0.0, parms...) 
+    procedural=nothing, motor=nothing, parms...) 
     parms′ = Parms(;parms...)
-    ACTR(declarative, imaginal, visual, visual_location, goal, parms′, scheduler, time)
+    ACTR(declarative, imaginal, visual, visual_location, goal, procedural, motor, parms′, scheduler)
 end
 
 abstract type AbstractTask end
