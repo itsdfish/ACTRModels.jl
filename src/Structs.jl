@@ -286,6 +286,63 @@ function VisualLocation(chunks, state)
 end
 
 """
+**Rule**
+
+A production rule.
+
+- `utility`: utility of the production rule
+- `conditions`: a function for checking conditions
+- `action`: a function for performing an action
+
+Constructor
+````julia 
+Rule(;utlity=0.0, conditions, action)
+````
+"""
+mutable struct Rule{C,A}
+    utility::Float64 
+    conditions::C
+    action::A
+end
+
+function Rule(;utility=0.0, conditions, action, args=(), kwargs...) 
+     Rule(utility, ()->conditions(args...; kwargs...), ()->action(args...; kwargs...))
+end
+
+"""
+**Procedural**
+
+Procedural Memory Module.
+- `buffer`: an array holding up to one chunk
+- `state`: buffer state
+
+Constructor
+````julia 
+Procedural(;chunk=Chunk()) 
+````
+"""
+mutable struct Procedural{R} <: Mod
+    state::BufferState
+    rules::Vector{R}
+end
+
+function Procedural(;rules=Rule[]) 
+    Procedural(rules, BufferState())
+end
+
+function Procedural(rule::Rule, state)
+    Procedural([rule], state)
+end
+
+function Procedural(T::DataType, state)
+    Procedural(T(undef,1), state)
+end
+
+function Procedural(rules, state)
+    Procedural(rules, state)
+end
+
+"""
 **Goal**
 
 Goal Module.
@@ -349,3 +406,6 @@ function ACTR(;declarative=Declarative(), imaginal=Imaginal(),
     parms′ = Parms(;parms...)
     ACTR(declarative, imaginal, visual, visual_location, goal, parms′, scheduler, time)
 end
+
+abstract type AbstractTask end
+
