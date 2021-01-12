@@ -319,6 +319,7 @@ A production rule.
 - `utility`: utility of the production rule
 - `conditions`: a function for checking conditions
 - `action`: a function for performing an action
+- `name`: name of production
 
 Constructor
 ````julia 
@@ -329,10 +330,12 @@ mutable struct Rule{C,A}
     utility::Float64 
     conditions::C
     action::A
+    name::String
 end
 
-function Rule(;utility=0.0, conditions, actr, task, action, args=(), kwargs...) 
-     Rule(utility, map(x->()->x(actr, args...; kwargs...), conditions), ()->action(actr, task, args...; kwargs...))
+function Rule(;utility=0.0, conditions, name="", actr, task, action, args=(), kwargs...) 
+     Rule(utility, map(x->()->x(actr, args...; kwargs...), conditions), 
+        ()->action(actr, task, args...; kwargs...), name)
 end
 
 """

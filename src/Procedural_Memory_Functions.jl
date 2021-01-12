@@ -6,11 +6,12 @@ function fire!(actr)
     actr.procedural.state.busy ? (return nothing) : nothing
     rules = select_rule(actr)
     if !isempty(rules)
-        description = "Conflict Resolution"
+        rule = rules[1]
+        description = "Selected "*rule.name
         tΔ = .05#rand(Uniform(.03, .07))
         resolving(actr, true)
-        f(r, a, v) = (r.action(), resolving(a, v)) 
-        register!(actr.scheduler, f, after, tΔ, rules[1], actr, false; description)
+        f(r, a, v) = (resolving(a, v), r.action()) 
+        register!(actr.scheduler, f, after, tΔ, rule, actr, false; description)
     end
     return nothing 
 end

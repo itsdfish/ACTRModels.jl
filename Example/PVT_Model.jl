@@ -9,12 +9,12 @@ end
 
 function can_wait()
     c1(actr, args...; kwargs...) = isempty(actr.visual_location.buffer)
-    c2(actr, args...; kwargs...) = isempty(actr.motor.buffer)
+    c2(actr, args...; kwargs...) = isempty(actr.visual.buffer)
     return (c1,c2)
 end
 
 function can_respond()
-    c1(actr, args...; kwargs...) = !isempty(actr.motor.buffer)
+    c1(actr, args...; kwargs...) = !isempty(actr.visual.buffer)
     c2(actr, args...; kwargs...) = !actr.motor.state.busy
     return (c1,c2)
 end
@@ -30,28 +30,25 @@ end
 function attend_action(actr, task, args...; kwargs...)
     actr.visual.state.busy = true
     description = "Attend"
-    tΔ = rand(Uniform(.050,.070))
+    tΔ = .05#rand(Uniform(.050,.070))
     buffer = get_buffer(actr, :visual_location)
     chunk = deepcopy(buffer[1])
-    register!(actr.scheduler, attend!, after, tΔ , actr, chunk; description)
-    description = "Add Chunk to Motor Buffer"
-    tΔ += eps()
-    chunk = deepcopy(chunk)
-    register!(actr.scheduler, add_to_motor_buffer!, after, tΔ , actr, chunk; description)
     empty!(actr.visual_location.buffer)
+    register!(actr.scheduler, attend!, after, tΔ , actr, chunk; description)
+    # description = "Add Chunk to Motor Buffer"
+    #tΔ += eps()
+    # chunk = deepcopy(chunk)
+    # register!(actr.scheduler, add_to_motor_buffer!, after, tΔ , actr, chunk; description)
     return nothing
 end
 
 function respond_action(actr, task, args...; kwargs...)
     actr.motor.state.busy = true
+    empty!(actr.visual.buffer)
     description = "Respond"
-    tΔ = rand(Uniform(.050,.070))
+    tΔ = .05#rand(Uniform(.050,.070))
     key = "sb" #update later
     register!(actr.scheduler, respond, after, tΔ , actr, task, key;
-        description)
-    tΔ += eps()
-    description = "Clear Motor Buffer"
-    register!(actr.scheduler, clear_motor_buffer, after, tΔ , actr;
         description)
     return nothing
 end

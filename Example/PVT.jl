@@ -47,6 +47,8 @@ function press_key!(task::PVT, model, key)
         if task.trial < task.n_trials
             task.trial += 1
             run_trial!(task, model)
+        else
+            stop!(task.scheduler)
         end
     end
 end
