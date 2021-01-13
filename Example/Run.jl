@@ -13,8 +13,8 @@ include("../src/simulator.jl")
 ###################################################################################################
 #                                        Run Model
 ###################################################################################################
-scheduler = Scheduler(;trace=true)
-task = PVT(;scheduler)
+scheduler = Scheduler(;trace=false)
+task = PVT(;scheduler, n_trials=1000)
 procedural = Procedural()
 visual_location = VisualLocation()
 visual = Visual()

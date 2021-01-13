@@ -35,7 +35,7 @@ function present_stimulus(task, model)
 end
 
 function run_trial!(task, model)
-    isi = 1.0#sample_isi(task)
+    isi = sample_isi(task)
     description = "present stimulus"
     register!(task.scheduler, present_stimulus, after, isi, task, model;
         description)
