@@ -138,7 +138,6 @@ activation!(actr, chunk::Chunk, cur_time=0.0; request...)
 function activation!(actr, chunk::Chunk, cur_time=0.0; request...)
     memory = actr.declarative
     @unpack bll,mmp,sa,noise,blc,τ = actr.parms
-    actr.parms.τ′ = τ
     reset_activation!(chunk)
     chunk.act_blc = blc + chunk.bl
     if bll
@@ -825,6 +824,8 @@ function retrieve(actr::AbstractACTR, cur_time=0.0; request...)
     memory = actr.declarative
     arr = Array{eltype(memory.memory),1}()
     chunks = retrieval_request(actr; request...)
+    # add noise to threshold even if result of request is empty
+    actr.parms.noise ? add_noise!(actr) : nothing 
     isempty(chunks) ? (return arr) : nothing
     compute_activation!(actr, chunks, cur_time; request...)
     τ′ = actr.parms.τ′
@@ -873,13 +874,13 @@ compute_RT(actr, chunk)
 ````
 """
 function compute_RT(actr, chunk)
-    @unpack lf, noise = actr.parms
+    @unpack τ′,lf = actr.parms
     if isempty(chunk)
-        noise ? add_noise!(actr) : nothing
-        return lf * exp(-actr.parms.τ′)
+        return lf * exp(-τ′)
     end
     return lf * exp(-chunk[1].act)
 end
+
 
 """
 **compute_RT** 
