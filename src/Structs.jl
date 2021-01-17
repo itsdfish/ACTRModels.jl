@@ -62,7 +62,7 @@ mutable struct Parms{T1,T2,T3,T4,T5,T6,T7,T8,T9,T10,T11} <: AbstractParms
 end
 
 function Parms(;d=.5, τ=0.0, s=.3, γ=0.0, δ=0.0, blc=0.0, ter=0.0, mmpFun=defaultFun,
-    lf=1.0, τ′=zero(typeof(τ)), bll=false, mmp=false, sa=false, noise=false, args...)
+    lf=1.0, τ′=τ, bll=false, mmp=false, sa=false, noise=false, args...)
     return Parms(d, τ, s, γ, δ, blc, ter, mmpFun, lf, τ′, bll, mmp, sa, noise , args.data)
 end
 
@@ -321,13 +321,16 @@ abstract type AbstractACTR end
 ACTR model object
 - `declarative`: declarative memory module
 - `imaginal`: imaginal memory module
+- `visual`: visual module
+- `goal`: goal module
+- `visual_location`: visual location module
 - `parms`: model parameters
--  `scheduler`: event scheduler
+- `scheduler`: event scheduler
 
 Constructor
 ````julia 
-ACTR(;T=Parms, declarative=Declarative(), imaginal=Imaginal(), 
-    scheduler=nothing, parms...)
+ACTR(;declarative=Declarative(), imaginal=Imaginal(), goal = Goal(), 
+    scheduler=nothing, visual=nothing, visual_location=nothing, parms...) 
 ````
 """
 mutable struct ACTR{T1,T2,T3,T4,T5,T6,T7} <: AbstractACTR
@@ -338,14 +341,12 @@ mutable struct ACTR{T1,T2,T3,T4,T5,T6,T7} <: AbstractACTR
     goal::T5
     parms::T6
     scheduler::T7
-    time::Float64
 end
 
 Broadcast.broadcastable(x::ACTR) = Ref(x)
 
-function ACTR(;declarative=Declarative(), imaginal=Imaginal(), 
-    goal = Goal(), scheduler=nothing, visual=nothing, visual_location=nothing, 
-    time = 0.0, parms...) 
+function ACTR(;declarative=Declarative(), imaginal=Imaginal(), goal = Goal(), 
+    scheduler=nothing, visual=nothing, visual_location=nothing, parms...) 
     parms′ = Parms(;parms...)
-    ACTR(declarative, imaginal, visual, visual_location, goal, parms′, scheduler, time)
+    ACTR(declarative, imaginal, visual, visual_location, goal, parms′, scheduler)
 end

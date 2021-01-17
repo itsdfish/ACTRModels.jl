@@ -13,8 +13,9 @@ print_memory(actr::AbstractACTR; fields=(:slots,:act_blc,:act_bll,:act_pm,:act_s
 ````
 """
 function print_memory(actr::AbstractACTR; fields=(:slots,:act_blc,:act_bll,
-    :act_pm,:act_sa,:act_noise,:act))
-    return print_memory(actr.declarative; fields=fields)
+    :act_pm,:act_sa,:act_noise,:act), kwargs...)
+    memory = retrieval_request(actr; kwargs...)
+    return print_memory(memory; fields=fields)
 end
 
 """
@@ -49,7 +50,7 @@ print_memory(chunks; fields=(:slots,:act_blc,:act_bll,:act_pm,:act_sa,:act_noise
 ````
 """
 function print_memory(chunks; fields=(:slots,:act_blc,:act_bll,
-    :act_pm,:act_sa,:act_noise,:act))
+    :act_pm,:act_sa,:act_noise,:act), kwargs...)
     df = DataFrame(chunks)
     slots = map(x->x.slots, chunks)
     df_slots = DataFrame()

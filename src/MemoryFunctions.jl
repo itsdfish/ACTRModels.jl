@@ -188,7 +188,6 @@ function add_noise!(actr, chunk)
     @unpack τ,s = actr.parms
     σ = s * pi / sqrt(3)
     chunk.act_noise = rand(Normal(0, σ))
-    actr.parms.τ′ = rand(Normal(τ, σ))
     return nothing
 end
 
@@ -794,12 +793,7 @@ Modifies fields of NamedTupled
 modify!(c; args...)
 ````
 """
-function modify!(c; args...)
-    for (k,v) in args
-        setfield!(c, k, v)
-    end
-    return nothing
-end
+
 function modify!(c::NamedTuple; args...)
     for (k,v) in args
         c[k][1] = v
