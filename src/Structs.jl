@@ -315,6 +315,7 @@ function Goal(T::DataType, state)
 end
 
 abstract type AbstractACTR end
+
 """
 **ACTR**
 

@@ -490,10 +490,10 @@ Adds a new chunk to declarative memory or updates existing chunk with new use
 
 **Function Signature**
 ````julia
-add_chunk!(actr::ACTR, cur_time=0.0; request...)
+add_chunk!(actr::ACTR, cur_time=0.0; slots...)
 ````
 """
-add_chunk!(actr::ACTR, cur_time=0.0; request...) = add_chunk!(actr.declarative, cur_time; request...)
+add_chunk!(actr::ACTR, cur_time=0.0; slots...) = add_chunk!(actr.declarative, cur_time; slots...)
 
 """
 **get_chunks** 
