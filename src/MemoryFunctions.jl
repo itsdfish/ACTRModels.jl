@@ -138,7 +138,6 @@ activation!(actr, chunk::Chunk, cur_time=0.0; request...)
 function activation!(actr, chunk::Chunk, cur_time=0.0; request...)
     memory = actr.declarative
     @unpack bll,mmp,sa,noise,blc,τ = actr.parms
-    actr.parms.τ′ = τ
     reset_activation!(chunk)
     chunk.act_blc = blc + chunk.bl
     if bll
@@ -189,7 +188,6 @@ function add_noise!(actr, chunk)
     @unpack τ,s = actr.parms
     σ = s * pi / sqrt(3)
     chunk.act_noise = rand(Normal(0, σ))
-    actr.parms.τ′ = rand(Normal(τ, σ))
     return nothing
 end
 
@@ -492,10 +490,10 @@ Adds a new chunk to declarative memory or updates existing chunk with new use
 
 **Function Signature**
 ````julia
-add_chunk!(actr::ACTR, cur_time=0.0; request...)
+add_chunk!(actr::ACTR, cur_time=0.0; slots...)
 ````
 """
-add_chunk!(actr::ACTR, cur_time=0.0; request...) = add_chunk!(actr.declarative, cur_time; request...)
+add_chunk!(actr::ACTR, cur_time=0.0; slots...) = add_chunk!(actr.declarative, cur_time; slots...)
 
 """
 **get_chunks** 
@@ -795,12 +793,7 @@ Modifies fields of NamedTupled
 modify!(c; args...)
 ````
 """
-function modify!(c; args...)
-    for (k,v) in args
-        setfield!(c, k, v)
-    end
-    return nothing
-end
+
 function modify!(c::NamedTuple; args...)
     for (k,v) in args
         c[k][1] = v
@@ -825,6 +818,8 @@ function retrieve(actr::AbstractACTR, cur_time=0.0; request...)
     memory = actr.declarative
     arr = Array{eltype(memory.memory),1}()
     chunks = retrieval_request(actr; request...)
+    # add noise to threshold even if result of request is empty
+    actr.parms.noise ? add_noise!(actr) : nothing 
     isempty(chunks) ? (return arr) : nothing
     compute_activation!(actr, chunks, cur_time; request...)
     τ′ = actr.parms.τ′
@@ -873,13 +868,13 @@ compute_RT(actr, chunk)
 ````
 """
 function compute_RT(actr, chunk)
-    @unpack lf, noise = actr.parms
+    @unpack τ′,lf = actr.parms
     if isempty(chunk)
-        noise ? add_noise!(actr) : nothing
-        return lf * exp(-actr.parms.τ′)
+        return lf * exp(-τ′)
     end
     return lf * exp(-chunk[1].act)
 end
+
 
 """
 **compute_RT** 
