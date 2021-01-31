@@ -4,7 +4,7 @@
 cd(@__DIR__)
 using Pkg
 Pkg.activate("../")
-using Revise, DiscreteEventsLite, DataStructures, ACTRModels
+using Revise, DiscreteEventsLite, DataStructures, ACTRModels, Gtk, Cairo
 import DiscreteEventsLite: run!, last_event!, is_running, print_event
 include("PVT.jl")
 include("PVT_Model.jl")
@@ -14,10 +14,11 @@ include("../src/simulator.jl")
 #                                        Run Model
 ###################################################################################################
 scheduler = Scheduler(;trace=false)
-task = PVT(;scheduler, n_trials=1000)
+task = PVT(;scheduler, n_trials=1000, visible=false)
 procedural = Procedural()
-visual_location = VisualLocation()
-visual = Visual()
+T = vo_to_chunk() |> typeof
+visual_location = VisualLocation(buffer=T[])
+visual = Visual(buffer=T[])
 motor = Motor()
 actr = ACTR(;scheduler, procedural, visual_location, visual, motor)
 conditions = can_attend()

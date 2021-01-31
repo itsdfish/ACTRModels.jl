@@ -6,6 +6,7 @@ function run!(actr, task::AbstractTask, until=Inf)
     fire!(actr)
     while is_running(s, until)
         event = dequeue!(s.events)
+        pause(task, event)
         s.time = event.time
         event.fun()
         fire!(actr)
@@ -18,4 +19,11 @@ end
 
 function get_time(actr)
     return actr.scheduler.time
+end
+
+function pause(task, event)
+    !task.visible ? (return nothing) : nothing
+    t = (event.time - task.scheduler.time)/task.speed
+    sleep(t)
+    return nothing
 end

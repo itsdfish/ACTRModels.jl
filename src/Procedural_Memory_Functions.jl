@@ -23,13 +23,7 @@ function select_rule(actr)
 end
 
 function get_matching_rules(actr)
-    rules = Rule[]
-    for r in get_rules(actr)
-        if match(r)
-            push!(rules, r)
-        end
-    end
-    return rules
+    return filter(r->match(r), get_rules(actr))
 end
 
 get_rules(actr) = actr.procedural.rules

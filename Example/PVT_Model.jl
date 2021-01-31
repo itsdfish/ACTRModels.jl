@@ -10,7 +10,9 @@ end
 function can_wait()
     c1(actr, args...; kwargs...) = isempty(actr.visual_location.buffer)
     c2(actr, args...; kwargs...) = isempty(actr.visual.buffer)
-    return (c1,c2)
+    c3(actr, args...; kwargs...) = !actr.visual.state.busy
+    c4(actr, args...; kwargs...) = !actr.motor.state.busy
+    return (c1,c2,c3,c4)
 end
 
 function can_respond()
@@ -30,7 +32,7 @@ end
 function attend_action(actr, task, args...; kwargs...)
     actr.visual.state.busy = true
     description = "Attend"
-    tΔ = .05#rand(Uniform(.050,.070))
+    tΔ = .085#rand(Uniform(.050,.070))
     buffer = get_buffer(actr, :visual_location)
     chunk = deepcopy(buffer[1])
     empty!(actr.visual_location.buffer)
@@ -46,7 +48,7 @@ function respond_action(actr, task, args...; kwargs...)
     actr.motor.state.busy = true
     empty!(actr.visual.buffer)
     description = "Respond"
-    tΔ = .05#rand(Uniform(.050,.070))
+    tΔ = .06#rand(Uniform(.050,.070))
     key = "sb" #update later
     register!(actr.scheduler, respond, after, tΔ , actr, task, key;
         description)
@@ -74,6 +76,8 @@ function add_to_visicon!(actr, vo; stuff=false)
     end
     return nothing 
 end
+
+vo_to_chunk(vo=VisualObject()) = Chunk(;color=vo.color, text=vo.text)
 
 function vo_to_chunk(actr, vo)
     time_created = get_time(actr)
