@@ -13,8 +13,8 @@ include("../src/simulator.jl")
 ###################################################################################################
 #                                        Run Model
 ###################################################################################################
-scheduler = Scheduler(;trace=false)
-task = PVT(;scheduler, n_trials=1000, visible=false)
+scheduler = Scheduler(;trace=true)
+task = PVT(;scheduler, n_trials=2, visible=true)
 procedural = Procedural()
 T = vo_to_chunk() |> typeof
 visual_location = VisualLocation(buffer=T[])

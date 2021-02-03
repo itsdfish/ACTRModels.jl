@@ -49,7 +49,7 @@ function respond_action(actr, task, args...; kwargs...)
     empty!(actr.visual.buffer)
     description = "Respond"
     tΔ = .06#rand(Uniform(.050,.070))
-    key = "sb" #update later
+    key = "sb"
     register!(actr.scheduler, respond, after, tΔ , actr, task, key;
         description)
     return nothing
