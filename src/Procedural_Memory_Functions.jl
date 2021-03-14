@@ -19,7 +19,9 @@ end
 resolving(actr, v) = actr.procedural.state.busy = v
 
 function select_rule(actr)
-    return get_matching_rules(actr)
+    rules = get_matching_rules(actr)
+    shuffle!(rules)
+    return rules
 end
 
 function get_matching_rules(actr)
