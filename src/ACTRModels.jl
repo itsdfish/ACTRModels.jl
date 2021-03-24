@@ -58,7 +58,8 @@ module ACTRModels
     import SequentialSamplingModels: LNR
     import Base: rand, match
     export ACTR, Declarative, Imaginal, Chunk, BufferState, Mod, AbstractTask 
-    export Goal, Visual, Motor, VisualLocation, Procedural, Rule, VisualObject
+    export Goal, Visual, Motor, VisualLocation, Procedural, Rule
+    export AbstractVisualObject, VisualObject
     export defaultFun, LNR, reduce_data, get_buffer, set_buffer! 
     export get_chunks, update_lags!, update_recent!, update_chunk!, modify!, add_chunk!
     export retrieval_prob, retrieval_probs, retrieve, compute_activation!, get_parm

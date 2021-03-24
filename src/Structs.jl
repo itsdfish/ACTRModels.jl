@@ -248,6 +248,8 @@ Visual(;buffer=Chunk[]) = Visual(buffer, BufferState(), fill(0.0,2))
 Visual(chunk::Chunk, state, focus) = Visual([chunk], state, focus)
 Visual(T::DataType, state, focus) = Visual(T(undef,1), state, focus)
 
+
+abstract type AbstractVisualObject end 
 """
 **VisualObject**
 
@@ -260,7 +262,7 @@ Constructor
 VisualObject(;x=300.0, y=300.0, color=:black, text="", shape=:_, width=30.0, height=30.0) 
 ````
 """
-mutable struct VisualObject
+mutable struct VisualObject <: AbstractVisualObject
     x::Float64
     y::Float64
     color::Symbol
@@ -283,13 +285,13 @@ Visual Location Module.
 
 Constructor
 ````julia 
-VisualLocation(;chunk=Chunk()) 
+VisualLocation(;buffer=Chunk()) 
 ````
 """
 mutable struct VisualLocation{T1} <: Mod
     buffer::Array{T1,1}
     state::BufferState
-    visicon::Vector{VisualObject}
+    visicon::Vector{<:AbstractVisualObject}
     iconic_memory::Array{T1,1}
 end
 
