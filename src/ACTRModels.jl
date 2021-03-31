@@ -49,6 +49,7 @@ to see documentation for `print_memory`.
 - `print_chunk`
 - `print_memory`
 -  `run`
+- `get_mean_activations`
 """
 module ACTRModels
     using Reexport
@@ -64,7 +65,7 @@ module ACTRModels
     export get_chunks, update_lags!, update_recent!, update_chunk!, modify!, add_chunk!
     export retrieval_prob, retrieval_probs, retrieve, compute_activation!, get_parm
     export spreading_activation!, match, compute_RT, retrieval_request, get_subset
-    export first_chunk, posterior_predictive, find_index, find_indices
+    export first_chunk, posterior_predictive, find_index, find_indices, get_mean_activations
     export import_printing, print_chunk, print_memory, get_visicon, get_iconic_memory
     export run! 
 

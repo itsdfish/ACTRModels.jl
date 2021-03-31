@@ -35,8 +35,8 @@ chunk_idx = find_index(chunk)
 actr.parms.noise = false
 # compute activation for each chunk
 compute_activation!(actr; department=:accounting)
-# extract mean activation
-μ = map(x->x.act, chunks)
+# get mean activation
+μ = get_mean_activations(actr)
 # standard deviation 
 σ = s * pi / sqrt(3)
 # lognormal race distribution object

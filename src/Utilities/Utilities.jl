@@ -274,3 +274,44 @@ set_buffer!(actr, :imaginal, [chunk])
 ````
 """
 set_buffer!(actr, m, v) = getfield(actr, m).buffer = v
+
+"""
+**get_mean_activations** 
+
+Returns a vector of mean activations i.e. activation without noise
+- `actr`: an ACTR object
+
+**Function Signature**
+````julia
+get_mean_activations(actr)
+````
+"""
+get_mean_activations(actr::AbstractACTR) = get_mean_activations(actr.declarative)
+
+"""
+**get_mean_activations** 
+
+Returns a vector of mean activations i.e. activation without noise
+- `declarative`: an Declarative memory object
+
+**Function Signature**
+````julia
+get_mean_activations(memory)
+````
+"""
+get_mean_activations(declarative::Declarative) = get_mean_activations(declarative.memory)
+
+"""
+**get_mean_activations** 
+
+Returns a vector of mean activations i.e. activation without noise
+- `chunks`: an array of chunks
+
+**Function Signature**
+````julia
+get_mean_activations(chunks)
+````
+"""
+function get_mean_activations(chunks::Vector{<:Chunk})
+    return map(x->x.act - x.act_noise, chunks)
+end
