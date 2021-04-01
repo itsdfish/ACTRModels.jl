@@ -815,16 +815,15 @@ retrieve(actr::AbstractACTR, cur_time=0.0; request...)
 ````
 """
 function retrieve(actr::AbstractACTR, cur_time=0.0; request...)
-    memory = actr.declarative
-    arr = Array{eltype(memory.memory),1}()
+    @unpack declarative,parms = actr
+    arr = Array{eltype(declarative.memory),1}()
     chunks = retrieval_request(actr; request...)
     # add noise to threshold even if result of request is empty
-    actr.parms.noise ? add_noise!(actr) : nothing 
+    actr.parms.noise ? add_noise!(actr) : (parms.τ′ = parms.τ)
     isempty(chunks) ? (return arr) : nothing
     compute_activation!(actr, chunks, cur_time; request...)
-    τ′ = actr.parms.τ′
     best = get_max_active(chunks)
-    if best[1].act >= τ′
+    if best[1].act >= parms.τ′
         return best
     end
     return arr

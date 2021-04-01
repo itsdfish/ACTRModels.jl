@@ -412,4 +412,28 @@ using SafeTestsets
         @test !match(chunk, a=:b)
         @test match(chunk, !=, ==, a=:b, b=:b)
     end
+
+    @safetestset "Threshold" begin
+        using ACTRModels, Test, Distributions, Random
+        Random.seed!(41140)
+        chunks = [Chunk(a=:a, b=:b, c=:c, bl=-1.0), Chunk(a=:a, b=:b, c=:a, bl=-1.0)]
+        memory = Declarative(memory=chunks)
+        τ = 0.0
+        actr = ACTR(;declarative=memory, τ, noise=false)
+        retrieved = retrieve(actr; a=:a)
+        @test isempty(retrieved)
+        @test actr.parms.τ′ == τ
+
+        τ = -2.0
+        actr = ACTR(;declarative=memory, τ, noise=false)
+        retrieved = retrieve(actr; a=:a)
+        @test !isempty(retrieved)
+        @test actr.parms.τ′ == τ
+
+        τ = -20.0
+        actr = ACTR(;declarative=memory, τ, noise=true)
+        retrieved = retrieve(actr; a=:a)
+        @test !isempty(retrieved)
+        @test actr.parms.τ′ != τ
+    end
 end
