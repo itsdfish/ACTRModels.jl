@@ -30,49 +30,34 @@ function wait_action(actr, args...; kwargs...)
 end
 
 function attend_action(actr, task, args...; kwargs...)
-    actr.visual.state.busy = true
-    description = "Attend"
-    tΔ = .085#rand(Uniform(.050,.070))
-    buffer = get_buffer(actr, :visual_location)
+    buffer = actr.visual_location.buffer
     chunk = deepcopy(buffer[1])
-    empty!(actr.visual_location.buffer)
-    register!(actr.scheduler, attend!, after, tΔ , actr, chunk; description)
-    # description = "Add Chunk to Motor Buffer"
-    #tΔ += eps()
-    # chunk = deepcopy(chunk)
-    # register!(actr.scheduler, add_to_motor_buffer!, after, tΔ , actr, chunk; description)
+    clear_buffer!(actr.visual_location)
+    attending!(actr, chunk)
     return nothing
 end
 
 function respond_action(actr, task, args...; kwargs...)
-    actr.motor.state.busy = true
-    empty!(actr.visual.buffer)
-    description = "Respond"
-    tΔ = .06#rand(Uniform(.050,.070))
+    clear_buffer!(actr.visual)
     key = "sb"
-    register!(actr.scheduler, respond, after, tΔ , actr, task, key;
-        description)
+    responding!(actr, task, key)
     return nothing
 end
 
-function clear_motor_buffer(actr)
-    empty!(actr.motor.buffer)
-    return nothing 
+function clear_buffer!(mod::Mod)
+    empty!(mod.buffer)
 end
 
-function add_to_motor_buffer!(actr, chunk)
-    motor = get_buffer(actr, :motor)
-    push!(motor, chunk)
-    return nothing
+function add_chunk!(mod::Mod, chunk)
+    clear_buffer!(mod)
+    push!(mod.buffer, chunk)
 end
 
 function add_to_visicon!(actr, vo; stuff=false) 
     push!(actr.visual_location.visicon, deepcopy(vo))
     if stuff 
-       buffer = get_buffer(actr, :visual_location)
-       empty!(buffer)
        chunk = vo_to_chunk(actr, vo)
-       push!(buffer, chunk)
+       add_chunk!(actr.visual_location, chunk)
     end
     return nothing 
 end

@@ -22,8 +22,8 @@ function get_time(actr)
 end
 
 function pause(task, event)
-    !task.visible ? (return nothing) : nothing
-    t = (event.time - task.scheduler.time)/task.speed
+    !task.realtime ? (return nothing) : nothing
+    t = (event.time - task.scheduler.time) / task.speed
     sleep(t)
     return nothing
 end

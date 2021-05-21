@@ -4,6 +4,7 @@ authors = ["itsdfish"]
 version = "0.6.10"
 
 [deps]
+ConcreteStructs = "2569d6c7-a4a2-43d3-a901-331e8e4be471"
 DataFrames = "a93c6f00-e57d-5684-b7b6-d8193f3e46c0"
 DiscreteEventsLite = "8b1724b8-7d2d-4f3a-bca2-6234a697fafb"
 Distributions = "31c24e10-a181-5473-b8eb-7969acd0382f"

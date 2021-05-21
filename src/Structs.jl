@@ -43,27 +43,62 @@ Default parameter for the declarative memory module.
     * `filtered:` a list of slots that must absolutely match with mismatch penalty. isa and retrieval are included
         by default
 """
-mutable struct Parms{T1,T2,T3,T4,T5,T6,T7,T8,T9,T10,T11} <: AbstractParms
-    d::T1
-    τ::T2
-    s::T3
-    γ::T4
-    δ::T5
-    blc::T6
-    ter::T7
-    mmpFun::T8
-    lf::T9
-    τ′::T10
+@concrete mutable struct Parms <: AbstractParms
+    d
+    τ
+    s
+    γ
+    δ
+    blc
+    ter
+    mmpFun
+    select_rule
+    lf
+    τ′
     bll::Bool
     mmp::Bool
     sa::Bool
     noise::Bool
-    misc::T11
+    misc
 end
 
-function Parms(;d=.5, τ=0.0, s=.3, γ=0.0, δ=0.0, blc=0.0, ter=0.0, mmpFun=defaultFun,
-    lf=1.0, τ′=τ, bll=false, mmp=false, sa=false, noise=false, args...)
-    return Parms(d, τ, s, γ, δ, blc, ter, mmpFun, lf, τ′, bll, mmp, sa, noise , args.data)
+function Parms(;
+    d=.5,
+    τ=0.0, 
+    s=.3,
+    γ=0.0,
+    δ=0.0,
+    blc=0.0,
+    ter=0.0,
+    mmpFun=defaultFun,
+    select_rule=exact_match,
+    lf=1.0,
+    τ′=τ,
+    bll=false,
+    mmp=false,
+    sa=false,
+    noise=false,
+    args...
+    )
+    
+    Parms(
+        d,
+        τ,
+        s,
+        γ,
+        δ,
+        blc,
+        ter,
+        mmpFun,
+        select_rule,
+        lf,
+        τ′,
+        bll,
+        mmp,
+        sa,
+        noise,
+        NamedTuple(args)
+    )
 end
 
 """
@@ -118,7 +153,7 @@ function Chunk(;N=1, L=1.0, time_created=0.0, k=1, act=0.0, recent=[0.0],
     act_noise = zero(T)
     act_sa = zero(T)
     return Chunk(N, L, time_created, k, act, act_blc, act_bll, act_pm, act_sa, act_noise,
-        slots.data, reps, recent, lags, bl)
+        NamedTuple(slots), reps, recent, lags, bl)
 end
 
 function Chunk(dynamic::Bool; N=1, L=1.0, time_created=0.0, k=1, act=0.0, recent=[0.0],
@@ -328,10 +363,10 @@ Constructor
 Rule(;utlity=0.0, conditions, action)
 ````
 """
-mutable struct Rule{C,A}
+@concrete mutable struct Rule
     utility::Float64 
-    conditions::C
-    action::A
+    conditions
+    action
     name::String
 end
 
@@ -368,6 +403,22 @@ end
 
 function Procedural(T::DataType, state, id)
     Procedural(id, T(undef,1), state)
+end
+
+function get_matching_rules(actr)
+    return filter(r->match(r), get_rules(actr))
+end
+
+get_rules(actr) = actr.procedural.rules
+
+function exact_match(actr)
+    rules = get_matching_rules(actr)
+    shuffle!(rules)
+    return rules
+end
+
+function match(rule::Rule)
+    all(c->c(), rule.conditions)
 end
 
 """
@@ -448,16 +499,16 @@ ACTR(;declarative=Declarative(), imaginal=Imaginal(), goal = Goal(),
     scheduler=nothing, visual=nothing, visual_location=nothing, parms...) 
 ````
 """
-mutable struct ACTR{T1,T2,T3,T4,T5,T6,T7,T8,T9} <: AbstractACTR
-    declarative::T1
-    imaginal::T2
-    visual::T3
-    visual_location::T4
-    goal::T5
-    procedural::T6
-    motor::T7
-    parms::T8
-    scheduler::T9
+@concrete mutable struct ACTR <: AbstractACTR
+    declarative
+    imaginal
+    visual
+    visual_location
+    goal
+    procedural
+    motor
+    parms
+    scheduler
 end
 
 Broadcast.broadcastable(x::ACTR) = Ref(x)

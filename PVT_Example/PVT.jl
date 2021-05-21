@@ -33,15 +33,17 @@ mutable struct PVT{T,W,C} <: AbstractTask
     canvas::C
     window::W
     visible::Bool
+    realtime::Bool
     speed::Float64
 end
 
 function PVT(;n_trials=10, trial=1, lb=2.0, ub=10.0, width=600.0, height=600.0, scheduler=nothing, 
-    screen=Vector{VisualObject}(), window=nothing, canvas=nothing, visible=false, speed=1.0)
+    screen=Vector{VisualObject}(), window=nothing, canvas=nothing, visible=false, realtime=false,
+    speed=1.0)
     visible ? ((canvas,window) = setup_window(width)) : nothing
     visible ? Gtk.showall(window) : nothing
     return PVT(n_trials, trial, lb, ub, width, height, scheduler, screen, canvas, window, visible,
-        speed)
+        realtime, speed)
 end
 
 function setup_window(width)

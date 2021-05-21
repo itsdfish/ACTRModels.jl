@@ -14,7 +14,7 @@ include("../src/simulator.jl")
 #                                        Run Model
 ###################################################################################################
 scheduler = Scheduler(;trace=true)
-task = PVT(;scheduler, n_trials=2, visible=true)
+task = PVT(;scheduler, n_trials=2, visible=true, realtime=true)
 procedural = Procedural()
 T = vo_to_chunk() |> typeof
 visual_location = VisualLocation(buffer=T[])
@@ -30,4 +30,4 @@ push!(procedural.rules, rule2)
 conditions = can_respond()
 rule3 = Rule(;conditions, action=respond_action, actr, task, name="Respond")
 push!(procedural.rules, rule3)
-@time run!(actr, task)
+run!(actr, task)
