@@ -315,3 +315,17 @@ get_mean_activations(chunks)
 function get_mean_activations(chunks::Vector{<:Chunk})
     return map(x->x.act - x.act_noise, chunks)
 end
+
+get_time(actr::AbstractACTR) = get_time(actr.scheduler)
+get_time(scheduler::Float64) = scheduler
+get_time(scheduler) = scheduler.time 
+
+add_time(actr::AbstractACTR, t) = add_time(actr.scheduler, t)
+add_time(scheduler::Float64, t) = scheduler += t
+add_time(scheduler) = scheduler.time += t
+
+reset_time!(actr::AbstractACTR) = reset_time!(actr.scheduler)
+reset_time!(scheduler::Float64) = scheduler = 0.0
+reset_time!(scheduler) = scheduler.time = 0.0
+
+rnd_time(μ) = rand(Uniform(μ * (2/3), μ * (4/3)))
