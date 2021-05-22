@@ -34,6 +34,7 @@ Default parameter for the declarative memory module.
     * `δ`: mismatch penalty
     * `ter`: a constant for encoding and responding time
     * `mmpFun`: mismatch penalty function. Default substracts δ from each non-matching slot value
+    * `select_rule`: function for selecting production rule
     * `lf:` latency factor parameter
     * `bll`: decay and learning on
     * `mmp`: mismatch penalty on
@@ -372,7 +373,7 @@ end
 
 function Rule(;utility=0.0, conditions, name="", actr, task, action, args=(), kwargs...) 
      Rule(utility, map(x->()->x(actr, args...; kwargs...), conditions), 
-        ()->action(actr, task, args...; kwargs...), name)
+        ()->action(actr, task; kwargs...), name)
 end
 
 """

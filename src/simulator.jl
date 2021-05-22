@@ -17,13 +17,15 @@ function run!(actr, task::AbstractTask, until=Inf)
     return nothing
 end
 
-function get_time(actr)
-    return actr.scheduler.time
-end
-
 function pause(task, event)
     !task.realtime ? (return nothing) : nothing
     t = (event.time - task.scheduler.time) / task.speed
     sleep(t)
     return nothing
+end
+
+start!(task::AbstractTask, model) = nothing 
+
+function start!(model)
+    register!(model.scheduler, ()->(), now; description="Starting")
 end

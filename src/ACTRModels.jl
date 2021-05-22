@@ -54,9 +54,10 @@ to see documentation for `print_memory`.
 module ACTRModels
     using Reexport
     @reexport using Distributions, Parameters, Random, StatsBase, StatsFuns
-    using DiscreteEventsLite, ConcreteStructs
+    using DiscreteEventsLite, ConcreteStructs, DataStructures
     import Distributions: pdf, logpdf
     import SequentialSamplingModels: LNR
+    import DiscreteEventsLite: run!, last_event!, is_running, print_event
     import Base: rand, match
     export ACTR, Declarative, Imaginal, Chunk, BufferState, Mod, AbstractTask 
     export Goal, Visual, Motor, VisualLocation, Procedural, Rule
@@ -67,10 +68,12 @@ module ACTRModels
     export spreading_activation!, match, compute_RT, retrieval_request, get_subset
     export first_chunk, posterior_predictive, find_index, find_indices, get_mean_activations
     export import_printing, print_chunk, print_memory, get_visicon, get_iconic_memory
-    export run! 
+    export run!, vo_to_chunk, add_to_visicon!, clear_buffer!, add_to_buffer!, get_time, attending!
+    export attend!, retrieving!, retrieve!, responding!, respond!, press_key!
 
     include("Structs.jl")
     include("MemoryFunctions.jl")
+    include("Procedural_Memory_Functions.jl")
     include("simulator.jl")
     include("Utilities/Utilities.jl")
 end

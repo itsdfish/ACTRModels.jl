@@ -4,12 +4,10 @@
 cd(@__DIR__)
 using Pkg
 Pkg.activate("../")
-using Revise, DiscreteEventsLite, DataStructures, ACTRModels, Gtk, Cairo
-import DiscreteEventsLite: run!, last_event!, is_running, print_event
+using Revise, DiscreteEventsLite, ACTRModels, Gtk, Cairo
+import ACTRModels: start!, press_key!
 include("PVT.jl")
 include("PVT_Model.jl")
-include("../src/Procedural_Memory_Functions.jl")
-include("../src/simulator.jl")
 ###################################################################################################
 #                                        Run Model
 ###################################################################################################

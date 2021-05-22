@@ -98,10 +98,6 @@ function start!(task::PVT, model)
     run_trial!(task, model)
 end
 
-function start!(model)
-    register!(model.scheduler, ()->(), now; description="Starting")
-end
-
 function sample_isi(task)
     return rand(Uniform(task.lb, task.ub))
 end

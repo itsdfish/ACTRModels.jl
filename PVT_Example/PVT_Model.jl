@@ -43,28 +43,3 @@ function respond_action(actr, task, args...; kwargs...)
     responding!(actr, task, key)
     return nothing
 end
-
-function clear_buffer!(mod::Mod)
-    empty!(mod.buffer)
-end
-
-function add_chunk!(mod::Mod, chunk)
-    clear_buffer!(mod)
-    push!(mod.buffer, chunk)
-end
-
-function add_to_visicon!(actr, vo; stuff=false) 
-    push!(actr.visual_location.visicon, deepcopy(vo))
-    if stuff 
-       chunk = vo_to_chunk(actr, vo)
-       add_chunk!(actr.visual_location, chunk)
-    end
-    return nothing 
-end
-
-vo_to_chunk(vo=VisualObject()) = Chunk(;color=vo.color, text=vo.text)
-
-function vo_to_chunk(actr, vo)
-    time_created = get_time(actr)
-    return Chunk(;time_created, color=vo.color, text=vo.text)
-end
