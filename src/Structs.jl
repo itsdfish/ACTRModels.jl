@@ -372,8 +372,8 @@ Rule(;utlity=0.0, conditions, action)
 end
 
 function Rule(;utility=0.0, conditions, name="", actr, task, action, args=(), kwargs...) 
-     Rule(utility, map(x->()->x(actr, args...; kwargs...), conditions), 
-        ()->action(actr, task; kwargs...), name)
+    Rule(utility, ()->conditions(actr, args...; kwargs...), 
+    ()->action(actr, task; kwargs...), name)
 end
 
 """
@@ -418,8 +418,8 @@ function exact_match(actr)
     return rules
 end
 
-function match(rule::Rule)
-    all(c->c(), rule.conditions)
+function match(rule)
+    return rule.conditions()
 end
 
 """
