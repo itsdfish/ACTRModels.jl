@@ -520,6 +520,3 @@ function ACTR(;declarative=Declarative(), imaginal=Imaginal(),
     parms′ = Parms(;parms...)
     ACTR(declarative, imaginal, visual, visual_location, goal, procedural, motor, parms′, scheduler)
 end
-
-abstract type AbstractTask end
-
