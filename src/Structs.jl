@@ -289,20 +289,26 @@ abstract type AbstractVisualObject end
 """
 **VisualObject**
 
-Visual Location Module.
-- `buffer`: an array holding up to one chunk
-- `state`: buffer state
+A visible object in a task. 
+
+- `x`: x coordinate of visual object. Default 0.
+- `y`: y coordinate of visual object. Default 0.
+- `color`: object color
+- `shape`: object shape
+- `text`: object text
+- `width`: object width 
+- `height`: object height 
 
 Constructor
 ````julia 
 VisualObject(;x=300.0, y=300.0, color=:black, text="", shape=:_, width=30.0, height=30.0) 
 ````
 """
-mutable struct VisualObject <: AbstractVisualObject
+@concrete mutable struct VisualObject <: AbstractVisualObject
     x::Float64
     y::Float64
-    color::Symbol
-    shape::Symbol
+    color
+    shape
     text::String
     width::Float64
     height::Float64
@@ -321,7 +327,13 @@ Visual Location Module.
 
 Constructor
 ````julia 
-VisualLocation(;buffer=Chunk()) 
+VisualLocation(;buffer=Chunk[], visicon=VisualObject[]) 
+
+VisualLocation(chunk::Chunk, state, visicon)
+
+VisualLocation(T::DataType, state, visicon)
+
+VisualLocation(chunks, state, visicon)
 ````
 """
 mutable struct VisualLocation{T1} <: Mod
@@ -385,7 +397,13 @@ Procedural Memory Module.
 
 Constructor
 ````julia 
-Procedural(;chunk=Chunk()) 
+Procedural(;chunk=Chunk())
+
+Procedural(;rules=Rule[], id="")  
+
+Procedural(rule::Rule, state, id)
+
+Procedural(T::DataType, state, id)
 ````
 """
 mutable struct Procedural{R} <: Mod
