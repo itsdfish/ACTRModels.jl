@@ -34,6 +34,7 @@ Default parameter for the declarative memory module.
     * `δ`: mismatch penalty
     * `ter`: a constant for encoding and responding time
     * `mmpFun`: mismatch penalty function. Default substracts δ from each non-matching slot value
+    * `sa_fun`: a function for spreading activation which requires arguments for actr and chunk
     * `select_rule`: function for selecting production rule
     * `lf:` latency factor parameter
     * `bll`: decay and learning on
@@ -53,6 +54,7 @@ Default parameter for the declarative memory module.
     blc
     ter
     mmpFun
+    sa_fun
     select_rule
     lf
     τ′
@@ -71,8 +73,9 @@ function Parms(;
     δ=0.0,
     blc=0.0,
     ter=0.0,
-    mmpFun=defaultFun,
-    select_rule=exact_match,
+    mmpFun = defaultFun,
+    sa_fun = spreading_activation!,
+    select_rule = exact_match,
     lf=1.0,
     τ′=τ,
     bll=false,
@@ -91,6 +94,7 @@ function Parms(;
         blc,
         ter,
         mmpFun,
+        sa_fun,
         select_rule,
         lf,
         τ′,

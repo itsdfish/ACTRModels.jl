@@ -137,7 +137,7 @@ activation!(actr, chunk::Chunk, cur_time=0.0; request...)
 """
 function activation!(actr, chunk::Chunk, cur_time=0.0; request...)
     memory = actr.declarative
-    @unpack bll,mmp,sa,noise,blc,τ = actr.parms
+    @unpack sa_fun,bll,mmp,sa,noise,blc,τ = actr.parms
     reset_activation!(chunk)
     chunk.act_blc = blc + chunk.bl
     if bll
@@ -148,7 +148,7 @@ function activation!(actr, chunk::Chunk, cur_time=0.0; request...)
         partial_matching!(actr, chunk; request...)
     end
     if sa
-        spreading_activation!(actr, chunk)
+        sa_fun(actr, chunk)
     end
     if noise
         add_noise!(actr, chunk)
@@ -258,7 +258,7 @@ function spreading_activation!(actr, chunk)
         r = fan == 0 ? 0.0 : γ + log(fan)
         sa += w * r
     end
-    chunk.act_sa = sa# max(0.0,sa)#causes errors in gradient
+    chunk.act_sa = sa
     return nothing
 end
 
