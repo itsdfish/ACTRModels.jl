@@ -231,7 +231,7 @@ within the simulation
 get_visicon(actr)
 ````
 """
-get_visicon(actr) = actr.visual_location.visicon
+get_visicon(actr) = actr.visicon
 
 """
 **get_buffer** 

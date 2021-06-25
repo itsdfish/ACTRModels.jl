@@ -331,38 +331,37 @@ Visual Location Module.
 
 Constructor
 ````julia 
-VisualLocation(;buffer=Chunk[], visicon=VisualObject[]) 
+VisualLocation(;buffer=Chunk[]) 
 
-VisualLocation(chunk::Chunk, state, visicon)
+VisualLocation(chunk::Chunk, state)
 
-VisualLocation(T::DataType, state, visicon)
+VisualLocation(T::DataType, state)
 
-VisualLocation(chunks, state, visicon)
+VisualLocation(chunks, state)
 ````
 """
 mutable struct VisualLocation{T1} <: Mod
     buffer::Array{T1,1}
     state::BufferState
-    visicon::Vector{<:AbstractVisualObject}
     iconic_memory::Array{T1,1}
 end
 
-function VisualLocation(;buffer=Chunk[], visicon=VisualObject[]) 
-    VisualLocation(buffer, BufferState(), visicon)
+function VisualLocation(;buffer=Chunk[]) 
+    VisualLocation(buffer, BufferState())
 end
 
-function VisualLocation(chunk::Chunk, state, visicon)
+function VisualLocation(chunk::Chunk, state)
     T = typeof(chunk)
-     VisualLocation([chunk], state, visicon, Vector{T}(undef,1))
+     VisualLocation([chunk], state, Vector{T}(undef,1))
 end
 
-function VisualLocation(T::DataType, state, visicon)
-    VisualLocation(T(undef,1), state, visicon, T(undef,1))
+function VisualLocation(T::DataType, state)
+    VisualLocation(T(undef,1), state, T(undef,1))
 end
 
-function VisualLocation(chunks, state, visicon)
+function VisualLocation(chunks, state)
     c_chunks = copy(chunks)
-    VisualLocation(chunks, state, visicon, c_chunks)
+    VisualLocation(chunks, state, c_chunks)
 end
 
 """
@@ -513,13 +512,15 @@ ACTR model object
 - `visual`: visual module
 - `goal`: goal module
 - `visual_location`: visual location module
+- `visicon`:
 - `parms`: model parameters
 - `scheduler`: event scheduler
+
 
 Constructor
 ````julia 
 ACTR(;declarative=Declarative(), imaginal=Imaginal(), goal = Goal(), 
-    scheduler=nothing, visual=nothing, visual_location=nothing, parms...) 
+    scheduler=nothing, visual=nothing, visual_location=nothing, visicon=nothing, parms...) 
 ````
 """
 @concrete mutable struct ACTR <: AbstractACTR
@@ -530,6 +531,7 @@ ACTR(;declarative=Declarative(), imaginal=Imaginal(), goal = Goal(),
     goal
     procedural
     motor
+    visicon
     parms
     scheduler
 end
@@ -538,7 +540,11 @@ Broadcast.broadcastable(x::ACTR) = Ref(x)
 
 function ACTR(;declarative=Declarative(), imaginal=Imaginal(), 
     goal = Goal(), scheduler=nothing, visual=nothing, visual_location=nothing, 
-    procedural=nothing, motor=nothing, parms...) 
+    procedural=nothing, motor=nothing, visicon=init_visicon(), parms...) 
     parms′ = Parms(;parms...)
-    ACTR(declarative, imaginal, visual, visual_location, goal, procedural, motor, parms′, scheduler)
+    ACTR(declarative, imaginal, visual, visual_location, goal, procedural, motor, visicon, parms′, scheduler)
+end
+
+function init_visicon()
+    Dict{String,AbstractVisualObject}()
 end
