@@ -308,11 +308,11 @@ Constructor
 VisualObject(;x=300.0, y=300.0, color=:black, text="", shape=:_, width=30.0, height=30.0) 
 ````
 """
-@concrete mutable struct VisualObject <: AbstractVisualObject
+mutable struct VisualObject <: AbstractVisualObject
     x::Float64
     y::Float64
-    color
-    shape
+    color::Symbol
+    shape::Symbol
     text::String
     width::Float64
     height::Float64
@@ -546,5 +546,5 @@ function ACTR(;declarative=Declarative(), imaginal=Imaginal(),
 end
 
 function init_visicon()
-    Dict{String,AbstractVisualObject}()
+    Dict{String,VisualObject}()
 end
