@@ -85,8 +85,13 @@ using SafeTestsets
         c = get_chunks(actr; animal=:human, name=:Wilford, last_name=:Brimley)
         @test !isempty(c)
         @test c[1].N == 1
-        add_chunk!(actr, 10.0; animal=:human, name=:Wilford, last_name=:Brimley)
+        @test c[1].time_created == 10.0
+        @test c[1].recent[1] == 10.0
+
+        add_chunk!(actr, 20.0; animal=:human, name=:Wilford, last_name=:Brimley)
         @test c[1].N == 2
+        @test c[1].time_created == 10.0
+        @test c[1].recent[1] == 20.0
     end
 
     @safetestset "retrieval_prob" begin
@@ -435,5 +440,30 @@ using SafeTestsets
         retrieved = retrieve(actr; a=:a)
         @test !isempty(retrieved)
         @test actr.parms.τ′ != τ
+    end
+
+    @safetestset "base level learning example" begin
+        using ACTRModels, Test, Distributions, Random
+        memory = Declarative(memory=Chunk[])
+        bll = true
+        d = .5
+        noise = false
+        actr = ACTR(;declarative=memory, bll, d, noise)
+        cur_time = 45.185
+        for _ in 1:10
+            add_chunk!(actr, cur_time; a=:a)
+            cur_time += rand(Uniform(0, 100))
+        end
+        cur_time = 1265.185
+        add_chunk!(actr, cur_time; a=:a)
+        cur_time = 1590.185
+        compute_activation!(actr, cur_time)
+        chunk = actr.declarative.memory[1]
+        @test chunk.act_bll ≈ -.905594 rtol = .0001
+        # based on lisp act-r example:
+        # 1590.185   DECLARATIVE            START-RETRIEVAL 
+        # Computing base-level from 11 references (1265.185)
+        #   creation time: 45.185 decay: 0.5  Optimized-learning: 1
+        # base-level value: -0.905594
     end
 end

@@ -487,18 +487,19 @@ Motor(;chunk=Chunk())
 mutable struct Motor{T1} <: Mod
     buffer::Array{T1,1}
     state::BufferState
+    mouse_position::Vector{Float64}
 end
 
-function Motor(;buffer=Chunk[]) 
-    Motor(buffer, BufferState())
+function Motor(;buffer=Chunk[], mouse_position=[0.0,0.0]) 
+    Motor(buffer, BufferState(), mouse_position)
 end
 
-function Motor(chunk::Chunk, state)
-    Motor([chunk], state)
+function Motor(chunk::Chunk, state, mouse_position)
+    Motor([chunk], state, mouse_position)
 end
 
-function Motor(T::DataType, state)
-    Motor(T(undef,1), state)
+function Motor(T::DataType, state, mouse_position)
+    Motor(T(undef,1), state, mouse_position)
 end
 
 abstract type AbstractACTR end
