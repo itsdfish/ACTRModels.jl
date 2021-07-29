@@ -54,7 +54,7 @@ to see documentation for `print_memory`.
 module ACTRModels
     using Reexport
     @reexport using Distributions, Parameters, Random, StatsBase, StatsFuns
-    using  ConcreteStructs
+    using  ConcreteStructs, PrettyTables
     import Distributions: pdf, logpdf
     import SequentialSamplingModels: LNR
     import Base: rand, match
