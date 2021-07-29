@@ -108,6 +108,7 @@ end
 
 function Base.show(io::IO, ::MIME"text/plain", parms::Parms)
     values = [getfield(parms, f) for f in fieldnames(Parms)]
+    values = map(x->typeof(x)== Bool ? string(x) : x, values)
     return pretty_table(
         values;
         title="Model Parameters",
