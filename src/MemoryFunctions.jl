@@ -382,17 +382,15 @@ Computes the retrieval probability for each chunk matching the retrieval request
 - `request...`: optional keyword pairs representing a retrieval request
 """
 function retrieval_probs(actr::AbstractACTR, cur_time=0.0; request...)
-    @unpack τ,s,γ,noise = actr.parms
+    @unpack τ,s,γ = actr.parms
     σ = s * sqrt(2)
-    set_noise!(actr, false)
     chunks = retrieval_request(actr; request...)
     isempty(chunks) ? (return ([0.0],chunks)) : nothing
     compute_activation!(actr, chunks, cur_time; request...)
     v = Array{typeof(chunks[1].act),1}(undef, length(chunks) + 1)
-    map!(x -> exp(x.act / σ), v, chunks)
+    map!(x -> exp(x.act_mean / σ), v, chunks)
     v[end] = exp(τ / σ)
     p = v ./ sum(v)
-    set_noise!(actr, noise)
     return p,chunks
 end
 
