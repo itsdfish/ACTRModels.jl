@@ -170,7 +170,7 @@ Assigns sum of all components to of activation to `chunk.act`.
 function total_activation!(chunk)
     chunk.act_mean = chunk.act_blc + chunk.act_bll - chunk.act_pm +
         chunk.act_sa 
-    chunk.act = chunk.act_mean + + chunk.act_noise
+    chunk.act = chunk.act_mean + chunk.act_noise
     return nothing
 end
 
@@ -332,7 +332,7 @@ function retrieval_prob(actr::AbstractACTR, target::Array{<:Chunk,1}, cur_time=0
     denom = fill(target[1].act_mean, length(chunks) + 1)
     map!(x -> exp(x.act_mean / σ), denom, chunks)
     denom[end] = exp(τ / σ)
-    num = map(x -> exp(x.act / σ), target)
+    num = map(x -> exp(x.act_mean / σ), target)
     prob = sum(num) / sum(denom)
     fail = denom[end] / sum(denom)
     return prob,fail
@@ -494,7 +494,7 @@ Adds new chunk to declarative memory or updates existing chunk with new use
 add_chunk!(actr::AbstractACTR, cur_time=0.0; slots...) = add_chunk!(actr.declarative, cur_time; slots...)
 
 """
-    get_chunks(memory::Vector{<:Chunk}; args...)
+    get_chunks(memory::Vector{<:Chunk}; criteria...)
 
 Returns all chunks that matches a set criteria.
 
@@ -518,12 +518,12 @@ Returns all chunks that matches a set `criteria` which are evaluted according to
 
 # Arguments 
 
-* `memory::Vector{<:Chunk}`: vector of chunk objects
-* `funs...`: a list of functions
+- `memory::Vector{<:Chunk}`: vector of chunk objects
+- `funs...`: a list of functions
 
 # Keywords
 
-* `criteria...`: optional keyword arguments corresponding to critiria for matching chunk
+- `criteria...`: optional keyword arguments corresponding to critiria for matching chunk
 """
 function get_chunks(memory::Vector{<:Chunk}, funs...; criteria...)
     c = filter(x -> match(x, funs...; criteria...), memory)
@@ -552,11 +552,11 @@ Returns all chunks that matches a set criteria
 
 # Arguments
 
-* `actr::AbstractACTR`: an ACTR Object
+- `actr::AbstractACTR`: an ACTR Object
 
 #Keywords
 
-* `criteria...`: optional keyword arguments corresponding to critiria for matching chunk
+- `criteria...`: optional keyword arguments corresponding to critiria for matching chunk
 """
 get_chunks(actr::AbstractACTR; criteria...) = get_chunks(actr.declarative.memory; criteria...)
 
@@ -567,12 +567,12 @@ Returns all chunks that matches a set criteria using `funs...` as matching funct
 
 # Arguments
 
-* `d::Declarative`: declarative memory object
-* `funs...`: a list of functions
+- `d::Declarative`: declarative memory object
+- `funs...`: a list of functions
 
 # Keywords
 
-* `criteria...`: optional keyword arguments corresponding to critiria for matching chunk
+- `criteria...`: optional keyword arguments corresponding to critiria for matching chunk
 """
 get_chunks(d::Declarative, funs...; criteria...) = get_chunks(d.memory, funs...; criteria...)
 
@@ -583,12 +583,12 @@ Returns all chunks that matches a set criteria using `funs...` as matching funct
 
 # Arguments
 
-* `actr::AbstractACTR`: an ACT-R model object
-* `funs...`: a list of functions
+- `actr::AbstractACTR`: an ACT-R model object
+- `funs...`: a list of functions
 
 # Keywords
 
-* `criteria...`: optional keyword arguments corresponding to critiria for matching chunk
+- `criteria...`: optional keyword arguments corresponding to critiria for matching chunk
 """
 get_chunks(actr::AbstractACTR, funs...; criteria...) = get_chunks(actr.declarative.memory, funs...; criteria...)
 
@@ -599,11 +599,11 @@ Returns the first chunk in memory that matches a set of criteria
 
 # Arguments
 
-* `memory::Vector{<:Chunk}`: a vector of chunks 
+- `memory::Vector{<:Chunk}`: a vector of chunks 
 
 # Keywords
 
-* `criteria...`: optional keyword arguments corresponding to critiria for matching chunk
+- `criteria...`: optional keyword arguments corresponding to critiria for matching chunk
 """
 function first_chunk(memory::Vector{<:Chunk}; criteria...)
     chunk = Array{eltype(memory),1}()
@@ -623,11 +623,11 @@ Returns the first chunk in memory that matches a set of criteria
 
 # Arguments
 
-* `d::Declarative`: a declarative memory object
+- `d::Declarative`: a declarative memory object
 
 # Keywords
 
-* `criteria...`: optional keyword arguments corresponding to critiria for matching chunk
+- `criteria...`: optional keyword arguments corresponding to critiria for matching chunk
 """
 first_chunk(d::Declarative; criteria...) = first_chunk(d.memory; criteria...)
 
@@ -638,11 +638,11 @@ Returns the first chunk in memory that matches a set of criteria
 
 # Arguments
 
-* `actr::AbstractACTR`: an ACT-R model object
+- `actr::AbstractACTR`: an ACT-R model object
 
 # Keywords
 
-* `criteria...`: optional keyword arguments corresponding to critiria for matching chunk
+- `criteria...`: optional keyword arguments corresponding to critiria for matching chunk
 """
 first_chunk(actr::AbstractACTR; criteria...) = first_chunk(actr.declarative.memory; criteria...)
 
@@ -717,9 +717,9 @@ Returns a boolean indicating whether a request matches a chunk.
 False is returned if the slot does not exist in the chunk or the value
 of the slot does not match the request value.
 
-* `chunk`: chunk object
-* `funs...`: a list of functions such as `!=, ==`
-* `request...`: a NamedTuple of slot value pairs
+- `chunk`: chunk object
+- `funs...`: a list of functions such as `!=, ==`
+- `request...`: a NamedTuple of slot value pairs
 """
 match(chunk::Chunk, funs...; request...) = match(chunk, funs, request)
 
@@ -771,11 +771,11 @@ Modifies fields of an object
 
 # Arguments
 
-* `c`: an object
+- `c`: an object
 
 # Keywords
 
-* `args...`: optional keywords for field and values
+- `args...`: optional keywords for field and values
 """
 function modify!(c; args...)
     for (k,v) in args
@@ -791,11 +791,11 @@ Modifies fields of NamedTuple
 
 # Arguments
 
-* `c`: a NamedTuple
+- `c`: a NamedTuple
 
 # Keywords
 
-* `args`: optional keywords for field and values
+- `args...`: optional keywords for field and values
 """
 function modify!(c::NamedTuple; args...)
     for (k,v) in args
@@ -816,7 +816,7 @@ Retrieves a chunk given a retrieval request
 
 # Keywords
 
-* `request...`: optional keyword arguments representing a retrieval request, e.g. person=:bob
+- `request...`: optional keyword arguments representing a retrieval request, e.g. person=:bob
 """
 function retrieve(actr::AbstractACTR, cur_time=0.0; request...)
     @unpack declarative,parms = actr
@@ -840,7 +840,7 @@ Returns the chunk with maximum activation
 
 # Arguments
 
-* `chunks`: a vector of chunk objects
+- `chunks`: a vector of chunk objects
 """
 function get_max_active(chunks)
     a = -Inf
@@ -856,15 +856,16 @@ end
 
 """
 
+    compute_RT(actr, chunk)
 
 Generates a reaction time for retrieving a chunk based
-on the current activation levels of a chunk. If the vector is empty, time for a retrieval failure 
-is returned
+on the current activation levels of a chunk. If the vector is empty, time 
+for a retrieval failure is returned.
 
 # Arguments
 
-* `actr`: ACTR object
-* `chunk`: a vector that is empty or contains one chunk
+- `actr`: ACTR object
+- `chunk`: a vector that is empty or contains one chunk
 """
 function compute_RT(actr, chunk)
     @unpack τ′,lf = actr.parms
@@ -883,8 +884,8 @@ on the current activation levels of a chunk.
 
 # Arguments
 
-* `actr`: ACTR object
-* `chunk`: a chunk
+- `actr`: ACTR object
+- `chunk`: a chunk
 """
 function compute_RT(actr, chunk::Chunk)
     @unpack lf = actr.parms
@@ -898,8 +899,8 @@ Returns the value of a parameter
 
 # Arguments
 
-* `actr`: ACTR object
-* ` p`: parameter name
+- `actr`: ACTR object
+- ` p`: parameter name
 """
 function get_parm(actr, p)
     misc = actr.parms.misc

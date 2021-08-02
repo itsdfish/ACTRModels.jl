@@ -309,12 +309,12 @@ slot does not exist or slot value does not match
 
 # Arguments 
 
-* `actr`: an ACTR model object
-* `chunk`: memory chunk object
+- `actr`: an ACTR model object
+- `chunk`: memory chunk object
 
 # Keywords
 
-* `request`: a variable size collection of slot-value pairs for the retrieval request
+- `request`: a variable size collection of slot-value pairs for the retrieval request
 """
 function defaultFun(actr, chunk; request...)
     slots = chunk.slots
