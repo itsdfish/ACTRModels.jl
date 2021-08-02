@@ -1,7 +1,7 @@
 name = "ACTRModels"
 uuid = "c095b0ea-a6ca-5cbd-afed-dbab2e976880"
 authors = ["itsdfish"]
-version = "0.7.4"
+version = "0.7.5"
 
 [deps]
 ConcreteStructs = "2569d6c7-a4a2-43d3-a901-331e8e4be471"

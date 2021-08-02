@@ -150,6 +150,7 @@ mutable struct Chunk{T1,T2}
   L::Float64
   time_created::Float64
   k::Int
+  act_mean::T2
   act::T2
   act_blc::T2
   act_bll::T2
@@ -175,12 +176,13 @@ function Chunk(;
     bl=zero(typeof(act)), slots...
     )
     T = typeof(act)
+    act_mean = zero(T)
     act_pm = zero(T)
     act_blc = zero(T)
     act_bll = zero(T)
     act_noise = zero(T)
     act_sa = zero(T)
-    return Chunk(N, L, time_created, k, act, act_blc, act_bll, act_pm, act_sa, act_noise,
+    return Chunk(N, L, time_created, k, act_mean, act, act_blc, act_bll, act_pm, act_sa, act_noise,
         NamedTuple(slots), reps, recent, lags, bl)
 end
 
@@ -196,7 +198,8 @@ A declarative memory chunk with dynamic slot-value pairs.
 - `L=1.0`: lifetime of chunk
 - `time_created=0.0`: time at which the chunk was created
 - `k=1`: number of chunks in recent set (k=1 is sufficient)
-- `act=0.0`: total activation
+- `act_mean`: mean activation computed as `act` - `act_noise`
+- `act=0.0`: total activation computed as `act_mean` + `act_noise`
 - `act_blc=0.0`: base level constant component of activation
 - `act_bll=0.0`: base level learning component of activation
 - `act_pm=0.0`: partial matching component of activation
@@ -232,6 +235,44 @@ function Chunk(dynamic::Bool;
 end
 
 Broadcast.broadcastable(x::Chunk) = Ref(x)
+
+const chunk_fields = (:slots,:N,:L,:time_created,:recent,:act_mean,:act,:act_blc,:bl,:act_bll,:act_pm,:act_noise)
+
+function chunk_values(chunk)
+    values = [getfield(chunk, f) for f in chunk_fields]
+    return map(x->typeof(x)== Bool ? string(x) : x, values)
+end
+
+function Base.show(io::IO, ::MIME"text/plain", chunk::Chunk)
+    values = chunk_values(chunk)
+    return pretty_table(
+        values;
+        title="Chunk",
+        row_name_column_title="Property",
+        compact_printing=false,
+        header=["Value"],
+        row_name_alignment=:l,
+        row_names=[chunk_fields...],
+        formatters=ft_printf("%5.2f"),
+        alignment=:l,
+    )
+end
+
+function Base.show(io::IO, ::MIME"text/plain", chunks::Vector{<:Chunk})
+    table = [chunk_values(chunk) for chunk in chunks]
+    table = hcat(table...)
+    table = permutedims(table)
+    return pretty_table(
+        table;
+        title="Chunks",
+        # row_name_column_title="Parameter",
+        compact_printing=false,
+        header=[chunk_fields...],
+        row_name_alignment=:l,
+        formatters=ft_printf("%5.2f"),
+        alignment=:l,
+    )
+end
 
 abstract type Mod end
 

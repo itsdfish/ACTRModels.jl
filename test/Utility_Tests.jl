@@ -37,24 +37,4 @@ using SafeTestsets
         chunk_set = chunks[idx]
         @test all(x->x.slots.attribute == :category && x.slots.value != :bird, chunk_set)
     end
-
-    @safetestset "print_memory" begin
-        using ACTRModels, Test
-        include("Utility_Functions.jl")
-        import_printing()
-        chunks = populateMemory()
-        declarative = Declarative(memory=chunks)
-        actr = ACTR(declarative = declarative)
-        print_memory(chunks)
-        print_memory(declarative)
-        print_memory(actr)
-    end
-
-    @safetestset "print_chunk" begin
-        using ACTRModels, Test
-        include("Utility_Functions.jl")
-        import_printing()
-        chunks = populateMemory()
-        print_chunk(chunks[1])
-    end
 end

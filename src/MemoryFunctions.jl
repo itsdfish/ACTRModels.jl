@@ -1,18 +1,12 @@
 """
-**baselevel** 
+    baselevel(d, lags)
 
-Computes baselevel activation according exact equation
-* `d`: decay parameter
-* `lags`: a vector of time lags between current time and each usage time
+Computes baselevel activation according exact equation.
 
-Function Signature
-````julia 
-baselevel!(actr, chunk)
-````
-**Function Signature**
-````julia
-baselevel(d, lags)
-````
+# Arguments
+
+- `d`: decay parameter
+- `lags`: a vector of time lags between current time and each usage time
 """
 function baselevel(d, lags)
     act = 0.0
@@ -23,16 +17,14 @@ function baselevel(d, lags)
 end
 
 """
-**baselevel!** 
+    baselevel(d, chunk)
 
-Computes baselevel activation according to the hybrid approximation
-* `actr`: ACTR object
-* `chunk`: a chunk
+Computes baselevel activation according exact equation.
 
-**Function Signature**
-````julia 
-baselevel!(actr, chunk)
-````
+# Arguments
+
+- `actr`: an `ACTR` model object
+- `chunk`: a chunk
 """
 function baselevel!(actr, chunk)
     @unpack N,L,k,lags = chunk
@@ -50,39 +42,34 @@ function baselevel!(actr, chunk)
 end
 
 """
-**baselevel!** 
+    baselevel!(actr)
 
-Computes baselevel activation for all chunks in declarative memory
- according to the hybrid approximation
-* `actr`: ACTR object
+Computes baselevel activation for all chunks according exact equation.
 
-**Function Signature**
-````julia 
-baselevel!(actr)
-````
+# Arguments
+
+- `actr`: an `ACTR` model object
 """
 baselevel!(actr) = activation!.(actr, memory.memory)
 
 """
-**compute_activation!* 
+    compute_activation!(actr::AbstractACTR, chunks::Vector{<:Chunk}, cur_time::Float64=0.0; request...) 
 
-Computes the activation of a set of chunks
-- `actr`: actr object
-- `chunks`: a set of chunks.
-- `cur_time`: current time. Default 0.0 used when bll is false
-- `request`: optional NamedTuple for retrieval request
+Computes the activation of a vector of chunks
 
-**Function Signature**
-````julia 
-compute_activation!(actr::AbstractACTR, chunks::Vector{<:Chunk}, cur_time::Float64=0.0; request...)
-````
+# Arguments
+
+- `actr::AbstractACTR`: an `ACTR` object
+- `chunks::Vector{<:Chunk}`: a vector of chunks.
+- `cur_time::Float64=0.0`: current simulated time in seconds
+
+# Keywords
+
+- `request...`: optional keywords for the retrieval request
 """
 function compute_activation!(actr::AbstractACTR, chunks::Vector{<:Chunk}, cur_time::Float64=0.0; request...)
-    @unpack sa,noise = actr.parms
-    if sa
-        # Cache denoms in spreading activation for effeciency
-        spreading_activation!(actr)
-    end
+    @unpack sa = actr.parms
+    sa ? cache_denomitors(actr) : nothing
     # compute activation for each chunk
     for chunk in chunks
         activation!(actr, chunk, cur_time; request...)
@@ -91,49 +78,52 @@ function compute_activation!(actr::AbstractACTR, chunks::Vector{<:Chunk}, cur_ti
 end
 
 """
-**compute_activation!**
+    compute_activation!(actr, chunk::Chunk, cur_time=0.0; request...) 
 
 Computes the activation of a chunk
-- `actr`: actr object
-- `chunk`: a chunk
-- `cur_time`: current time. Default 0.0 used when bll is false
-- `request`: optional keyword arguments for retrieval request
 
-**Function Signature**
-````julia 
-compute_activation!(actr, chunk::Chunk, cur_time=0.0; request...)
-````
+# Arguments
+
+- `actr`: actr object
+- `chunk::Chunk`: a chunk.
+- `cur_time=0`: current simulated time in seconds
+
+# Keywords
+
+- `request...`: optional keywords for the retrieval request
 """
 compute_activation!(actr, chunk::Chunk, cur_time=0.0; request...) = compute_activation!(actr, [chunk], cur_time; request...)
 
 """
-**compute_activation!** 
+    compute_activation!(actr::AbstractACTR, cur_time::Float64=0.0; request...)
 
-Computes the activation for all declarative memory
-- `actr`: actr object
-- `cur_time`: current time. Default 0.0 used when bll is false
-- `request`: optional keyword arguments for retrieval request
+Computes the activation of all chunks in declarative memory
 
-**Function Signature**
-````julia 
-compute_activation!(actr::AbstractACTR, cur_time::Float64=0.0; request...)
-````
+# Arguments
+
+- `actr::AbstractACTR`: an `ACTR` object
+- `cur_time::Float64=0.0`: current simulated time in seconds
+
+# Keywords
+
+- `request...`: optional keywords for the retrieval request
 """
 compute_activation!(actr::AbstractACTR, cur_time::Float64=0.0; request...) = compute_activation!(actr, actr.declarative.memory, cur_time; request...)
 
 """
-**activation!** 
+    activation!(actr, chunk::Chunk, cur_time=0.0; request...) 
 
-Computes activation for a given chunk
-- `actr`: ACT-R object
-- `chunk`: chunk object
-- `cur_time`: current time, default = 0
-- `request`: optional keyword arguments for retrieval request
+Computes the activation of a chunk
 
-**Function Signature**
-````julia
-activation!(actr, chunk::Chunk, cur_time=0.0; request...)
-````
+# Arguments
+
+- `actr`: an `ACTR` object
+- `chunk::Chunk`: a chunk.
+- `cur_time=0`: current simulated time in seconds
+
+# Keywords
+
+- `request...`: optional keywords for the retrieval request
 """
 function activation!(actr, chunk::Chunk, cur_time=0.0; request...)
     memory = actr.declarative
@@ -159,6 +149,7 @@ end
 
 function reset_activation!(chunk)
     a = chunk.act
+    chunk.act_mean = zero(a)
     chunk.act_blc = zero(a)
     chunk.act_bll = zero(a)
     chunk.act_pm = zero(a)
@@ -168,19 +159,18 @@ function reset_activation!(chunk)
 end
 
 """
-**total_activation!** 
+    total_activation!(chunk)
 
-Sums activation across all components
-- `chunk`: chunk object
+Assigns sum of all components to of activation to `chunk.act`.
 
-**Function Signature**
-````julia
-total_activation!(chunk)
-````
+# Arguments
+
+- `chunk`: a chunk object
 """
 function total_activation!(chunk)
-    chunk.act = chunk.act_blc + chunk.act_bll - chunk.act_pm +
-        chunk.act_sa + chunk.act_noise
+    chunk.act_mean = chunk.act_blc + chunk.act_bll - chunk.act_pm +
+        chunk.act_sa 
+    chunk.act = chunk.act_mean + + chunk.act_noise
     return nothing
 end
 
@@ -199,17 +189,18 @@ function add_noise!(actr)
 end
 
 """
-**partial_matching!** 
+    partial_matching!(actr, chunk; request...)
 
 Computes activation for partial matching component
+
+# Arguments
+
 - `actr`: an ACTR object
 - `chunk`: a chunk 
-- `request...`: optional keyword arguments for retrieval request
 
-**Function Signature**
-````julia
-partial_matching!(actr, chunk; request...)
-````
+# Keywords
+
+- `request...`: optional keyword arguments for retrieval request
 """
 function partial_matching!(actr, chunk; request...)
     p = actr.parms.mmpFun(actr, chunk; request...)
@@ -218,32 +209,28 @@ function partial_matching!(actr, chunk; request...)
 end
 
 """
-**set_noise!** 
+    set_noise!(actr::AbstractACTR, b)
 
 Sets noise true or false.
-* `actr`: ACTR object
-* `b`: boolean value
 
-**Function Signature**
-````julia
-set_noise!(actr::AbstractACTR, b)
-````
+# Arguments
+
+- `actr`: ACTR object
+- `b`: boolean value
 """
 function set_noise!(actr, b)
     actr.parms.noise = b
 end
 
 """
-**spreading_activation** 
+    spreading_activation!(actr, chunk) 
 
 Computes the spreading activation for a given chunk
-* `actr`: actr object or declarative memory object
-* `chunk`: the chunk for which spreading activation is computed
 
-**Function Signature**
-````julia
-spreading_activation!(actr, chunk)
-````
+# Arguments
+
+- `actr`: an `ACTR` oject
+- `chunk`: the chunk for which spreading activation is computed
 """
 function spreading_activation!(actr, chunk)
     imaginal = actr.imaginal
@@ -262,8 +249,16 @@ function spreading_activation!(actr, chunk)
     return nothing
 end
 
-# Caches the denominator of spreading activation
-function spreading_activation!(actr)
+"""
+    cache_denomitors(actr) 
+
+Caches denominator of spreading activation calculations
+
+# Arguments
+
+- `actr`: an `ACTR` oject
+"""
+function cache_denomitors(actr)
     @unpack imaginal,declarative = actr
     isempty(imaginal.buffer) ? (return nothing) : nothing 
     slots = imaginal.buffer[1].slots
@@ -292,17 +287,15 @@ function count_values(chunk, value)
 end
 
 """
-**update_recent** 
+    update_recent!(chunk, cur_time)
 
 Adds a new timestamp to chunk and removes oldest timestamp if
 length equals k.
-* `chunk`: memory chunk object
-* `cur_time`: current time in seconds
 
-**Function Signature**
-````julia
-update_recent!(chunk, cur_time)
-````
+# Arguments
+
+* `chunk`: memory chunk object
+* `cur_time`: current simulated time in seconds
 """
 function update_recent!(chunk, cur_time)
     k = chunk.k; recent = chunk.recent
@@ -314,79 +307,79 @@ function update_recent!(chunk, cur_time)
 end
 
 """
-**retrieval_prob** 
+    retrieval_prob(actr::AbstractACTR, target::Array{<:Chunk,1}, cur_time=0.0; request...)
 
 Computes the retrieval probability of one chunk from a set of chunks defined in `target`.
-* `actr`: an actr object
-* `chunk`: a chunk
-* `cur_time`: current time. Default 0.0 to be used when bll is false
-* `request`: optional NamedTuple for retrieval request
+Retrieval probability is computed with the softmax approximation.
 
-**Function Signature**
-````julia
-retrieval_prob(actr::AbstractACTR, target::Array{<:Chunk,1}, cur_time=0.0; request...)
-````
+# Arguments
+
+* `actr::AbstractACTR`: an actr object
+* `target::Array{<:Chunk,1}`: a vector chunks in the numerator of the softmax function
+* `cur_time=0.0`: current time in seconds
+
+# Keywords
+
+* `request...`: optional keywords for the retrieval request
 """
 function retrieval_prob(actr::AbstractACTR, target::Array{<:Chunk,1}, cur_time=0.0; request...)
-    @unpack τ,s,noise = actr.parms
+    @unpack τ,s = actr.parms
     σ = s * sqrt(2)
     chunks = retrieval_request(actr; request...)
     filter!(x -> (x ∈ chunks), target)
     isempty(target) ? (return (0.0,1.0)) : nothing
-    set_noise!(actr, false)
     compute_activation!(actr, chunks, cur_time; request...)
-    denom = fill(target[1].act, length(chunks) + 1)
-    map!(x -> exp(x.act / σ), denom, chunks)
+    denom = fill(target[1].act_mean, length(chunks) + 1)
+    map!(x -> exp(x.act_mean / σ), denom, chunks)
     denom[end] = exp(τ / σ)
     num = map(x -> exp(x.act / σ), target)
     prob = sum(num) / sum(denom)
     fail = denom[end] / sum(denom)
-    set_noise!(actr, noise)
     return prob,fail
 end
 
 """
-**retrieval_prob** 
+    retrieval_prob(actr::AbstractACTR, chunk::Chunk, cur_time=0.0; request...)
 
-Computes the retrieval probability of retrieving a chunk.
-* `actr`: an actr object
-* `chunk`: a chunk
-* `cur_time`: current time. Default 0.0 to be used when bll is false
-* `request`: optional NamedTuple for retrieval request
+Uses the softmax approximation to compute the retrieval probability of retrieving a chunk.
 
-**Function Signature**
-````julia
-retrieval_prob(actr::AbstractACTR, chunk::Chunk, cur_time=0.0; request...)
-````
+# Arguments
+
+- `actr::AbstractACTR`: an ACT-R object
+- `chunk::Chunk`: a chunk
+- `cur_time=0.0`: current simulated time in seconds
+
+# Keywords
+
+- `request...`: optional keyword pairs representing a retrieval request
 """
 function retrieval_prob(actr::AbstractACTR, chunk::Chunk, cur_time=0.0; request...)
-    @unpack τ,s,noise = actr.parms
+    @unpack τ,s = actr.parms
     σ = s * sqrt(2)
     chunks = retrieval_request(actr; request...)
     !(chunk ∈ chunks) ? (return (0.0,1.0)) : nothing
-    set_noise!(actr, false)
     compute_activation!(actr, chunks, cur_time; request...)
-    v = fill(chunk.act, length(chunks) + 1)
-    map!(x -> exp(x.act / σ), v, chunks)
+    v = fill(chunk.act_mean, length(chunks) + 1)
+    map!(x -> exp(x.act_mean / σ), v, chunks)
     v[end] = exp(τ / σ)
-    prob = exp(chunk.act / σ) / sum(v)
+    prob = exp(chunk.act_mean / σ) / sum(v)
     fail = v[end] / sum(v)
-    set_noise!(actr, noise)
     return prob,fail
 end
 
 """
-**retrieval_probs** 
+    retrieval_probs(actr::AbstractACTR, cur_time=0.0; request...)
 
 Computes the retrieval probability for each chunk matching the retrieval request.
-* `actr`: an actr object
-* `cur_time`: current time. Default 0.0 to be used when bll is false
-* `request`: optional NamedTuple for retrieval request
 
-**Function Signature**
-````julia
-retrieval_probs(actr::AbstractACTR, cur_time=0.0; request...)
-````
+# Arguments
+
+- `actr::AbstractACTR`: an actr object
+- `cur_time`: current simulated time in seconds
+
+# Keywords
+
+- `request...`: optional keyword pairs representing a retrieval request
 """
 function retrieval_probs(actr::AbstractACTR, cur_time=0.0; request...)
     @unpack τ,s,γ,noise = actr.parms
@@ -404,16 +397,15 @@ function retrieval_probs(actr::AbstractACTR, cur_time=0.0; request...)
 end
 
 """
-**update_lags** 
+    update_lags!(chunk::Chunk, cur_time)
 
 Compute lags for each use of a chunk.
-* `chunk`: a chunk
-* `cur_time`: current time. Default 0.0 to be used when bll is false
 
-**Function Signature**
-````julia
-update_lags!(chunk::Chunk, cur_time)
-````
+# Arguments
+
+- `chunk::Chunks`: a chunk
+- `cur_time`: current simulated time in seconds.
+
 """
 function update_lags!(chunk::Chunk, cur_time)
     chunk.L = cur_time - chunk.time_created
@@ -422,33 +414,39 @@ function update_lags!(chunk::Chunk, cur_time)
 end
 
 """
-**update_lags** 
+    update_lags!(actr::AbstractACTR, cur_time)
 
 Compute lags for each use of a chunk. Applies to all chunks in declarative memory.
-* `actr`: an ACTR object
-* `cur_time`: current time. Default 0.0 to be used when bll is false
 
-**Function Signature**
-````julia
-update_lags!(actr::AbstractACTR, cur_time)
-````
+# Arguments
+
+- `actr::AbstractACTR`: an ACTR object
+- `cur_time`: current simulated time in seconds
 """
 update_lags!(actr::AbstractACTR, cur_time) = update_lags!(actr.declarative, cur_time)
 
 """
-**update_lags** 
+    update_lags!(memory::Declarative, cur_time)
 
 Compute lags for each use of a chunk. Applies to all chunks in declarative memory.
-* `memory`: a declarative memory object object
-* `cur_time`: current time. Default 0.0 to be used when bll is false
 
-Function Signature
-````julia
-update_lags!(memory::Declarative, cur_time)
-````
+# Arguments
+
+- `memory::Declarative`: a declarative memory object object
+- `cur_time`: current simulated time in seconds
 """
 update_lags!(memory::Declarative, cur_time) = update_lags!.(memory.memory, cur_time)
 
+"""
+    update_chunk!(chunk, cur_time)
+
+Increments number of uses and adds `cur_time` as the most recent time of use.
+
+# Arguments
+
+- `chunk`: a chunk object 
+- `cur_time': current simulated time in seconds 
+"""
 function update_chunk!(chunk, cur_time)
     update_recent!(chunk, cur_time)
     chunk.N += 1
@@ -456,23 +454,24 @@ function update_chunk!(chunk, cur_time)
 end
 
 """
-**add_chunk!** 
+    add_chunk!(memory::Declarative, cur_time=0.0; act=0.0, slots...)
 
 Adds new chunk to declarative memory or updates existing chunk with new use
-* `memory`: declarative memory object
-* `cur_time`: current time, default = 0.0
-* `act`: optional activation value
-* `slots`: optional keyword arguments corresponding to slot-value pairs, e.g. name=:Bob
 
-**Function Signature**
-````julia
-add_chunk!(memory::Declarative, cur_time=0.0; act=0.0, slots...)
-````
+# Arguments 
+
+- `memory::Declarative`: declarative memory object
+- `cur_time=0.0`: current simulated time in seconds
+- `bl=0.0`: baselevel constant for new/updated chunk
+
+# Keywords
+
+- `slots...`: optional keyword arguments corresponding to slot-value pairs, e.g. name=:Bob
 """
-function add_chunk!(memory::Declarative, cur_time=0.0; act=0.0, slots...)
+function add_chunk!(memory::Declarative, cur_time=0.0; bl=0.0, slots...)
     chunk = get_chunks(memory; slots...)
     if isempty(chunk)
-        c = Chunk(;act=act, time_created=cur_time, recent=[cur_time], slots...)
+        c = Chunk(;bl, time_created=cur_time, recent=[cur_time], slots...)
         push!(memory.memory, c)
     else
         update_chunk!(chunk[1], cur_time)
@@ -481,129 +480,137 @@ function add_chunk!(memory::Declarative, cur_time=0.0; act=0.0, slots...)
 end
 
 """
-**add_chunk!**
+    add_chunk!(actr::AbstractACTR, cur_time=0.0; slots...)
 
-Adds a new chunk to declarative memory or updates existing chunk with new use
-* `memory`: declarative memory object
-* `cur_time`: current time, default = 0.0
-* `slots`: optional keyword arguments corresponding to slot-value pairs, e.g. name=:Bob
+Adds new chunk to declarative memory or updates existing chunk with new use
 
-**Function Signature**
-````julia
-add_chunk!(actr::ACTR, cur_time=0.0; slots...)
-````
+# Arguments 
+
+- `actr::AbstractACTR`: an ACT-R model object
+- `cur_time=0.0`: current simulated time in seconds
+
+# Keywords
+
+- `slots...`: optional keyword arguments corresponding to slot-value pairs, e.g. name=:Bob
 """
-add_chunk!(actr::ACTR, cur_time=0.0; slots...) = add_chunk!(actr.declarative, cur_time; slots...)
+add_chunk!(actr::AbstractACTR, cur_time=0.0; slots...) = add_chunk!(actr.declarative, cur_time; slots...)
 
 """
-**get_chunks** 
+    get_chunks(memory::Vector{<:Chunk}; args...)
 
-Returns all chunks that matches a set criteria
-* `memory`: vector of chunk objects
-* `args`: optional keyword arguments corresponding to critiria for matching chunk
+Returns all chunks that matches a set criteria.
 
-**Function Signature**
-````julia
-get_chunks(memory::Vector{<:Chunk}; args...)
-````
+# Arguments
+
+- `memory::Vector{<:Chunk}`: vector of chunk objects
+
+# Keywords
+
+-`criteria...`: optional keyword arguments corresponding to critiria for matching chunk
 """
-function get_chunks(memory::Vector{<:Chunk}; args...)
-    c = filter(x -> match(x, args), memory)
+function get_chunks(memory::Vector{<:Chunk}; criteria...)
+    c = filter(x -> match(x, criteria), memory)
     return c
 end
 
 """
-**get_chunks** 
+    get_chunks(memory::Vector{<:Chunk}, funs...; criteria...)
 
-Returns all chunks that matches a set criteria
-* `memory`: vector of chunk objects
-* `funs`: a list of functions
-* `args`: optional keyword arguments corresponding to critiria for matching chunk
+Returns all chunks that matches a set `criteria` which are evaluted according to the list of functions in `funs`.
 
-**Function Signature**
-````julia
-get_chunks(memory::Vector{<:Chunk}, funs...; args...)
-````
+# Arguments 
+
+* `memory::Vector{<:Chunk}`: vector of chunk objects
+* `funs...`: a list of functions
+
+# Keywords
+
+* `criteria...`: optional keyword arguments corresponding to critiria for matching chunk
 """
-function get_chunks(memory::Vector{<:Chunk}, funs...; args...)
-    c = filter(x -> match(x, funs...; args...), memory)
+function get_chunks(memory::Vector{<:Chunk}, funs...; criteria...)
+    c = filter(x -> match(x, funs...; criteria...), memory)
     return c
 end
 
 """
-**get_chunks** 
+    get_chunks(d::Declarative; criteria...)
+
+Returns all chunks that matches a set criteria.
+
+# Arguments
+
+- `d::Declarative`: declarative memory object
+
+# Keywords
+
+- `criteria...`: optional keyword arguments corresponding to critiria for matching chunk
+"""
+get_chunks(d::Declarative; criteria...) = get_chunks(d.memory; criteria...)
+
+"""
+    get_chunks(actr::AbstractACTR; )
 
 Returns all chunks that matches a set criteria
-* `d`: declarative memory object
-* `args`: optional keyword arguments corresponding to critiria for matching chunk
 
-**Function Signature**
-````julia
-get_chunks(d::Declarative; args...) 
-````
+# Arguments
+
+* `actr::AbstractACTR`: an ACTR Object
+
+#Keywords
+
+* `criteria...`: optional keyword arguments corresponding to critiria for matching chunk
 """
-get_chunks(d::Declarative; args...) = get_chunks(d.memory; args...)
-
-"""
-**get_chunks** 
-
-Returns all chunks that matches a set criteria
-* `a`: an ACTR Object
-* `args`: optional keyword arguments corresponding to critiria for matching chunk
-
-**Function Signature**
-````julia
-get_chunks(a::AbstractACTR; args...)
-````
-"""
-get_chunks(a::AbstractACTR; args...) = get_chunks(a.declarative.memory; args...)
+get_chunks(actr::AbstractACTR; criteria...) = get_chunks(actr.declarative.memory; criteria...)
 
 """
-**get_chunks** 
+    get_chunks(d::Declarative, funs...; criteria...)
 
-Returns all chunks that matches a set criteria
-* `d`: declarative memory object
-* `funs`: a list of functions
-* `args`: optional keyword arguments corresponding to critiria for matching chunk
+Returns all chunks that matches a set criteria using `funs...` as matching functions
 
-**Function Signature**
-````julia
-get_chunks(d::Declarative, funs...; args...)
-````
+# Arguments
+
+* `d::Declarative`: declarative memory object
+* `funs...`: a list of functions
+
+# Keywords
+
+* `criteria...`: optional keyword arguments corresponding to critiria for matching chunk
 """
-get_chunks(d::Declarative, funs...; args...) = get_chunks(d.memory, funs...; args...)
-
-"""
-**get_chunks** 
-
-Returns all chunks that matches a set criteria
-* `a`: an ACTR Object
-* `funs`: a list of functions
-* `args`: optional keyword arguments corresponding to critiria for matching chunk
-
-**Function Signature**
-````julia
-get_chunks(a::AbstractACTR, funs...; args...)
-````
-"""
-get_chunks(a::AbstractACTR, funs...; args...) = get_chunks(a.declarative.memory, funs...; args...)
+get_chunks(d::Declarative, funs...; criteria...) = get_chunks(d.memory, funs...; criteria...)
 
 """
-**first_chunk** 
+    get_chunks(actr::AbstractACTR, funs...; criteria...)
+
+Returns all chunks that matches a set criteria using `funs...` as matching functions.
+
+# Arguments
+
+* `actr::AbstractACTR`: an ACT-R model object
+* `funs...`: a list of functions
+
+# Keywords
+
+* `criteria...`: optional keyword arguments corresponding to critiria for matching chunk
+"""
+get_chunks(actr::AbstractACTR, funs...; criteria...) = get_chunks(actr.declarative.memory, funs...; criteria...)
+
+"""
+    first_chunk(memory::Vector{<:Chunk}; criteria...)
 
 Returns the first chunk in memory that matches a set of criteria
-* `memory`: delcarative memory object
-* `args`: optional keyword arguments corresponding to critiria for matching chunk
 
-**Function Signature**
-````julia
-first_chunk(memory::Vector{<:Chunk}; args...)
-````
+# Arguments
+
+* `memory::Vector{<:Chunk}`: a vector of chunks 
+
+# Keywords
+
+* `criteria...`: optional keyword arguments corresponding to critiria for matching chunk
 """
-function first_chunk(memory::Vector{<:Chunk}; args...)
+function first_chunk(memory::Vector{<:Chunk}; criteria...)
     chunk = Array{eltype(memory),1}()
     for m in memory
-        if match(m, args)
+        if match(m, criteria)
             push!(chunk, m)
             return chunk
         end
@@ -612,46 +619,46 @@ function first_chunk(memory::Vector{<:Chunk}; args...)
 end
 
 """
-**first_chunk** 
+    first_chunk(d::Declarative; criteria...)
 
 Returns the first chunk in memory that matches a set of criteria
-* `memory`: delcarative memory object
-* `args`: optional keyword arguments corresponding to critiria for matching chunk
 
-**Function Signature**
-````julia
-first_chunk(memory::Vector{<:Chunk}; args...)
-````
+# Arguments
+
+* `d::Declarative`: a declarative memory object
+
+# Keywords
+
+* `criteria...`: optional keyword arguments corresponding to critiria for matching chunk
 """
-first_chunk(d::Declarative; args...) = first_chunk(d.memory; args...)
+first_chunk(d::Declarative; criteria...) = first_chunk(d.memory; criteria...)
 
 """
-**first_chunk** 
+    first_chunk(a::AbstractACTR; criteria...)
 
 Returns the first chunk in memory that matches a set of criteria
-* `a`: an ACTR object
-* `args`: optional keyword arguments corresponding to critiria for matching chunk
 
-**Function Signature**
-````julia
-first_chunk(a::AbstractACTR; args...)
-````
+# Arguments
+
+* `actr::AbstractACTR`: an ACT-R model object
+
+# Keywords
+
+* `criteria...`: optional keyword arguments corresponding to critiria for matching chunk
 """
-first_chunk(a::AbstractACTR; args...) = first_chunk(a.declarative.memory; args...)
+first_chunk(actr::AbstractACTR; criteria...) = first_chunk(actr.declarative.memory; criteria...)
 
 """
-**match** 
+    match(chunk::Chunk, request)
 
 Returns a boolean indicating whether a request matches a chunk.
 False is returned if the slot does not exist in the chunk or the value
 of the slot does not match the request value.
-* `chunk`: chunk object
-* `request`: a NamedTuple of slot value pairs
 
-**Function Signature**
-````julia
-match(chunk::Chunk, request)
-````
+# Arguments
+
+- `chunk::Chunk`: chunk object
+- `request`: a NamedTuple of slot value pairs
 """
 function match(chunk::Chunk, request)
     slots = chunk.slots
@@ -664,19 +671,17 @@ function match(chunk::Chunk, request)
 end
 
 """
-**match**
+    match(chunk::Chunk, f, request)
 
 Returns a boolean indicating whether a request matches a chunk.
 False is returned if the slot does not exist in the chunk or the value
 of the slot does not match the request value.
-* `chunk`: chunk object
-* `f`: a list of functions such as `!=, ==`
-* `request`: a NamedTuple of slot value pairs
 
-**Function Signature**
-````julia
-match(chunk::Chunk, f, request)
-````
+# Arguments
+
+- `chunk`: a chunk object
+- `f`: a list of functions such as `!=, ==`
+- `request`: a NamedTuple of slot value pairs
 """
 function match(chunk::Chunk, f, request)
     slots = chunk.slots
@@ -691,50 +696,48 @@ function match(chunk::Chunk, f, request)
 end
 
 """
-**match** 
+    match(chunk::Chunk; request...)
 
 Returns a boolean indicating whether a request matches a chunk.
 False is returned if the slot does not exist in the chunk or the value
 of the slot does not match the request value.
-* `chunk`: chunk object
-* `request`: a NamedTuple of slot value pairs
 
-**Function Signature**
-````julia
-match(chunk::Chunk; request)
-````
+# Arguments
+
+- `chunk::Chunk`: a chunk object
+
+# Keywords
+
+- `request...`: optional keyword arguments corresponding to critiria for matching chunk
 """
 match(chunk::Chunk; request...) = match(chunk, request)
 
 """
-**match** 
+    match(chunk::Chunk, funs...; request...)
 
 Returns a boolean indicating whether a request matches a chunk.
 False is returned if the slot does not exist in the chunk or the value
 of the slot does not match the request value.
-* `chunk`: chunk object
-* `funs`: a list of functions such as `!=, ==`
-* `request`: a NamedTuple of slot value pairs
 
-**Function Signature**
-````julia
-match(chunk::Chunk, funs...; request)
-````
+* `chunk`: chunk object
+* `funs...`: a list of functions such as `!=, ==`
+* `request...`: a NamedTuple of slot value pairs
 """
 match(chunk::Chunk, funs...; request...) = match(chunk, funs, request)
 
 """
-*get_subset* 
+    get_subset(actr; request...)
 
 Returns a filtered subset of the retrieval request when partial matching is on.
 By default, slot values for isa and retrieved must match exactly.
-- `actr`: an ACTR object
-- `request`: a list of keyword values respresenting slot-value pairs.
 
-**Function Signature**
-````julia
-get_subset(actr; request...)
-````
+# Arguments
+
+- `actr`: an ACTR object
+
+# Keywords
+
+- `request...`: an option set of keyword arguments corresponding to a retrieval request.
 """
 function get_subset(actr; request...)
     return Iterators.filter(x -> any(s->s == x[1], actr.declarative.filtered),
@@ -742,16 +745,17 @@ function get_subset(actr; request...)
 end
 
 """
-**retrieval_request** 
+    retrieval_request(actr::AbstractACTR; request...)
 
 Returns chunks matching a retrieval request.
-* `memory`: declarative memory object
-* `request`: optional keyword arguments corresponding to retrieval request e.g. dog = :fiddo
 
-**Function Signature**
-````julia 
-retrieval_request(actr::AbstractACTR; request...)
-````
+# Arguments
+
+- `memory`: declarative memory object
+
+# Keywords
+
+- `request...`: optional keyword arguments corresponding to retrieval request e.g. dog = :fiddo
 """
 function retrieval_request(actr::AbstractACTR; request...)
     @unpack mmp = actr.parms
@@ -763,16 +767,17 @@ function retrieval_request(actr::AbstractACTR; request...)
 end
 
 """
-**modify!** 
+    modify!(c; args...) 
 
 Modifies fields of an object
-* `c`: an object
-* `args`: optional keywords for field and values
 
-**Function Signature**
-````julia 
-modify!(c; args...)
-````
+# Arguments
+
+* `c`: an object
+
+# Keywords
+
+* `args...`: optional keywords for field and values
 """
 function modify!(c; args...)
     for (k,v) in args
@@ -782,18 +787,18 @@ function modify!(c; args...)
 end
 
 """
-**modify!** 
+    modify!(c::NamedTuple; args...)
 
-Modifies fields of NamedTupled
+Modifies fields of NamedTuple
+
+# Arguments
+
 * `c`: a NamedTuple
+
+# Keywords
+
 * `args`: optional keywords for field and values
-
-**Function Signature**
-````julia 
-modify!(c; args...)
-````
 """
-
 function modify!(c::NamedTuple; args...)
     for (k,v) in args
         c[k][1] = v
@@ -802,17 +807,18 @@ function modify!(c::NamedTuple; args...)
 end
 
 """
-**retrieve** 
+    retrieve(actr::AbstractACTR, cur_time=0.0; request...)
 
 Retrieves a chunk given a retrieval request
-* `actr`: an ACT-R object
-* `cur_time`: current time, default 0.0 (use when base level learning is false)
-* `request`: optional keyword arguments representing a retrieval request, e.g. person=:bob
 
-**Function Signature**
-````julia
-retrieve(actr::AbstractACTR, cur_time=0.0; request...)
-````
+# Arguments 
+
+- `actr`: an ACT-R object
+- `cur_time=0.0`: current simulated time in seconds
+
+# Keywords
+
+* `request...`: optional keyword arguments representing a retrieval request, e.g. person=:bob
 """
 function retrieve(actr::AbstractACTR, cur_time=0.0; request...)
     @unpack declarative,parms = actr
@@ -830,15 +836,13 @@ function retrieve(actr::AbstractACTR, cur_time=0.0; request...)
 end
 
 """
-**get_max_active** 
+    get_max_active(chunks)
 
 Returns the chunk with maximum activation
-* `chunks`: a vector of chunk objects
 
-**Function Signature**
-````julia
-get_max_active(chunks)
-````
+# Arguments
+
+* `chunks`: a vector of chunk objects
 """
 function get_max_active(chunks)
     a = -Inf
@@ -853,18 +857,16 @@ function get_max_active(chunks)
 end
 
 """
-**compute_RT** 
+
 
 Generates a reaction time for retrieving a chunk based
 on the current activation levels of a chunk. If the vector is empty, time for a retrieval failure 
 is returned
+
+# Arguments
+
 * `actr`: ACTR object
 * `chunk`: a vector that is empty or contains one chunk
-
-**Function Signature**
-````julia
-compute_RT(actr, chunk)
-````
 """
 function compute_RT(actr, chunk)
     @unpack τ′,lf = actr.parms
@@ -876,17 +878,15 @@ end
 
 
 """
-**compute_RT** 
+    compute_RT(actr, chunk)
 
 Generates a reaction time for retrieving a chunk based
 on the current activation levels of a chunk.
+
+# Arguments
+
 * `actr`: ACTR object
 * `chunk`: a chunk
-
-**Function Signature**
-````julia
-compute_RT(actr, chunk)
-````
 """
 function compute_RT(actr, chunk::Chunk)
     @unpack lf = actr.parms
@@ -894,16 +894,14 @@ function compute_RT(actr, chunk::Chunk)
 end
 
 """
-**get_parm** 
+    get_parm(actr, p)
 
 Returns the value of a parameter
+
+# Arguments
+
 * `actr`: ACTR object
 * ` p`: parameter name
-
-**Function Signature**
-````julia
-get_parm(actr, p)
-````
 """
 function get_parm(actr, p)
     misc = actr.parms.misc
