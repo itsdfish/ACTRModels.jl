@@ -173,7 +173,8 @@ function Chunk(;
     recent=[0.0],
     reps=0, 
     lags=Float64[], 
-    bl=zero(typeof(act)), slots...
+    bl=zero(typeof(act)),
+    slots...
     )
     T = typeof(act)
     act_mean = zero(T)
@@ -218,19 +219,20 @@ function Chunk(dynamic::Bool;
     k=1, 
     act=0.0, 
     recent=[0.0],
-    reps=0,
+    reps=0, 
     lags=Float64[], 
-    bl=zero(typeof(act)), 
+    bl=zero(typeof(act)),
     slots...
     )
     T = typeof(act)
+    act_mean = zero(T)
     act_pm = zero(T)
     act_blc = zero(T)
     act_bll = zero(T)
     act_noise = zero(T)
     act_sa = zero(T)
     slots = Dict(k=>v for (k,v) in pairs(slots))
-    return Chunk(N, L, time_created, k, act, act_blc, act_bll, act_pm, act_sa, act_noise,
+    return Chunk(N, L, time_created, k, act_mean, act, act_blc, act_bll, act_pm, act_sa, act_noise,
         slots, reps, recent, lags, bl)
 end
 

@@ -323,12 +323,14 @@ Retrieval probability is computed with the softmax approximation.
 * `request...`: optional keywords for the retrieval request
 """
 function retrieval_prob(actr::AbstractACTR, target::Array{<:Chunk,1}, cur_time=0.0; request...)
-    @unpack τ,s = actr.parms
+    @unpack τ,s,noise = actr.parms
     σ = s * sqrt(2)
     chunks = retrieval_request(actr; request...)
     filter!(x -> (x ∈ chunks), target)
     isempty(target) ? (return (0.0,1.0)) : nothing
+    set_noise!(actr, false)
     compute_activation!(actr, chunks, cur_time; request...)
+    set_noise!(actr, noise)
     denom = fill(target[1].act_mean, length(chunks) + 1)
     map!(x -> exp(x.act_mean / σ), denom, chunks)
     denom[end] = exp(τ / σ)
@@ -354,11 +356,13 @@ Uses the softmax approximation to compute the retrieval probability of retrievin
 - `request...`: optional keyword pairs representing a retrieval request
 """
 function retrieval_prob(actr::AbstractACTR, chunk::Chunk, cur_time=0.0; request...)
-    @unpack τ,s = actr.parms
+    @unpack τ,s,noise = actr.parms
     σ = s * sqrt(2)
     chunks = retrieval_request(actr; request...)
     !(chunk ∈ chunks) ? (return (0.0,1.0)) : nothing
+    set_noise!(actr, false)
     compute_activation!(actr, chunks, cur_time; request...)
+    set_noise!(actr, noise)
     v = fill(chunk.act_mean, length(chunks) + 1)
     map!(x -> exp(x.act_mean / σ), v, chunks)
     v[end] = exp(τ / σ)
@@ -382,11 +386,13 @@ Computes the retrieval probability for each chunk matching the retrieval request
 - `request...`: optional keyword pairs representing a retrieval request
 """
 function retrieval_probs(actr::AbstractACTR, cur_time=0.0; request...)
-    @unpack τ,s,γ = actr.parms
+    @unpack τ,s,noise = actr.parms
     σ = s * sqrt(2)
     chunks = retrieval_request(actr; request...)
     isempty(chunks) ? (return ([0.0],chunks)) : nothing
+    set_noise!(actr, false)
     compute_activation!(actr, chunks, cur_time; request...)
+    set_noise!(actr, noise)
     v = Array{typeof(chunks[1].act),1}(undef, length(chunks) + 1)
     map!(x -> exp(x.act_mean / σ), v, chunks)
     v[end] = exp(τ / σ)
