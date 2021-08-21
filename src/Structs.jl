@@ -33,7 +33,7 @@ ACT-R parameters with default values. Default values are overwritten with keywor
 - `blc=0.0`: base level constant
 - `δ=0.0`: mismatch penalty
 - `ter=0.0`: a constant for encoding and responding time
-- `mmpFun`: a mismatch penalty function. By default, `mmpFun` subtracts `δ` from each non-matching slot value
+- `mmp_fun`: a mismatch penalty function. By default, `mmp_fun` subtracts `δ` from each non-matching slot value
 - `sa_fun`: a function for spreading activation which requires arguments for actr and chunk
 - `select_rule`: a function for selecting production rule
 - `lf=1.0:` latency factor parameter
@@ -53,7 +53,7 @@ ACT-R parameters with default values. Default values are overwritten with keywor
     δ
     blc
     ter
-    mmpFun
+    mmp_fun
     sa_fun
     select_rule
     lf
@@ -73,7 +73,7 @@ function Parms(;
     δ = 0.0,
     blc = 0.0,
     ter = 0.0,
-    mmpFun = defaultFun,
+    mmp_fun = default_penalty,
     sa_fun = spreading_activation!,
     select_rule = exact_match,
     lf = 1.0,
@@ -93,7 +93,7 @@ function Parms(;
         δ,
         blc,
         ter,
-        mmpFun,
+        mmp_fun,
         sa_fun,
         select_rule,
         lf,
@@ -304,7 +304,7 @@ function Declarative(;memory=Chunk[], filtered=(:isa,:retrieved))
 end
 
 """
-    defaultFun(actr, chunk; request...)
+    default_penalty(actr, chunk; request...)
 
 A default function for mismatch penalty. Subtracts δ if
 slot does not exist or slot value does not match
@@ -318,7 +318,7 @@ slot does not exist or slot value does not match
 
 - `request`: a variable size collection of slot-value pairs for the retrieval request
 """
-function defaultFun(actr, chunk; request...)
+function default_penalty(actr, chunk; request...)
     slots = chunk.slots
     p = 0.0; δ = actr.parms.δ
     for (k,v) in request

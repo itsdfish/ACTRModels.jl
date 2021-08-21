@@ -203,7 +203,7 @@ Computes activation for partial matching component
 - `request...`: optional keyword arguments for retrieval request
 """
 function partial_matching!(actr, chunk; request...)
-    p = actr.parms.mmpFun(actr, chunk; request...)
+    p = actr.parms.mmp_fun(actr, chunk; request...)
     chunk.act_pm = p
     return nothing
 end
@@ -236,13 +236,13 @@ function spreading_activation!(actr, chunk)
     imaginal = actr.imaginal
     isempty(imaginal.buffer) ? (return nothing) : nothing 
     w = compute_weights(imaginal)
-    r = 0.0; sa = 0.0; γ = actr.parms.γ
+    γ = actr.parms.γ; r = zero(γ); sa = zero(γ)
     slots = imaginal.buffer[1].slots
     denoms = imaginal.denoms
     for (v,d) in zip(slots, denoms)
         num = count_values(chunk, v)
         fan = num / (d + 1)
-        r = fan == 0 ? 0.0 : γ + log(fan)
+        r = fan == 0 ? zero(γ) : γ + log(fan)
         sa += w * r
     end
     chunk.act_sa = sa
@@ -915,3 +915,104 @@ function get_parm(actr, p)
     end
     return getfield(actr.parms, p)
 end
+
+"""
+    blend_chunks(actr, cur_time::Float64=0.0; request...) 
+
+Computes blended value over chunks given a retrieval request. By default, 
+values are blended over the set of slots formed by the set difference between all 
+slots of a chunk and the slots specified in the retrieval request. Currently, blended 
+is only supported for numeric slot-values. 
+
+# Arguments
+
+- `actr`: an `ACTR` model object 
+- `cur_time::Float64=0.0`: current simulated time
+- `request...`: optional keywords for the retrieval request
+"""
+function blend_chunks(actr, cur_time::Float64=0.0; request...) 
+    blended_slots = setdiff(keys(actr.declarative.memory[1].slots), keys(request))
+    return blend_chunks(actr, blended_slots, cur_time; request...)
+end
+
+"""
+    blend_chunks(actr, cur_time::Float64=0.0; request...) 
+
+Computes blended value over chunks given a retrieval request. Values are blended
+over the slots specified in `blended_slots`. Currently, blended is only supported 
+for numeric slot-values. 
+
+# Arguments
+
+- `actr`: an `ACTR` model object 
+- `blended_slots`: a set of slots over which slot-values are blended
+- `cur_time::Float64=0.0`: current simulated time
+- `request...`: optional keywords for the retrieval request
+"""
+function blend_chunks(actr, blended_slots, cur_time=0.0; request...)
+    chunks = retrieval_request(actr; request...)
+    compute_activation!(actr, chunks, cur_time; request...)
+    probs = soft_max(actr, chunks)
+    return blend_slots(chunks, probs, blended_slots)
+end
+
+blend_slots(chunks, probs, slots) = map(s -> blend_slots(chunks, probs, s), slots)
+
+"""
+    blend_slots(chunks, probs, slot::Symbol)
+
+Computes an expected value over chunks for a specified slot. 
+
+# Arguments
+
+- `chunks`: a set of chunks over which slot-values are blended 
+- `probs`: a vector of retrieval probabilities 
+- `slot::Symbol`: a slot over which slot-values are blended    
+"""
+function blend_slots(chunks, probs, slot::Symbol)
+    v = 0.0
+    for (c,p) in zip(chunks, probs)
+        v += p * c.slots[slot]
+    end
+    return v
+end
+
+# non numeric
+# blend_chunk(actr, chunks, probs, chunk) = blend_chunk(actr, chunks, probs; chunk.slots...)
+
+# function blend_chunk(actr, chunks, probs; slots...)
+#     penalties = actr.parms.mmp_fun.(actr, chunks; slots...)
+#     return probs' * penalties
+# end
+
+function soft_max(actr, chunks)
+    σ = actr.parms.s * sqrt(2)
+    v = map(x -> exp(x.act / σ), chunks)
+    return v ./ sum(v)
+end
+
+"""
+    blended_activation(chunks)
+
+Computes a blended activation value by exponentiating, summing and taking the 
+log of activations across a set of chunks.
+
+# Arguments
+
+- `chunks`: a set of chunks over which slot-values are blended
+"""
+function blended_activation(chunks)
+    exp_act = map(x->exp(x.act_mean), chunks)
+    return log(sum(exp_act))
+end
+
+"""
+    compute_RT(blended_act)
+
+Computes retrieval time for a given blended activation value.
+
+# Arguments
+
+- `blended_act`: a blended activation value 
+"""
+compute_RT(blended_act) = exp(-blended_act)

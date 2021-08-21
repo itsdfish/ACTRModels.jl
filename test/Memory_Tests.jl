@@ -466,4 +466,64 @@ using SafeTestsets
         #   creation time: 45.185 decay: 0.5  Optimized-learning: 1
         # base-level value: -0.905594
     end
+
+    @safetestset "blend_chunks" begin
+        using ACTRModels, Test, Random
+        Random.seed!(598)
+        chunks = [Chunk(;a=1, b=0), Chunk(;a=1, b=3)]
+        parms = (mmp = true, δ=1.0, noise=true, s=.2)
+        declarative = Declarative(;memory=chunks)
+        actr = ACTR(;declarative, parms...)
+        
+        request = (a=2,)
+        blended_slots = :b
+        n_sim = 10_000
+        mean_value1 = map(_->blend_chunks(actr, blended_slots; request...), 1:n_sim) |> mean
+        @test mean_value1 ≈ 1.5 atol = .01
+
+        chunks = [Chunk(;a=1, b=0), Chunk(;a=2, b=3)]
+        parms = (mmp = true, δ=1.0, noise=true, s=.2)
+        declarative = Declarative(;memory=chunks)
+        actr = ACTR(;declarative, parms...)
+        request = (a=2,)
+        blended_slots = :b
+        n_sim = 10_000
+        mean_value2 = map(_->blend_chunks(actr, blended_slots; request...), 1:n_sim) |> mean
+        @test mean_value1 < mean_value2
+
+        chunks = [Chunk(;a=2, b=0), Chunk(;a=1, b=3)]
+        parms = (mmp = true, δ=1.0, noise=true, s=.2)
+        declarative = Declarative(;memory=chunks)
+        actr = ACTR(;declarative, parms...)
+        request = (a=2,)
+        blended_slots = :b
+        n_sim = 10_000
+        mean_value3 = map(_->blend_chunks(actr, blended_slots; request...), 1:n_sim) |> mean
+        @test mean_value1 > mean_value3
+
+        chunks = [Chunk(;a=2, b=0), Chunk(;a=1, b=3)]
+        parms = (mmp = true, δ=.5, noise=true, s=.2)
+        declarative = Declarative(;memory=chunks)
+        actr = ACTR(;declarative, parms...)
+        request = (a=2,)
+        blended_slots = :b
+        n_sim = 10_000
+        mean_value4 = map(_->blend_chunks(actr, blended_slots; request...), 1:n_sim) |> mean
+        @test mean_value4 > mean_value3
+    end
+
+    @safetestset "blend_slots" begin
+        using ACTRModels, Test, Random
+        import ACTRModels: blend_slots
+        Random.seed!(598)
+        chunks = [Chunk(;a=1, b=0), Chunk(;a=1, b=3)]
+        parms = (mmp = true, δ=1.0, noise=true, s=.2)
+        declarative = Declarative(;memory=chunks)
+        actr = ACTR(;declarative, parms...)
+
+        blended_slots = :b
+        probs = [.3,.7]
+        v = blend_slots(chunks, probs, blended_slots)
+        @test v ≈ 2.1 atol = 1e-4
+    end
 end
