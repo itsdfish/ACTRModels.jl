@@ -319,10 +319,13 @@ end
 get_time(actr::AbstractACTR) = get_time(actr.scheduler)
 get_time(scheduler) = scheduler.time 
 
-add_time(actr::AbstractACTR, t) = add_time(actr.scheduler, t)
-add_time(scheduler, t) = scheduler.time += t
+add_time!(actr::AbstractACTR, t) = add_time!(actr.scheduler, t)
+add_time!(scheduler, t) = scheduler.time += t
 
 reset_time!(actr::AbstractACTR) = reset_time!(actr.scheduler)
 reset_time!(scheduler) = scheduler.time = 0.0
+
+set_time!(actr::AbstractACTR, t) = set_time!(actr.scheduler, t)
+set_time!(scheduler, t) = scheduler.time = t
 
 rnd_time(μ) = rand(Uniform(μ * (2/3), μ * (4/3)))

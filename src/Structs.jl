@@ -264,6 +264,7 @@ function Base.show(io::IO, ::MIME"text/plain", chunks::Vector{<:Chunk})
     table = [chunk_values(chunk) for chunk in chunks]
     table = hcat(table...)
     table = permutedims(table)
+    table = isempty(chunks) ? fill(Missing, 1, length(chunk_fields)) : table 
     return pretty_table(
         table;
         title="Chunks",

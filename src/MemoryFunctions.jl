@@ -53,6 +53,24 @@ Computes baselevel activation for all chunks according exact equation.
 baselevel!(actr) = activation!.(actr, memory.memory)
 
 """
+    compute_activation!(actr::AbstractACTR, chunks::Vector{<:Chunk}; request...) 
+
+Computes the activation of a vector of chunks. By default, current time is computed with `get_time`.
+
+# Arguments
+
+- `actr::AbstractACTR`: an `ACTR` object
+- `chunks::Vector{<:Chunk}`: a vector of chunks.
+
+# Keywords
+
+- `request...`: optional keywords for the retrieval request
+"""
+function compute_activation!(actr::AbstractACTR, chunks::Vector{<:Chunk}; request...)
+    return compute_activation!(actr, chunks, get_time(actr); request...)
+end
+
+"""
     compute_activation!(actr::AbstractACTR, chunks::Vector{<:Chunk}, cur_time::Float64=0.0; request...) 
 
 Computes the activation of a vector of chunks
@@ -61,13 +79,13 @@ Computes the activation of a vector of chunks
 
 - `actr::AbstractACTR`: an `ACTR` object
 - `chunks::Vector{<:Chunk}`: a vector of chunks.
-- `cur_time::Float64=0.0`: current simulated time in seconds
+- `cur_time::Float64`: current simulated time in seconds
 
 # Keywords
 
 - `request...`: optional keywords for the retrieval request
 """
-function compute_activation!(actr::AbstractACTR, chunks::Vector{<:Chunk}, cur_time::Float64=0.0; request...)
+function compute_activation!(actr::AbstractACTR, chunks::Vector{<:Chunk}, cur_time::Float64; request...)
     @unpack sa = actr.parms
     sa ? cache_denomitors(actr) : nothing
     # compute activation for each chunk
@@ -78,7 +96,26 @@ function compute_activation!(actr::AbstractACTR, chunks::Vector{<:Chunk}, cur_ti
 end
 
 """
-    compute_activation!(actr, chunk::Chunk, cur_time=0.0; request...) 
+    compute_activation!(actr, chunk::Chunk; request...) 
+
+Computes the activation of a chunk. By default, current time is computed 
+with `get_time`.
+
+# Arguments
+
+- `actr`: actr object
+- `chunk::Chunk`: a chunk.
+
+# Keywords
+
+- `request...`: optional keywords for the retrieval request
+"""
+function compute_activation!(actr, chunk::Chunk; request...)
+    return compute_activation!(actr, chunk, get_time(actr); request...)
+end
+
+"""
+    compute_activation!(actr, chunk::Chunk, cur_time; request...) 
 
 Computes the activation of a chunk
 
@@ -86,32 +123,48 @@ Computes the activation of a chunk
 
 - `actr`: actr object
 - `chunk::Chunk`: a chunk.
-- `cur_time=0`: current simulated time in seconds
+- `cur_time`: current simulated time in seconds
 
 # Keywords
 
 - `request...`: optional keywords for the retrieval request
 """
-compute_activation!(actr, chunk::Chunk, cur_time=0.0; request...) = compute_activation!(actr, [chunk], cur_time; request...)
+compute_activation!(actr, chunk::Chunk, cur_time; request...) = compute_activation!(actr, [chunk], cur_time; request...)
 
 """
-    compute_activation!(actr::AbstractACTR, cur_time::Float64=0.0; request...)
+    compute_activation!(actr::AbstractACTR; request...)
+
+Computes the activation of all chunks in declarative memory. By default, current time is computed
+with `get_time`.
+
+# Arguments
+
+- `actr::AbstractACTR`: an `ACTR` object
+
+# Keywords
+
+- `request...`: optional keywords for the retrieval request
+"""
+compute_activation!(actr::AbstractACTR; request...) = compute_activation!(actr, actr.declarative.memory, get_time(actr); request...)
+
+"""
+    compute_activation!(actr::AbstractACTR, cur_time::Float64; request...)
 
 Computes the activation of all chunks in declarative memory
 
 # Arguments
 
 - `actr::AbstractACTR`: an `ACTR` object
-- `cur_time::Float64=0.0`: current simulated time in seconds
+- `cur_time`: current simulated time in seconds
 
 # Keywords
 
 - `request...`: optional keywords for the retrieval request
 """
-compute_activation!(actr::AbstractACTR, cur_time::Float64=0.0; request...) = compute_activation!(actr, actr.declarative.memory, cur_time; request...)
+compute_activation!(actr::AbstractACTR, cur_time::Float64; request...) = compute_activation!(actr, actr.declarative.memory, cur_time; request...)
 
 """
-    activation!(actr, chunk::Chunk, cur_time=0.0; request...) 
+    activation!(actr, chunk::Chunk, cur_time; request...) 
 
 Computes the activation of a chunk
 
@@ -119,7 +172,7 @@ Computes the activation of a chunk
 
 - `actr`: an `ACTR` object
 - `chunk::Chunk`: a chunk.
-- `cur_time=0`: current simulated time in seconds
+- `cur_time`: current simulated time in seconds
 
 # Keywords
 
@@ -286,6 +339,21 @@ function count_values(chunk, value)
     return count(x -> x == value, values(chunk.slots))
 end
 
+
+"""
+    update_recent!(actr, chunk)
+
+Adds a new timestamp to chunk and removes oldest timestamp if
+length equals k. By default, current time is computed with `get_time`.
+
+# Arguments
+- `actr`: an ACT-R model object 
+- `chunk`: memory chunk object
+"""
+function update_recent!(actr::AbstractACTR, chunk)
+    return update_recent!(chunk, get_time(actr))
+end
+
 """
     update_recent!(chunk, cur_time)
 
@@ -307,22 +375,41 @@ function update_recent!(chunk, cur_time)
 end
 
 """
-    retrieval_prob(actr::AbstractACTR, target::Array{<:Chunk,1}, cur_time=0.0; request...)
+    retrieval_prob(actr::AbstractACTR, target::Array{<:Chunk,1}; request...)    
+
+Uses the softmax approximation to compute the retrieval probability of retrieving a chunk.
+By default, current time is computed from `get_time`.
+
+# Arguments
+
+- `actr::AbstractACTR`: an ACT-R object
+- `target::Array{<:Chunk,1}`: a vector chunks in the numerator of the softmax function
+
+# Keywords
+
+- `request...`: optional keyword pairs representing a retrieval request
+"""
+function retrieval_prob(actr::AbstractACTR, target::Array{<:Chunk,1}; request...)
+    return retrieval_prob(actr, target, get_time(actr); request...)
+end
+
+"""
+    retrieval_prob(actr::AbstractACTR, target::Array{<:Chunk,1}, cur_time; request...)
 
 Computes the retrieval probability of one chunk from a set of chunks defined in `target`.
 Retrieval probability is computed with the softmax approximation.
 
 # Arguments
 
-* `actr::AbstractACTR`: an actr object
-* `target::Array{<:Chunk,1}`: a vector chunks in the numerator of the softmax function
-* `cur_time=0.0`: current time in seconds
+- `actr::AbstractACTR`: an actr object
+- `target::Array{<:Chunk,1}`: a vector chunks in the numerator of the softmax function
+- `cur_time`: current time in seconds
 
 # Keywords
 
-* `request...`: optional keywords for the retrieval request
+- `request...`: optional keywords for the retrieval request
 """
-function retrieval_prob(actr::AbstractACTR, target::Array{<:Chunk,1}, cur_time=0.0; request...)
+function retrieval_prob(actr::AbstractACTR, target::Array{<:Chunk,1}, cur_time; request...)
     @unpack τ,s,noise = actr.parms
     σ = s * sqrt(2)
     chunks = retrieval_request(actr; request...)
@@ -341,6 +428,25 @@ function retrieval_prob(actr::AbstractACTR, target::Array{<:Chunk,1}, cur_time=0
 end
 
 """
+    retrieval_prob(actr::AbstractACTR, chunk::Chunk; request...)
+
+Uses the softmax approximation to compute the retrieval probability of retrieving a chunk.
+By default, current time is computed from `get_time`.
+
+# Arguments
+
+- `actr::AbstractACTR`: an ACT-R object
+- `chunk::Chunk`: a chunk
+
+# Keywords
+
+- `request...`: optional keyword pairs representing a retrieval request
+"""
+function retrieval_prob(actr::AbstractACTR, chunk::Chunk; request...)
+    return retrieval_prob(actr, chunk, get_time(actr); request...)
+end
+
+"""
     retrieval_prob(actr::AbstractACTR, chunk::Chunk, cur_time=0.0; request...)
 
 Uses the softmax approximation to compute the retrieval probability of retrieving a chunk.
@@ -349,13 +455,13 @@ Uses the softmax approximation to compute the retrieval probability of retrievin
 
 - `actr::AbstractACTR`: an ACT-R object
 - `chunk::Chunk`: a chunk
-- `cur_time=0.0`: current simulated time in seconds
+- `cur_time`: current simulated time in seconds
 
 # Keywords
 
 - `request...`: optional keyword pairs representing a retrieval request
 """
-function retrieval_prob(actr::AbstractACTR, chunk::Chunk, cur_time=0.0; request...)
+function retrieval_prob(actr::AbstractACTR, chunk::Chunk, cur_time; request...)
     @unpack τ,s,noise = actr.parms
     σ = s * sqrt(2)
     chunks = retrieval_request(actr; request...)
@@ -372,7 +478,26 @@ function retrieval_prob(actr::AbstractACTR, chunk::Chunk, cur_time=0.0; request.
 end
 
 """
-    retrieval_probs(actr::AbstractACTR, cur_time=0.0; request...)
+    retrieval_probs(actr::AbstractACTR; request...)
+
+Computes the retrieval probability for each chunk matching the retrieval request. By default,
+current time is computed from `get_time`. 
+
+# Arguments
+
+- `actr::AbstractACTR`: an actr object
+
+# Keywords
+
+- `request...`: optional keyword pairs representing a retrieval request
+"""
+
+function retrieval_probs(actr::AbstractACTR; request...)
+    return retrieval_probs(actr, get_time(actr); request...)
+end
+
+"""
+    retrieval_probs(actr::AbstractACTR, cur_time; request...)
 
 Computes the retrieval probability for each chunk matching the retrieval request.
 
@@ -385,7 +510,7 @@ Computes the retrieval probability for each chunk matching the retrieval request
 
 - `request...`: optional keyword pairs representing a retrieval request
 """
-function retrieval_probs(actr::AbstractACTR, cur_time=0.0; request...)
+function retrieval_probs(actr::AbstractACTR, cur_time; request...)
     @unpack τ,s,noise = actr.parms
     σ = s * sqrt(2)
     chunks = retrieval_request(actr; request...)
@@ -458,6 +583,22 @@ function update_chunk!(chunk, cur_time)
 end
 
 """
+    add_chunk!(actr::AbstractACTR; slots...)
+
+Adds new chunk to declarative memory or updates existing chunk with new use. The default time is
+computed from `get_time`.
+
+# Arguments 
+
+- `actr::AbstractACTR`: an ACT-R model object
+
+# Keywords
+
+- `slots...`: optional keyword arguments corresponding to slot-value pairs, e.g. name=:Bob
+"""
+add_chunk!(actr::AbstractACTR; slots...) = add_chunk!(actr.declarative, get_time(actr); slots...)
+
+"""
     add_chunk!(memory::Declarative, cur_time=0.0; act=0.0, slots...)
 
 Adds new chunk to declarative memory or updates existing chunk with new use
@@ -497,7 +638,7 @@ Adds new chunk to declarative memory or updates existing chunk with new use
 
 - `slots...`: optional keyword arguments corresponding to slot-value pairs, e.g. name=:Bob
 """
-add_chunk!(actr::AbstractACTR, cur_time=0.0; slots...) = add_chunk!(actr.declarative, cur_time; slots...)
+add_chunk!(actr::AbstractACTR, cur_time; slots...) = add_chunk!(actr.declarative, cur_time; slots...)
 
 """
     get_chunks(memory::Vector{<:Chunk}; criteria...)
@@ -811,20 +952,38 @@ function modify!(c::NamedTuple; args...)
 end
 
 """
-    retrieve(actr::AbstractACTR, cur_time=0.0; request...)
+    retrieve(actr::AbstractACTR; request...)
+
+Retrieves a chunk given a retrieval request. By default, current time is 
+computed with `get_time`.
+
+# Arguments 
+
+- `actr`: an ACT-R object
+
+# Keywords
+
+- `request...`: optional keyword arguments representing a retrieval request, e.g. person=:bob
+"""
+function retrieve(actr::AbstractACTR; request...) 
+    return retrieve(actr, get_time(actr); request...)
+end
+
+"""
+    retrieve(actr::AbstractACTR, cur_time; request...)
 
 Retrieves a chunk given a retrieval request
 
 # Arguments 
 
 - `actr`: an ACT-R object
-- `cur_time=0.0`: current simulated time in seconds
+- `cur_time`: current simulated time in seconds
 
 # Keywords
 
 - `request...`: optional keyword arguments representing a retrieval request, e.g. person=:bob
 """
-function retrieve(actr::AbstractACTR, cur_time=0.0; request...)
+function retrieve(actr::AbstractACTR, cur_time; request...)
     @unpack declarative,parms = actr
     arr = Array{eltype(declarative.memory),1}()
     chunks = retrieval_request(actr; request...)
@@ -931,8 +1090,7 @@ is only supported for numeric slot-values.
 - `request...`: optional keywords for the retrieval request
 """
 function blend_chunks(actr; request...) 
-    t = get_time(actr)
-    return blend_chunks(actr, t; request...) 
+    return blend_chunks(actr, get_time(actr); request...) 
 end
 
 """
