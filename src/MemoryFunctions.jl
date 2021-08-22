@@ -917,6 +917,25 @@ function get_parm(actr, p)
 end
 
 """
+    blend_chunks(actr; request...) 
+
+Computes blended value over chunks given a retrieval request. By default, 
+values are blended over the set of slots formed by the set difference between all 
+slots of a chunk and the slots specified in the retrieval request. The default time used 
+in activation calculations is taken from `get_time`. Currently, blended 
+is only supported for numeric slot-values. 
+
+# Arguments
+
+- `actr::AbstractACTR`: an `ACTR` model object 
+- `request...`: optional keywords for the retrieval request
+"""
+function blend_chunks(actr; request...) 
+    t = get_time(actr)
+    return blend_chunks(actr, t; request...) 
+end
+
+"""
     blend_chunks(actr, cur_time::Float64=0.0; request...) 
 
 Computes blended value over chunks given a retrieval request. By default, 
@@ -926,13 +945,50 @@ is only supported for numeric slot-values.
 
 # Arguments
 
-- `actr`: an `ACTR` model object 
-- `cur_time::Float64=0.0`: current simulated time
+- `actr::AbstractACTR`: an `ACTR` model object 
+- `cur_time::Float64`: current simulated time
 - `request...`: optional keywords for the retrieval request
 """
-function blend_chunks(actr, cur_time::Float64=0.0; request...) 
+function blend_chunks(actr::AbstractACTR, cur_time::Float64; request...) 
     blended_slots = setdiff(keys(actr.declarative.memory[1].slots), keys(request))
     return blend_chunks(actr, blended_slots, cur_time; request...)
+end
+
+"""
+    blend_chunks(actr; request...) 
+
+Computes blended value over chunks given a retrieval request. By default, 
+values are blended over the set of slots formed by the set difference between all 
+slots of a chunk and the slots specified in the retrieval request. The default time used 
+in activation calculations is taken from `get_time`. Currently, blended 
+is only supported for numeric slot-values. 
+
+# Arguments
+
+- `actr::AbstractACTR`: an `ACTR` model object 
+- `request...`: optional keywords for the retrieval request
+"""
+function blend_chunks(actr::AbstractACTR; request...) 
+    return blend_chunks(actr, get_time(actr); request...) 
+end
+
+"""
+    blend_chunks(actr; request...) 
+
+Computes blended value over chunks given a retrieval request. By default, 
+values are blended over the set of slots formed by the set difference between all 
+slots of a chunk and the slots specified in the retrieval request. The default time used 
+in activation calculations is taken from `get_time(actr`). Currently, blended 
+is only supported for numeric slot-values. 
+
+# Arguments
+
+- `actr::AbstractACTR`: an `ACTR` model object 
+- `blended_slots`: a set of slots over which slot-values are blended
+- `request...`: optional keywords for the retrieval request
+"""
+function blend_chunks(actr::AbstractACTR, blended_slots; request...) 
+    return blend_chunks(actr, blended_slots, get_time(actr); request...) 
 end
 
 """
@@ -946,10 +1002,10 @@ for numeric slot-values.
 
 - `actr`: an `ACTR` model object 
 - `blended_slots`: a set of slots over which slot-values are blended
-- `cur_time::Float64=0.0`: current simulated time
+- `cur_time`: current simulated time
 - `request...`: optional keywords for the retrieval request
 """
-function blend_chunks(actr, blended_slots, cur_time=0.0; request...)
+function blend_chunks(actr, blended_slots, cur_time; request...)
     chunks = retrieval_request(actr; request...)
     compute_activation!(actr, chunks, cur_time; request...)
     probs = soft_max(actr, chunks)

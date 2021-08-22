@@ -355,7 +355,6 @@ function Imaginal(;buffer=Chunk[], ω=1.0, denoms=Int64[])
     Imaginal(buffer, state, ω, denoms)
 end
 
-
 Imaginal(chunk::Chunk, state, ω, denoms) = Imaginal([chunk], state, ω, denoms)
 Imaginal(T::DataType, state, ω, denoms) = Imaginal(T(undef,1), state, ω, denoms)
 
@@ -584,6 +583,12 @@ function Motor(T::DataType, state, mouse_position)
     Motor(T(undef,1), state, mouse_position)
 end
 
+mutable struct Scheduler
+    time::Float64
+end
+
+Scheduler(;time=0.0) = Scheduler(time)
+
 abstract type AbstractACTR end
 
 """
@@ -626,7 +631,7 @@ end
 Broadcast.broadcastable(x::ACTR) = Ref(x)
 
 function ACTR(;declarative=Declarative(), imaginal=Imaginal(), 
-    goal = Goal(), scheduler=nothing, visual=nothing, visual_location=nothing, 
+    goal = Goal(), scheduler=Scheduler(), visual=nothing, visual_location=nothing, 
     procedural=nothing, motor=nothing, visicon=init_visicon(), parms...) 
     parms′ = Parms(;parms...)
     ACTR(declarative, imaginal, visual, visual_location, goal, procedural, motor, visicon, parms′, scheduler)
