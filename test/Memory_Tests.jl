@@ -526,4 +526,20 @@ using SafeTestsets
         v = blend_slots(chunks, probs, blended_slots)
         @test v ≈ 2.1 atol = 1e-4
     end
+
+    @safetestset "get_chunks_exact" begin
+        using ACTRModels, Test
+        using ACTRModels: get_chunks_exact
+        chunks = [Chunk(;a=1, b=0)]
+        declarative = Declarative(;memory=chunks)
+
+        result = get_chunks_exact(declarative; a=1, b=0)
+        @test !isempty(result)
+
+        result = get_chunks_exact(declarative; a=1, b=3)
+        @test isempty(result)
+
+        result = get_chunks_exact(declarative; a=1)
+        @test isempty(result)
+    end
 end

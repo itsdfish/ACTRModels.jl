@@ -614,7 +614,7 @@ Adds new chunk to declarative memory or updates existing chunk with new use
 - `slots...`: optional keyword arguments corresponding to slot-value pairs, e.g. name=:Bob
 """
 function add_chunk!(memory::Declarative, cur_time=0.0; bl=0.0, slots...)
-    chunk = get_chunks(memory; slots...)
+    chunk = get_chunks_exact(memory; slots...)
     if isempty(chunk)
         c = Chunk(;bl, time_created=cur_time, recent=[cur_time], slots...)
         push!(memory.memory, c)
@@ -639,6 +639,38 @@ Adds new chunk to declarative memory or updates existing chunk with new use
 - `slots...`: optional keyword arguments corresponding to slot-value pairs, e.g. name=:Bob
 """
 add_chunk!(actr::AbstractACTR, cur_time; slots...) = add_chunk!(actr.declarative, cur_time; slots...)
+
+
+"""
+    get_chunks_exact(memory::Vector{<:Chunk}; criteria...)
+
+Returns all chunks that matches a set criteria and has the same number of slots.
+
+# Arguments
+
+- `memory::Vector{<:Chunk}`: vector of chunk objects
+
+# Keywords
+
+-`criteria...`: optional keyword arguments corresponding to critiria for matching chunk
+"""
+function get_chunks_exact(memory::Vector{<:Chunk}; criteria...)
+    c = filter(x -> match_exact(x, criteria), memory)
+    return c
+end
+
+get_chunks_exact(d::Declarative; criteria...) = get_chunks_exact(d.memory; criteria...)
+
+function match_exact(chunk::Chunk, request)
+    slots = chunk.slots
+    length(slots) ≠ length(request) ? (return false) : nothing
+    for (k,v) in request
+        if !(k ∈ keys(slots)) || (slots[k] != v)
+            return false
+        end
+    end
+    return true
+end
 
 """
     get_chunks(memory::Vector{<:Chunk}; criteria...)
@@ -885,7 +917,7 @@ By default, slot values for isa and retrieved must match exactly.
 - `request...`: an option set of keyword arguments corresponding to a retrieval request.
 """
 function get_subset(actr; request...)
-    return Iterators.filter(x -> any(s->s == x[1], actr.declarative.filtered),
+    return Iterators.filter(x -> any(s -> s == x[1], actr.declarative.filtered),
     request)
 end
 
@@ -1216,7 +1248,7 @@ log of activations across a set of chunks.
 - `chunks`: a set of chunks over which slot-values are blended
 """
 function blended_activation(chunks)
-    exp_act = map(x->exp(x.act_mean), chunks)
+    exp_act = map(x -> exp(x.act_mean), chunks)
     return log(sum(exp_act))
 end
 
