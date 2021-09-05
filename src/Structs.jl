@@ -599,6 +599,7 @@ ACTR model object
 
 # Fields
 
+- `name="model1"`: model name
 - `declarative`: declarative memory module
 - `imaginal`: imaginal memory module
 - `visual`: visual module
@@ -617,6 +618,7 @@ actr = ACTR(;declarative, parms...)
 ````
 """
 @concrete mutable struct ACTR <: AbstractACTR
+    name
     declarative
     imaginal
     visual
@@ -631,11 +633,11 @@ end
 
 Broadcast.broadcastable(x::ACTR) = Ref(x)
 
-function ACTR(;declarative=Declarative(), imaginal=Imaginal(), 
+function ACTR(;name="model1", declarative=Declarative(), imaginal=Imaginal(), 
     goal = Goal(), scheduler=Scheduler(), visual=nothing, visual_location=nothing, 
     procedural=nothing, motor=nothing, visicon=init_visicon(), parms...) 
     parms′ = Parms(;parms...)
-    ACTR(declarative, imaginal, visual, visual_location, goal, procedural, motor, visicon, parms′, scheduler)
+    ACTR(name, declarative, imaginal, visual, visual_location, goal, procedural, motor, visicon, parms′, scheduler)
 end
 
 function init_visicon()

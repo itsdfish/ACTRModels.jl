@@ -302,18 +302,27 @@ get_mean_activations(memory)
 get_mean_activations(declarative::Declarative) = get_mean_activations(declarative.memory)
 
 """
-**get_mean_activations** 
+    get_mean_activations(chunks::Vector{<:Chunk}) 
 
 Returns a vector of mean activations i.e. activation without noise
-- `chunks`: an array of chunks
 
-**Function Signature**
-````julia
-get_mean_activations(chunks)
-````
+# Arguments
+
+- `chunks`: an array of chunks
 """
 function get_mean_activations(chunks::Vector{<:Chunk})
     return map(x->x.act - x.act_noise, chunks)
+end
+
+"""
+    get_name(actr::AbstractACTR)
+
+Returns the name of an ACT-R model object. 
+
+- `actr`: an ACTR model object
+"""
+function get_name(actr::AbstractACTR)
+    return actr.name
 end
 
 get_time(actr::AbstractACTR) = get_time(actr.scheduler)
