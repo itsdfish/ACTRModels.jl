@@ -473,7 +473,7 @@ A production rule object.
 end
 
 function Rule(;utility=0.0, conditions, name="", actr, task, action, args=(), kwargs...) 
-    Rule(utility, ()->conditions(actr, args...; kwargs...), 
+    Rule(utility, conditions(actr, args...; kwargs...), 
     ()->action(actr, task; kwargs...), name)
 end
 
@@ -514,7 +514,7 @@ function Procedural(T::DataType, state, id)
 end
 
 function get_matching_rules(actr)
-    return filter(r->match(r), get_rules(actr))
+    return filter(r->match(actr, r), get_rules(actr))
 end
 
 get_rules(actr) = actr.procedural.rules
@@ -525,8 +525,23 @@ function exact_match(actr)
     return rules
 end
 
-function match(rule)
-    return rule.conditions()
+function match(actr, rule)
+    return all_match(actr, rule.conditions)
+end
+
+"""
+    all_match(actr, conditions) 
+
+Checks whether all conditions of a production rule are satisfied. 
+
+- `actr`: an ACT-R model object
+- `conditions`: a tuple of functions representing production rule conditions.
+"""
+function all_match(actr, conditions)    
+    for c in conditions
+        !c(actr) ? (return false) : nothing
+    end
+    return true
 end
 
 """
