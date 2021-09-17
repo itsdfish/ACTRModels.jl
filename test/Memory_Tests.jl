@@ -412,16 +412,16 @@ using SafeTestsets
 
     @safetestset "match" begin
         using ACTRModels, Test
-        import ACTRModels: _match
         chunk = Chunk(a=:a, b=:b, c=:c)
-        @test _match(chunk, a=:a)
-        @test !_match(chunk, a=:b)
-        @test !_match(chunk, d=:b)
-        @test _match(chunk, !=, ==, a=:b, b=:b)
+        @test match(chunk, a=:a)
+        @test !match(chunk, a=:b)
+        @test !match(chunk, d=:b)
+        @test match(chunk, !=, ==, a=:b, b=:b)
+        @test !match(chunk, !=, ==, a=:a, b=:b)
 
-        @test _match(chunk, a=:a; check_value=false)
-        @test _match(chunk, a=:b; check_value=false)
-        @test !_match(chunk, d=:a; check_value=false)
+        @test match(chunk, a=:a; check_value=false)
+        @test match(chunk, a=:b; check_value=false)
+        @test !match(chunk, d=:a; check_value=false)
     end
 
     @safetestset "Threshold" begin
@@ -476,13 +476,13 @@ using SafeTestsets
     @safetestset "blend_chunks" begin
         using ACTRModels, Test, Random
         Random.seed!(598)
-        chunks = [Chunk(;a=1, b=0), Chunk(;a=1, b=3)]
+        chunks = [Chunk(;a=1, b=0,c=3), Chunk(;a=1, b=3,c=1)]
         parms = (mmp = true, δ=1.0, noise=true, s=.2)
         declarative = Declarative(;memory=chunks)
         actr = ACTR(;declarative, parms...)
         
         request = (a=2,)
-        blended_slots = :b
+        blended_slots = [:b,:c]
         n_sim = 10_000
         mean_value1 = map(_->blend_chunks(actr, blended_slots; request...), 1:n_sim) |> mean
         @test mean_value1 ≈ 1.5 atol = .01

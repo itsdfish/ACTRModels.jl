@@ -686,7 +686,7 @@ Returns all chunks that matches a set criteria.
 -`criteria...`: optional keyword arguments corresponding to critiria for matching chunk
 """
 function get_chunks(memory::Vector{<:Chunk}; check_value=true, criteria...)
-    c = filter(x -> match(x, criteria; check_value), memory)
+    c = filter(x -> _match(x, criteria; check_value), memory)
     return c
 end
 
@@ -705,7 +705,7 @@ Returns all chunks that matches a set `criteria` which are evaluted according to
 - `criteria...`: optional keyword arguments corresponding to critiria for matching chunk
 """
 function get_chunks(memory::Vector{<:Chunk}, funs...; check_value=true, criteria...)
-    c = filter(x -> _match(x, funs...; check_value, criteria...), memory)
+    c = filter(x -> _match(x, funs, criteria; check_value), memory)
     return c
 end
 
@@ -787,7 +787,7 @@ Returns the first chunk in memory that matches a set of criteria
 function first_chunk(memory::Vector{<:Chunk}; check_value=true, criteria...)
     chunk = Array{eltype(memory),1}()
     for m in memory
-        if match(m, criteria; check_value)
+        if _match(m, criteria; check_value)
             push!(chunk, m)
             return chunk
         end
@@ -837,7 +837,7 @@ of the slot does not match the request value.
 - `chunk::Chunk`: chunk object
 - `request`: a NamedTuple of slot value pairs
 """
-function match(chunk::Chunk, request; check_value=true)
+function _match(chunk::Chunk, request; check_value=true)
     slots = chunk.slots
     for (k,v) in request
         if !(k ∈ keys(slots))
@@ -864,7 +864,7 @@ of the slot does not match the request value.
 - `f`: a list of functions such as `!=, ==`
 - `request`: a NamedTuple of slot value pairs
 """
-function match(chunk::Chunk, f, request; check_value=true)
+function _match(chunk::Chunk, f, request; check_value=true)
     slots = chunk.slots
     i = 0
     for (k,v) in request
@@ -895,8 +895,8 @@ of the slot does not match the request value.
 
 - `request...`: optional keyword arguments corresponding to critiria for matching chunk
 """
-function _match(chunk::Chunk; check_value=true, request...) 
-    return match(chunk, request; check_value)
+function match(chunk::Chunk; check_value=true, request...) 
+    return _match(chunk, request; check_value)
 end
 """
     match(chunk::Chunk, funs...; request...)
@@ -909,8 +909,8 @@ of the slot does not match the request value.
 - `funs...`: a list of functions such as `!=, ==`
 - `request...`: a NamedTuple of slot value pairs
 """
-function _match(chunk::Chunk, funs...; check_value=false, request...) 
-    return match(chunk, funs, request; check_value)
+function match(chunk::Chunk, funs...; check_value=true, request...) 
+    return _match(chunk, funs, request; check_value)
 end
 
 """
@@ -1209,8 +1209,7 @@ function blend_chunks(actr, blended_slots, cur_time; request...)
     chunks = retrieval_request(actr; request...)
     compute_activation!(actr, chunks, cur_time; request...)
     probs = soft_max(actr, chunks)
-    T = eltype(probs)
-    v::T = blend_slots(chunks, probs, blended_slots)
+    v = blend_slots(chunks, probs, blended_slots)
     return v
 end
 
