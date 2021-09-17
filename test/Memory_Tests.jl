@@ -476,13 +476,13 @@ using SafeTestsets
     @safetestset "blend_chunks" begin
         using ACTRModels, Test, Random
         Random.seed!(598)
-        chunks = [Chunk(;a=1, b=0,c=3), Chunk(;a=1, b=3,c=1)]
+        chunks = [Chunk(;a=1, b=0), Chunk(;a=1, b=3)]
         parms = (mmp = true, δ=1.0, noise=true, s=.2)
         declarative = Declarative(;memory=chunks)
         actr = ACTR(;declarative, parms...)
         
         request = (a=2,)
-        blended_slots = [:b,:c]
+        blended_slots = :b
         n_sim = 10_000
         mean_value1 = map(_->blend_chunks(actr, blended_slots; request...), 1:n_sim) |> mean
         @test mean_value1 ≈ 1.5 atol = .01
