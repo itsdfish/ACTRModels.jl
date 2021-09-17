@@ -685,8 +685,8 @@ Returns all chunks that matches a set criteria.
 
 -`criteria...`: optional keyword arguments corresponding to critiria for matching chunk
 """
-function get_chunks(memory::Vector{<:Chunk}; criteria...)
-    c = filter(x -> match(x, criteria), memory)
+function get_chunks(memory::Vector{<:Chunk}; check_value=true, criteria...)
+    c = filter(x -> match(x, criteria; check_value), memory)
     return c
 end
 
@@ -704,8 +704,8 @@ Returns all chunks that matches a set `criteria` which are evaluted according to
 
 - `criteria...`: optional keyword arguments corresponding to critiria for matching chunk
 """
-function get_chunks(memory::Vector{<:Chunk}, funs...; criteria...)
-    c = filter(x -> match(x, funs...; criteria...), memory)
+function get_chunks(memory::Vector{<:Chunk}, funs...; check_value=true, criteria...)
+    c = filter(x -> _match(x, funs...; check_value, criteria...), memory)
     return c
 end
 
@@ -722,7 +722,7 @@ Returns all chunks that matches a set criteria.
 
 - `criteria...`: optional keyword arguments corresponding to critiria for matching chunk
 """
-get_chunks(d::Declarative; criteria...) = get_chunks(d.memory; criteria...)
+get_chunks(d::Declarative; check_value=true, criteria...) = get_chunks(d.memory; check_value, criteria...)
 
 """
     get_chunks(actr::AbstractACTR; )
@@ -737,7 +737,7 @@ Returns all chunks that matches a set criteria
 
 - `criteria...`: optional keyword arguments corresponding to critiria for matching chunk
 """
-get_chunks(actr::AbstractACTR; criteria...) = get_chunks(actr.declarative.memory; criteria...)
+get_chunks(actr::AbstractACTR; check_value=true, criteria...) = get_chunks(actr.declarative.memory; check_value, criteria...)
 
 """
     get_chunks(d::Declarative, funs...; criteria...)
@@ -753,7 +753,7 @@ Returns all chunks that matches a set criteria using `funs...` as matching funct
 
 - `criteria...`: optional keyword arguments corresponding to critiria for matching chunk
 """
-get_chunks(d::Declarative, funs...; criteria...) = get_chunks(d.memory, funs...; criteria...)
+get_chunks(d::Declarative, funs...; check_value=true, criteria...) = get_chunks(d.memory, funs...; check_value, criteria...)
 
 """
     get_chunks(actr::AbstractACTR, funs...; criteria...)
@@ -769,7 +769,7 @@ Returns all chunks that matches a set criteria using `funs...` as matching funct
 
 - `criteria...`: optional keyword arguments corresponding to critiria for matching chunk
 """
-get_chunks(actr::AbstractACTR, funs...; criteria...) = get_chunks(actr.declarative.memory, funs...; criteria...)
+get_chunks(actr::AbstractACTR, funs...; check_value=true, criteria...) = get_chunks(actr.declarative.memory, funs...; check_value, criteria...)
 
 """
     first_chunk(memory::Vector{<:Chunk}; criteria...)
@@ -784,10 +784,10 @@ Returns the first chunk in memory that matches a set of criteria
 
 - `criteria...`: optional keyword arguments corresponding to critiria for matching chunk
 """
-function first_chunk(memory::Vector{<:Chunk}; criteria...)
+function first_chunk(memory::Vector{<:Chunk}; check_value=true, criteria...)
     chunk = Array{eltype(memory),1}()
     for m in memory
-        if match(m, criteria)
+        if match(m, criteria; check_value)
             push!(chunk, m)
             return chunk
         end
@@ -808,7 +808,7 @@ Returns the first chunk in memory that matches a set of criteria
 
 - `criteria...`: optional keyword arguments corresponding to critiria for matching chunk
 """
-first_chunk(d::Declarative; criteria...) = first_chunk(d.memory; criteria...)
+first_chunk(d::Declarative; check_value=true, criteria...) = first_chunk(d.memory; check_value, criteria...)
 
 """
     first_chunk(a::AbstractACTR; criteria...)
@@ -823,7 +823,7 @@ Returns the first chunk in memory that matches a set of criteria
 
 - `criteria...`: optional keyword arguments corresponding to critiria for matching chunk
 """
-first_chunk(actr::AbstractACTR; criteria...) = first_chunk(actr.declarative.memory; criteria...)
+first_chunk(actr::AbstractACTR; check_value=true, criteria...) = first_chunk(actr.declarative.memory; check_value, criteria...)
 
 """
     match(chunk::Chunk, request)
@@ -837,11 +837,15 @@ of the slot does not match the request value.
 - `chunk::Chunk`: chunk object
 - `request`: a NamedTuple of slot value pairs
 """
-function match(chunk::Chunk, request)
+function match(chunk::Chunk, request; check_value=true)
     slots = chunk.slots
     for (k,v) in request
-        if !(k ∈ keys(slots)) || (slots[k] != v)
+        if !(k ∈ keys(slots))
             return false
+        elseif check_value 
+            if (slots[k] != v)
+                return false
+            end
         end
     end
     return true
@@ -860,14 +864,18 @@ of the slot does not match the request value.
 - `f`: a list of functions such as `!=, ==`
 - `request`: a NamedTuple of slot value pairs
 """
-function match(chunk::Chunk, f, request)
+function match(chunk::Chunk, f, request; check_value=true)
     slots = chunk.slots
-    i = 1
+    i = 0
     for (k,v) in request
-        if !(k ∈ keys(slots)) || !(f[i](slots[k], v))
-            return false
-        end
         i += 1
+        if !(k ∈ keys(slots)) 
+            return false
+        elseif check_value
+            if !(f[i](slots[k], v))
+                return false 
+            end
+        end
     end
     return true
 end
@@ -887,8 +895,9 @@ of the slot does not match the request value.
 
 - `request...`: optional keyword arguments corresponding to critiria for matching chunk
 """
-match(chunk::Chunk; request...) = match(chunk, request)
-
+function _match(chunk::Chunk; check_value=true, request...) 
+    return match(chunk, request; check_value)
+end
 """
     match(chunk::Chunk, funs...; request...)
 
@@ -900,7 +909,9 @@ of the slot does not match the request value.
 - `funs...`: a list of functions such as `!=, ==`
 - `request...`: a NamedTuple of slot value pairs
 """
-match(chunk::Chunk, funs...; request...) = match(chunk, funs, request)
+function _match(chunk::Chunk, funs...; check_value=false, request...) 
+    return match(chunk, funs, request; check_value)
+end
 
 """
     get_subset(actr; request...)
@@ -936,11 +947,10 @@ Returns chunks matching a retrieval request.
 """
 function retrieval_request(actr::AbstractACTR; request...)
     @unpack mmp = actr.parms
-    if !mmp
-        return get_chunks(actr; request...)
-    end
+    !mmp ? (return get_chunks(actr; request...)) : nothing
+    chunks = get_chunks(actr; check_value=false, request...)
     c = get_subset(actr; request...)
-    return get_chunks(actr; c...)
+    return get_chunks(chunks; check_value=true, c...)
 end
 
 """
@@ -1199,7 +1209,9 @@ function blend_chunks(actr, blended_slots, cur_time; request...)
     chunks = retrieval_request(actr; request...)
     compute_activation!(actr, chunks, cur_time; request...)
     probs = soft_max(actr, chunks)
-    return blend_slots(chunks, probs, blended_slots)
+    T = eltype(probs)
+    v::T = blend_slots(chunks, probs, blended_slots)
+    return v
 end
 
 blend_slots(chunks, probs, slots) = map(s -> blend_slots(chunks, probs, s), slots)

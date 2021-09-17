@@ -31,7 +31,7 @@ function posterior_predictive(model, chain, n_samples::Int, f=x -> x)
     return map(x -> _posterior_predictive(model, chain, f), 1:n_samples)
 end
 
-find_index(actr::AbstractACTR; criteria...) = find_index(actr.declarative.memory; criteria...)
+find_index(actr::AbstractACTR; check_value=true, criteria...) = find_index(actr.declarative.memory; check_value, criteria...)
 
 """
 **find_index** 
@@ -50,9 +50,9 @@ chunks = [Chunk(animal=:dog), Chunk(animal=cat)]
 find_index(chunks; animal=:dog)
 ````
 """
-function find_index(chunks::Array{<:Chunk,1}; criteria...)
+function find_index(chunks::Array{<:Chunk,1}; check_value=true, criteria...)
     for (i,c) in enumerate(chunks)
-        match(c;criteria...) ? (return i) : nothing
+        _match(c; check_value, criteria...) ? (return i) : nothing
     end
     return -100
 end
@@ -75,7 +75,7 @@ chunks = [Chunk(animal=:dog), Chunk(animal=cat)]
 find_index(chunks; animal=:dog)
 ````
 """
-find_index(actr::ACTR, funs...; criteria...) = find_index(actr.declarative.memory, funs...; criteria...)
+find_index(actr::ACTR, funs...; check_value=true, criteria...) = find_index(actr.declarative.memory, funs...; check_value, criteria...)
 
 """
 **find_index** 
@@ -95,9 +95,9 @@ chunks = [Chunk(animal=:dog), Chunk(animal=cat)]
 find_index(chunks; animal=:dog)
 ````
 """
-function find_index(chunks::Array{<:Chunk,1}, funs...; criteria...)
+function find_index(chunks::Array{<:Chunk,1}, funs...; check_value=true, criteria...)
     for (i,c) in enumerate(chunks)
-        match(c, funs...; criteria...) ? (return i) : nothing
+        _match(c, funs...; check_value, criteria...) ? (return i) : nothing
     end
     return -100
 end
@@ -119,7 +119,7 @@ chunks = [Chunk(animal=:dog), Chunk(animal=:dog), Chunk(animal=cat)]
 find_indices(chunks; animal=:dog)
 ````
 """
-find_indices(actr::ACTR; criteria...) = find_indices(actr.declarative.memory; criteria...)
+find_indices(actr::ACTR; check_value = true, criteria...) = find_indices(actr.declarative.memory; check_value, criteria...)
 
 """
 **find_indices** 
@@ -138,10 +138,10 @@ chunks = [Chunk(animal=:dog), Chunk(animal=:dog), Chunk(animal=cat)]
 find_indices(chunks; animal=:dog)
 ````
 """
-function find_indices(chunks::Array{<:Chunk,1}; criteria...)
+function find_indices(chunks::Array{<:Chunk,1}; check_value=true, criteria...)
     idx = Int64[]
     for (i,c) in enumerate(chunks)
-        match(c; criteria...) ? push!(idx, i) : nothing
+        _match(c; check_value, criteria...) ? push!(idx, i) : nothing
     end
     return idx
 end
@@ -164,7 +164,7 @@ chunks = [Chunk(animal=:dog), Chunk(animal=:dog), Chunk(animal=cat)]
 find_indices(chunks; animal=:dog)
 ````
 """
-find_indices(actr::ACTR, funs...; criteria...) = find_indices(actr.declarative.memory, funs...; criteria...)
+find_indices(actr::ACTR, funs...; check_value=true, criteria...) = find_indices(actr.declarative.memory, funs...; check_value, criteria...)
 
 """
 **find_indices** 
@@ -184,27 +184,12 @@ chunks = [Chunk(animal=:dog), Chunk(animal=:dog), Chunk(animal=cat)]
 find_indices(chunks; animal=:dog)
 ````
 """
-function find_indices(chunks::Array{<:Chunk,1}, funs...; criteria...)
+function find_indices(chunks::Array{<:Chunk,1}, funs...; check_value=true, criteria...)
     idx = Int64[]
     for (i,c) in enumerate(chunks)
-        match(c, funs...; criteria...) ? push!(idx, i) : nothing
+        _match(c, funs...; check_value, criteria...) ? push!(idx, i) : nothing
     end
     return idx
-end
-
-"""
-**import_printing** 
-
-Import printing functions `print_chunk` and `print_memory`.
-
-**Function Signature**
-````julia
-import_printing()
-````
-"""
-function import_printing()
-    path = pathof(ACTRModels) |> dirname |> x->joinpath(x, "Utilities/")
-    include(path*"Printing.jl")
 end
 
 """

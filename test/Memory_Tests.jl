@@ -412,10 +412,16 @@ using SafeTestsets
 
     @safetestset "match" begin
         using ACTRModels, Test
+        import ACTRModels: _match
         chunk = Chunk(a=:a, b=:b, c=:c)
-        @test match(chunk, a=:a)
-        @test !match(chunk, a=:b)
-        @test match(chunk, !=, ==, a=:b, b=:b)
+        @test _match(chunk, a=:a)
+        @test !_match(chunk, a=:b)
+        @test !_match(chunk, d=:b)
+        @test _match(chunk, !=, ==, a=:b, b=:b)
+
+        @test _match(chunk, a=:a; check_value=false)
+        @test _match(chunk, a=:b; check_value=false)
+        @test !_match(chunk, d=:a; check_value=false)
     end
 
     @safetestset "Threshold" begin

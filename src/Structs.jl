@@ -35,12 +35,17 @@ ACT-R parameters with default values. Default values are overwritten with keywor
 - `ter=0.0`: a constant for encoding and responding time
 - `mmp_fun`: a mismatch penalty function. By default, `mmp_fun` subtracts `δ` from each non-matching slot value
 - `sa_fun`: a function for spreading activation which requires arguments for actr and chunk
-- `select_rule`: a function for selecting production rule
+- `util_mmp_fun`: utility mismatch penalty function applied to each condition
 - `lf=1.0:` latency factor parameter
+- `u0=0.0`: initial utility value
+- `σu=.2`: standard deviation of utility noise 
+- `δu=1.0`: mismatch penalty parameter for utility
 - `bll=false`: base level learning on
 - `mmp=false`: mismatch penalty on
 - `sa=false`: spreading activatin on
 - `noise=false`: noise on
+- `mmp_utility=false`: mismatch penalty for procedural memory
+- `utility_noise=false`: utility noise for procedural memory
 - `misc`: `NamedTuple` of extra parameters
 - `filtered:` a list of slots that must absolutely match with mismatch penalty. `isa` and `retrieval` are included
     by default
@@ -55,13 +60,18 @@ ACT-R parameters with default values. Default values are overwritten with keywor
     ter
     mmp_fun
     sa_fun
-    select_rule
+    util_mmp_fun
     lf
     τ′
+    u0
+    σu
+    δu
     bll::Bool
     mmp::Bool
     sa::Bool
     noise::Bool
+    mmp_utility
+    utility_noise
     misc
 end
 
@@ -75,16 +85,21 @@ function Parms(;
     ter = 0.0,
     mmp_fun = default_penalty,
     sa_fun = spreading_activation!,
-    select_rule = exact_match,
+    util_mmp_fun = utility_match,
     lf = 1.0,
     τ′ = τ,
+    u0 = 0.0,
+    σu = .2,
+    δu = 1.0,
     bll = false,
     mmp = false,
     sa = false,
     noise = false,
+    mmp_utility = false,
+    utility_noise = false,
     kwargs...
     )
-    
+
     Parms(
         d,
         τ,
@@ -95,13 +110,18 @@ function Parms(;
         ter,
         mmp_fun,
         sa_fun,
-        select_rule,
+        util_mmp_fun,
         lf,
         τ′,
+        u0,
+        σu,
+        δu,
         bll,
         mmp,
         sa,
         noise,
+        mmp_utility,
+        utility_noise,
         NamedTuple(kwargs)
     )
 end
@@ -460,21 +480,25 @@ A production rule object.
 
 # Fields
 
-- `utility`: utility of the production rule
+- `utility=0.0`: utility of the production rule
+- `initial_utility=0.0`: initial utility
+- `utility_mean`=0.0: mean utility
+- `utility_penalty=0.0`: mismatch penalty term for utility 
+- `utlity_noise=0.0`: utility noise
 - `conditions`: a function for checking conditions
 - `action`: a function for performing an action
 - `name`: name of production
 """
 @concrete mutable struct Rule
-    utility::Float64 
+    utility
+    initial_utility
+    utility_mean
+    utility_penalty
+    utility_noise  
     conditions
     action
+    can_pm
     name::String
-end
-
-function Rule(;utility=0.0, conditions, name="", actr, task, action, args=(), kwargs...) 
-    Rule(utility, conditions(actr, args...; kwargs...), 
-    ()->action(actr, task; kwargs...), name)
 end
 
 """
@@ -513,35 +537,8 @@ function Procedural(T::DataType, state, id)
     Procedural(id, T(undef,1), state)
 end
 
-function get_matching_rules(actr)
-    return filter(r->match(actr, r), get_rules(actr))
-end
-
-get_rules(actr) = actr.procedural.rules
-
-function exact_match(actr)
-    rules = get_matching_rules(actr)
-    shuffle!(rules)
-    return rules
-end
-
-function match(actr, rule)
-    return all_match(actr, rule.conditions)
-end
-
-"""
-    all_match(actr, conditions) 
-
-Checks whether all conditions of a production rule are satisfied. 
-
-- `actr`: an ACT-R model object
-- `conditions`: a tuple of functions representing production rule conditions.
-"""
-function all_match(actr, conditions)    
-    for c in conditions
-        !c(actr) ? (return false) : nothing
-    end
-    return true
+function utility_match(actr, condition)
+    @error "a method must be defined for utility_match(actr::ACTR, condition)"
 end
 
 """
@@ -577,6 +574,7 @@ end
 Motor Module.
 
 # Fields
+
 - `buffer`: an array holding up to one chunk
 - `state`: buffer state
 - `mouse_position`: x,y coordinates of mouse position on screen
@@ -625,6 +623,7 @@ ACTR model object
 - `scheduler`: event scheduler
 
 # Example 
+
 ````julia 
 parms = (noise=true, τ=-1.0)
 chunks = [Chunk(;animal=:dog,name=:Sigma), Chunk(;animal=:rat,name=:Bonkers)]
