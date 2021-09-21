@@ -683,6 +683,8 @@ Returns all chunks that matches a set criteria.
 
 # Keywords
 
+ - `check_value=true`: check slot value 
+
 -`criteria...`: optional keyword arguments corresponding to critiria for matching chunk
 """
 function get_chunks(memory::Vector{<:Chunk}; check_value=true, criteria...)
@@ -702,6 +704,8 @@ Returns all chunks that matches a set `criteria` which are evaluted according to
 
 # Keywords
 
+ - `check_value=true`: check slot value 
+
 - `criteria...`: optional keyword arguments corresponding to critiria for matching chunk
 """
 function get_chunks(memory::Vector{<:Chunk}, funs...; check_value=true, criteria...)
@@ -720,6 +724,8 @@ Returns all chunks that matches a set criteria.
 
 # Keywords
 
+ - `check_value=true`: check slot value 
+
 - `criteria...`: optional keyword arguments corresponding to critiria for matching chunk
 """
 get_chunks(d::Declarative; check_value=true, criteria...) = get_chunks(d.memory; check_value, criteria...)
@@ -734,6 +740,8 @@ Returns all chunks that matches a set criteria
 - `actr::AbstractACTR`: an ACTR Object
 
 #Keywords
+
+ - `check_value=true`: check slot value 
 
 - `criteria...`: optional keyword arguments corresponding to critiria for matching chunk
 """
@@ -751,6 +759,8 @@ Returns all chunks that matches a set criteria using `funs...` as matching funct
 
 # Keywords
 
+ - `check_value=true`: check slot value 
+
 - `criteria...`: optional keyword arguments corresponding to critiria for matching chunk
 """
 get_chunks(d::Declarative, funs...; check_value=true, criteria...) = get_chunks(d.memory, funs...; check_value, criteria...)
@@ -767,6 +777,8 @@ Returns all chunks that matches a set criteria using `funs...` as matching funct
 
 # Keywords
 
+ - `check_value=true`: check slot value 
+
 - `criteria...`: optional keyword arguments corresponding to critiria for matching chunk
 """
 get_chunks(actr::AbstractACTR, funs...; check_value=true, criteria...) = get_chunks(actr.declarative.memory, funs...; check_value, criteria...)
@@ -781,6 +793,8 @@ Returns the first chunk in memory that matches a set of criteria
 - `memory::Vector{<:Chunk}`: a vector of chunks 
 
 # Keywords
+
+ - `check_value=true`: check slot value 
 
 - `criteria...`: optional keyword arguments corresponding to critiria for matching chunk
 """
@@ -806,6 +820,8 @@ Returns the first chunk in memory that matches a set of criteria
 
 # Keywords
 
+ - `check_value=true`: check slot value 
+
 - `criteria...`: optional keyword arguments corresponding to critiria for matching chunk
 """
 first_chunk(d::Declarative; check_value=true, criteria...) = first_chunk(d.memory; check_value, criteria...)
@@ -820,6 +836,8 @@ Returns the first chunk in memory that matches a set of criteria
 - `actr::AbstractACTR`: an ACT-R model object
 
 # Keywords
+
+ - `check_value=true`: check slot value 
 
 - `criteria...`: optional keyword arguments corresponding to critiria for matching chunk
 """
@@ -836,6 +854,10 @@ of the slot does not match the request value.
 
 - `chunk::Chunk`: chunk object
 - `request`: a NamedTuple of slot value pairs
+
+# Keywords
+
+ - `check_value=true`: check slot value 
 """
 function _match(chunk::Chunk, request; check_value=true)
     slots = chunk.slots
@@ -863,6 +885,10 @@ of the slot does not match the request value.
 - `chunk`: a chunk object
 - `f`: a list of functions such as `!=, ==`
 - `request`: a NamedTuple of slot value pairs
+
+# Keywords
+
+ - `check_value=true`: check slot value 
 """
 function _match(chunk::Chunk, f, request; check_value=true)
     slots = chunk.slots
@@ -1062,7 +1088,6 @@ function get_max_active(chunks)
 end
 
 """
-
     compute_RT(actr, chunk)
 
 Generates a reaction time for retrieving a chunk based
@@ -1129,6 +1154,9 @@ is only supported for numeric slot-values.
 # Arguments
 
 - `actr::AbstractACTR`: an `ACTR` model object 
+
+# Keywords
+
 - `request...`: optional keywords for the retrieval request
 """
 function blend_chunks(actr; request...) 
@@ -1136,7 +1164,7 @@ function blend_chunks(actr; request...)
 end
 
 """
-    blend_chunks(actr, cur_time::Float64=0.0; request...) 
+    blend_chunks(actr::AbstractACTR, cur_time::Float64; request...) 
 
 Computes blended value over chunks given a retrieval request. By default, 
 values are blended over the set of slots formed by the set difference between all 
@@ -1147,6 +1175,9 @@ is only supported for numeric slot-values.
 
 - `actr::AbstractACTR`: an `ACTR` model object 
 - `cur_time::Float64`: current simulated time
+
+# Keywords
+
 - `request...`: optional keywords for the retrieval request
 """
 function blend_chunks(actr::AbstractACTR, cur_time::Float64; request...) 
@@ -1155,7 +1186,7 @@ function blend_chunks(actr::AbstractACTR, cur_time::Float64; request...)
 end
 
 """
-    blend_chunks(actr; request...) 
+    blend_chunks(actr::AbstractACTR; request...) 
 
 Computes blended value over chunks given a retrieval request. By default, 
 values are blended over the set of slots formed by the set difference between all 
@@ -1166,6 +1197,9 @@ is only supported for numeric slot-values.
 # Arguments
 
 - `actr::AbstractACTR`: an `ACTR` model object 
+
+# Keywords
+
 - `request...`: optional keywords for the retrieval request
 """
 function blend_chunks(actr::AbstractACTR; request...) 
@@ -1173,7 +1207,7 @@ function blend_chunks(actr::AbstractACTR; request...)
 end
 
 """
-    blend_chunks(actr; request...) 
+    blend_chunks(actr::AbstractACTR, blended_slots; request...) 
 
 Computes blended value over chunks given a retrieval request. By default, 
 values are blended over the set of slots formed by the set difference between all 
@@ -1185,6 +1219,9 @@ is only supported for numeric slot-values.
 
 - `actr::AbstractACTR`: an `ACTR` model object 
 - `blended_slots`: a set of slots over which slot-values are blended
+
+# Keywords
+
 - `request...`: optional keywords for the retrieval request
 """
 function blend_chunks(actr::AbstractACTR, blended_slots; request...) 
@@ -1192,7 +1229,7 @@ function blend_chunks(actr::AbstractACTR, blended_slots; request...)
 end
 
 """
-    blend_chunks(actr, cur_time::Float64=0.0; request...) 
+    blend_chunks(actr, blended_slots, cur_time; request...)
 
 Computes blended value over chunks given a retrieval request. Values are blended
 over the slots specified in `blended_slots`. Currently, blended is only supported 
@@ -1203,6 +1240,9 @@ for numeric slot-values.
 - `actr`: an `ACTR` model object 
 - `blended_slots`: a set of slots over which slot-values are blended
 - `cur_time`: current simulated time
+
+# Keywords
+
 - `request...`: optional keywords for the retrieval request
 """
 function blend_chunks(actr, blended_slots, cur_time; request...)
@@ -1213,7 +1253,11 @@ function blend_chunks(actr, blended_slots, cur_time; request...)
     return v
 end
 
-blend_slots(chunks, probs, slots) = map(s -> blend_slots(chunks, probs, s), slots)
+function blend_slots(chunks, probs, slots)
+    T = typeof(probs) 
+    v::T = map(s -> blend_slots(chunks, probs, s), slots)
+    return v
+end
 
 """
     blend_slots(chunks, probs, slot::Symbol)
@@ -1227,7 +1271,8 @@ Computes an expected value over chunks for a specified slot.
 - `slot::Symbol`: a slot over which slot-values are blended    
 """
 function blend_slots(chunks, probs, slot::Symbol)
-    v = 0.0
+    T = eltype(probs)
+    v::T = 0.0
     for (c,p) in zip(chunks, probs)
         v += p * c.slots[slot]
     end
