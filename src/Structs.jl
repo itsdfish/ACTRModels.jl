@@ -130,6 +130,7 @@ function Base.show(io::IO, ::MIME"text/plain", parms::Parms)
     values = [getfield(parms, f) for f in fieldnames(Parms)]
     values = map(x->typeof(x)== Bool ? string(x) : x, values)
     return pretty_table(
+        io,
         values;
         title="Model Parameters",
         row_name_column_title="Parameter",
@@ -268,6 +269,7 @@ end
 function Base.show(io::IO, ::MIME"text/plain", chunk::Chunk)
     values = chunk_values(chunk)
     return pretty_table(
+        io,
         values;
         title="Chunk",
         row_name_column_title="Property",
@@ -286,6 +288,7 @@ function Base.show(io::IO, ::MIME"text/plain", chunks::Vector{<:Chunk})
     table = permutedims(table)
     table = isempty(chunks) ? fill(Missing, 1, length(chunk_fields)) : table 
     return pretty_table(
+        io,
         table;
         title="Chunks",
         # row_name_column_title="Parameter",
