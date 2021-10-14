@@ -613,10 +613,10 @@ Adds new chunk to declarative memory or updates existing chunk with new use
 
 - `slots...`: optional keyword arguments corresponding to slot-value pairs, e.g. name=:Bob
 """
-function add_chunk!(memory::Declarative, cur_time=0.0; bl=0.0, slots...)
+function add_chunk!(memory::Declarative, cur_time=0.0; bl::T=0.0, slots...) where {T}
     chunk = get_chunks_exact(memory; slots...)
     if isempty(chunk)
-        c = Chunk(;bl, time_created=cur_time, recent=[cur_time], slots...)
+        c = Chunk(;act=zero(T), bl, time_created=cur_time, recent=[cur_time], slots...)
         push!(memory.memory, c)
     else
         update_chunk!(chunk[1], cur_time)
