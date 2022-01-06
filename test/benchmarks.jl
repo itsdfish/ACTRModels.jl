@@ -1,4 +1,3 @@
-
 using ACTRModels, BenchmarkTools
 n = 10
 parms = (sa=false, mmp=true, γ=1.3, δ=1.0)

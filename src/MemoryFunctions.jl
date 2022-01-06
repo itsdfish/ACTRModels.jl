@@ -17,9 +17,34 @@ function baselevel(d, lags)
 end
 
 """
-    baselevel(d, chunk)
+    baselevel!(N, L, k, lags, d)
 
-Computes baselevel activation according exact equation.
+Computes baselevel activation with hybrid approximation.
+
+# Arguments
+
+- `N`: the number of times the chunk was used 
+- `L`: lifetime of chunk in seconds 
+- `k`: number of timestaps tracked
+- `lags`: time since last use for each k
+- `d`: decay rate 
+"""
+function baselevel!(N, L, k, lags, d)
+    exact = baselevel(d, lags)
+    approx = 0.0
+    if N > k
+        tk = lags[k]
+        x1 = (N - k) * (L^(1 - d) - tk^(1 - d))
+        x2 = (1 - d) * (L - tk)
+        approx = x1 / x2
+    end
+    return log(exp(exact) + approx)
+end
+
+"""
+    baselevel!(actr, chunk) 
+
+Computes baselevel activation with hybrid approximation.
 
 # Arguments
 
@@ -29,22 +54,14 @@ Computes baselevel activation according exact equation.
 function baselevel!(actr, chunk)
     @unpack N,L,k,lags = chunk
     d = actr.parms.d
-    exact = baselevel(d, lags)
-    approx = 0.0
-    if N > k
-        tk = lags[k]
-        x1 = (N - k) * (L^(1 - d) - tk^(1 - d))
-        x2 = (1 - d) * (L - tk)
-        approx = x1 / x2
-    end
-    chunk.act_bll = log(exp(exact) + approx)
+    chunk.act_bll = baselevel!(N, L, k, lags, d)
     return nothing
 end
 
 """
     baselevel!(actr)
 
-Computes baselevel activation for all chunks according exact equation.
+Computes baselevel activation with hybrid approximation.
 
 # Arguments
 
@@ -286,10 +303,11 @@ Computes the spreading activation for a given chunk
 - `chunk`: the chunk for which spreading activation is computed
 """
 function spreading_activation!(actr, chunk)
+    @unpack γ,ω = actr.parms 
     imaginal = actr.imaginal
     isempty(imaginal.buffer) ? (return nothing) : nothing 
-    w = compute_weights(imaginal)
-    γ = actr.parms.γ; r = zero(γ); sa = zero(γ)
+    w = compute_weights(imaginal, ω)
+    r = zero(γ); sa = zero(γ)
     slots = imaginal.buffer[1].slots
     denoms = imaginal.denoms
     for (v,d) in zip(slots, denoms)
@@ -323,8 +341,8 @@ function cache_denomitors(actr)
     return nothing
 end
 
-function compute_weights(mod)
-    return mod.ω / length(mod.buffer[1].slots)
+function compute_weights(mod, ω)
+    return ω / length(mod.buffer[1].slots)
 end
 
 function compute_denom(memory, value)

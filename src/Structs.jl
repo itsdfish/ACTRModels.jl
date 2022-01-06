@@ -30,8 +30,9 @@ ACT-R parameters with default values. Default values are overwritten with keywor
 - `τ=0.0`: retrieval threshold
 - `s=0.2`: logistic scalar for activation noise.
 - `γ=1.6`: maximum associative strength
-- `blc=0.0`: base level constant
 - `δ=0.0`: mismatch penalty
+- `ω=1.0`: weight for source of spreading activation
+- `blc=0.0`: base level constant
 - `ter=0.0`: a constant for encoding and responding time
 - `mmp_fun`: a mismatch penalty function. By default, `mmp_fun` subtracts `δ` from each non-matching slot value
 - `sa_fun`: a function for spreading activation which requires arguments for actr and chunk
@@ -56,6 +57,7 @@ ACT-R parameters with default values. Default values are overwritten with keywor
     s
     γ
     δ
+    ω
     blc
     ter
     mmp_fun
@@ -81,6 +83,7 @@ function Parms(;
     s = .3,
     γ = 0.0,
     δ = 0.0,
+    ω = 1.0,
     blc = 0.0,
     ter = 0.0,
     mmp_fun = default_penalty,
@@ -106,6 +109,7 @@ function Parms(;
         s,
         γ,
         δ,
+        ω,
         blc,
         ter,
         mmp_fun,
