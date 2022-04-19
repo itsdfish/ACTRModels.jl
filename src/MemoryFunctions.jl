@@ -1306,7 +1306,7 @@ end
 # end
 
 function soft_max(actr, chunks)
-    σ = actr.parms.s * sqrt(2)
+    σ = actr.parms.tmp
     v = map(x -> exp(x.act / σ), chunks)
     return v ./ sum(v)
 end

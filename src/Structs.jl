@@ -47,6 +47,7 @@ ACT-R parameters with default values. Default values are overwritten with keywor
 - `noise=false`: noise on
 - `mmp_utility=false`: mismatch penalty for procedural memory
 - `utility_noise=false`: utility noise for procedural memory
+- `tmp=s * √(2)`: temperature for blending
 - `misc`: `NamedTuple` of extra parameters
 - `filtered:` a list of slots that must absolutely match with mismatch penalty. `isa` and `retrieval` are included
     by default
@@ -74,6 +75,7 @@ ACT-R parameters with default values. Default values are overwritten with keywor
     noise::Bool
     mmp_utility
     utility_noise
+    tmp
     misc
 end
 
@@ -100,6 +102,7 @@ function Parms(;
     noise = false,
     mmp_utility = false,
     utility_noise = false,
+    tmp = s * sqrt(2),
     kwargs...
     )
 
@@ -126,6 +129,7 @@ function Parms(;
         noise,
         mmp_utility,
         utility_noise,
+        tmp,
         NamedTuple(kwargs)
     )
 end
