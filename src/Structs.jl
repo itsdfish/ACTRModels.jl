@@ -1,3 +1,5 @@
+abstract type AbstractBufferState end
+
 """
     BufferState(;busy, error, empty)
 
@@ -9,7 +11,7 @@ An object representing the state of the buffer.
 - `error=false`: error if true
 - `empty=true`: empty if true
 """
-mutable struct BufferState
+mutable struct BufferState <: AbstractBufferState
     busy::Bool
     error::Bool
     empty::Bool
@@ -41,6 +43,10 @@ ACT-R parameters with default values. Default values are overwritten with keywor
 - `u0=0.0`: initial utility value
 - `σu=.2`: standard deviation of utility noise 
 - `δu=1.0`: mismatch penalty parameter for utility
+- `τu = -100': utility threshold 
+- `u0Δ = 1.0`: utility decrement
+- `τuΔ = 1.0`: utility threshold decrement
+- `utility_decrement=1.0`: the utility decrement scalar. After each microlapse, `utility_decrement` is multiplied by u0Δ
 - `bll=false`: base level learning on
 - `mmp=false`: mismatch penalty on
 - `sa=false`: spreading activatin on
@@ -69,6 +75,10 @@ ACT-R parameters with default values. Default values are overwritten with keywor
     u0
     σu
     δu
+    τu
+    u0Δ
+    τuΔ
+    utility_decrement
     bll::Bool
     mmp::Bool
     sa::Bool
@@ -96,6 +106,10 @@ function Parms(;
     u0 = 0.0,
     σu = .2,
     δu = 1.0,
+    τu = -100.0,
+    u0Δ = 1.0,
+    τuΔ = 1.0,
+    utility_decrement = 1.0,
     bll = false,
     mmp = false,
     sa = false,
@@ -123,6 +137,10 @@ function Parms(;
         u0,
         σu,
         δu,
+        τu,
+        u0Δ,
+        τuΔ,
+        utility_decrement,
         bll,
         mmp,
         sa,
@@ -151,6 +169,7 @@ function Base.show(io::IO, ::MIME"text/plain", parms::Parms)
     )
 end
 
+abstract type AbstractChunk end
 """
     Chunk(; kwargs...) -> Chunk
 
@@ -174,7 +193,7 @@ A declarative memory chunk.
 - `lags=Float64[]`: lags for recent retrievals (L - recent)
 - `bl=0.0`: baselevel constant added to chunks activation
 """
-mutable struct Chunk{T1,T2}
+mutable struct Chunk{T1,T2} <: AbstractChunk
   N::Int
   L::Float64
   time_created::Float64
@@ -265,7 +284,7 @@ function Chunk(dynamic::Bool;
         slots, reps, recent, lags, bl)
 end
 
-Broadcast.broadcastable(x::Chunk) = Ref(x)
+Broadcast.broadcastable(x::AbstractChunk) = Ref(x)
 
 const chunk_fields = (:slots,:N,:L,:time_created,:recent,:act_mean,:act,:act_blc,:bl,:act_bll,:act_pm,:act_noise)
 
@@ -274,7 +293,7 @@ function chunk_values(chunk)
     return map(x->typeof(x)== Bool ? string(x) : x, values)
 end
 
-function Base.show(io::IO, ::MIME"text/plain", chunk::Chunk)
+function Base.show(io::IO, ::MIME"text/plain", chunk::AbstractChunk)
     values = chunk_values(chunk)
     return pretty_table(
         io,
@@ -323,11 +342,11 @@ Declarative memory module
 - `buffer`: an array containing one chunk
 - `state`: buffer state
 """
-mutable struct Declarative{T1,T2} <: Mod
+mutable struct Declarative{T1,T2,B} <: Mod
     memory::Array{T1,1}
     filtered::T2
     buffer::Array{T1,1}
-    state::BufferState
+    state::B
 end
 
 function Declarative(;memory=Chunk[], filtered=(:isa,:retrieved))
@@ -375,9 +394,9 @@ Imaginal Module.
 - `ω=1.0`: fan weight. Default is 1.
 - `denoms=Int64[]`: cached value for the denominator of the fan calculation
 """
-mutable struct Imaginal{T1,T2} <: Mod
+mutable struct Imaginal{T1,T2,B} <: Mod
     buffer::Array{T1,1}
-    state::BufferState
+    state::B
     ω::T2
     denoms::Vector{Int64}
 end
@@ -387,7 +406,7 @@ function Imaginal(;buffer=Chunk[], ω=1.0, denoms=Int64[])
     Imaginal(buffer, state, ω, denoms)
 end
 
-Imaginal(chunk::Chunk, state, ω, denoms) = Imaginal([chunk], state, ω, denoms)
+Imaginal(chunk::AbstractChunk, state, ω, denoms) = Imaginal([chunk], state, ω, denoms)
 Imaginal(T::DataType, state, ω, denoms) = Imaginal(T(undef,1), state, ω, denoms)
 
 """
@@ -401,14 +420,14 @@ Visual Module.
 - `state`: buffer state
 - `focus`: coordinates of visual attention
 """
-mutable struct Visual{T1} <: Mod
+mutable struct Visual{T1,B} <: Mod
     buffer::Array{T1,1}
-    state::BufferState
+    state::B
     focus::Vector{Float64}
 end
 
 Visual(;buffer=Chunk[]) = Visual(buffer, BufferState(), fill(0.0,2))
-Visual(chunk::Chunk, state, focus) = Visual([chunk], state, focus)
+Visual(chunk::AbstractChunk, state, focus) = Visual([chunk], state, focus)
 Visual(T::DataType, state, focus) = Visual(T(undef,1), state, focus)
 
 
@@ -453,16 +472,16 @@ Constructor
 ````julia 
 VisualLocation(;buffer=Chunk[]) 
 
-VisualLocation(chunk::Chunk, state)
+VisualLocation(chunk::AbstractChunk, state)
 
 VisualLocation(T::DataType, state)
 
 VisualLocation(chunks, state)
 ````
 """
-mutable struct VisualLocation{T1} <: Mod
+mutable struct VisualLocation{T1,B} <: Mod
     buffer::Array{T1,1}
-    state::BufferState
+    state::B
     iconic_memory::Array{T1,1}
 end
 
@@ -470,7 +489,7 @@ function VisualLocation(;buffer=Chunk[])
     VisualLocation(buffer, BufferState())
 end
 
-function VisualLocation(chunk::Chunk, state)
+function VisualLocation(chunk::AbstractChunk, state)
     T = typeof(chunk)
      VisualLocation([chunk], state, Vector{T}(undef,1))
 end
@@ -483,6 +502,8 @@ function VisualLocation(chunks, state)
     c_chunks = copy(chunks)
     VisualLocation(chunks, state, c_chunks)
 end
+
+abstract type AbstractRule end
 
 """
     Rule(;utlity=0.0, conditions, action)
@@ -500,7 +521,7 @@ A production rule object.
 - `action`: a function for performing an action
 - `name`: name of production
 """
-@concrete mutable struct Rule
+@concrete mutable struct Rule <: AbstractRule
     utility
     initial_utility
     utility_mean
@@ -530,10 +551,10 @@ Procedural(rule::Rule, state, id)
 Procedural(T::DataType, state, id)
 ````
 """
-mutable struct Procedural{R} <: Mod
+mutable struct Procedural{R,B} <: Mod
     id::String
     rules::R
-    state::BufferState
+    state::B
 end
 
 function Procedural(;rules=Rule[], id="") 
@@ -562,16 +583,16 @@ Goal Module.
 - `buffer`: an array holding up to one chunk
 - `state`: buffer state
 """
-mutable struct Goal{T1} <: Mod
+mutable struct Goal{T1,B} <: Mod
     buffer::Array{T1,1}
-    state::BufferState
+    state::B
 end
 
 function Goal(;buffer=Chunk[]) 
     Goal(buffer, BufferState())
 end
 
-function Goal(chunk::Chunk, state)
+function Goal(chunk::AbstractChunk, state)
     Goal([chunk], state)
 end
 
@@ -590,9 +611,9 @@ Motor Module.
 - `state`: buffer state
 - `mouse_position`: x,y coordinates of mouse position on screen
 """
-mutable struct Motor{T1} <: Mod
+mutable struct Motor{T1,B} <: Mod
     buffer::Array{T1,1}
-    state::BufferState
+    state::B
     mouse_position::Vector{Float64}
 end
 
@@ -600,7 +621,7 @@ function Motor(;buffer=Chunk[], mouse_position=[0.0,0.0])
     Motor(buffer, BufferState(), mouse_position)
 end
 
-function Motor(chunk::Chunk, state, mouse_position)
+function Motor(chunk::AbstractChunk, state, mouse_position)
     Motor([chunk], state, mouse_position)
 end
 
@@ -660,8 +681,8 @@ Broadcast.broadcastable(x::ACTR) = Ref(x)
 
 function ACTR(;name="model1", declarative=Declarative(), imaginal=Imaginal(), 
     goal = Goal(), scheduler=Scheduler(), visual=nothing, visual_location=nothing, 
-    procedural=nothing, motor=nothing, visicon=init_visicon(), parms...) 
-    parms′ = Parms(;parms...)
+    procedural=nothing, motor=nothing, visicon=init_visicon(), parm_type = Parms, parms...) 
+    parms′ = parm_type(;parms...)
     ACTR(name, declarative, imaginal, visual, visual_location, goal, procedural, motor, visicon, parms′, scheduler)
 end
 
