@@ -43,10 +43,12 @@ ACT-R parameters with default values. Default values are overwritten with keywor
 - `u0=0.0`: initial utility value
 - `σu=.2`: standard deviation of utility noise 
 - `δu=1.0`: mismatch penalty parameter for utility
-- `τu = -100': utility threshold 
+- `τu0 = -100`: initial value of utility threshold 
+- `τu = τu0': utility threshold 
 - `u0Δ = 1.0`: utility decrement
 - `τuΔ = 1.0`: utility threshold decrement
 - `utility_decrement=1.0`: the utility decrement scalar. After each microlapse, `utility_decrement` is multiplied by u0Δ
+- `threshold_decrement=1.0`: the threshold decrement scalar. After each microlapse, `threshold_decrement` is multiplied by τuΔ
 - `bll=false`: base level learning on
 - `mmp=false`: mismatch penalty on
 - `sa=false`: spreading activatin on
@@ -75,10 +77,12 @@ ACT-R parameters with default values. Default values are overwritten with keywor
     u0
     σu
     δu
+    τu0
     τu
     u0Δ
     τuΔ
     utility_decrement
+    threshold_decrement
     bll::Bool
     mmp::Bool
     sa::Bool
@@ -106,10 +110,12 @@ function Parms(;
     u0 = 0.0,
     σu = .2,
     δu = 1.0,
-    τu = -100.0,
+    τu0 = -100.0,
+    τu = τu0,
     u0Δ = 1.0,
     τuΔ = 1.0,
     utility_decrement = 1.0,
+    threshold_decrement = 1.0,
     bll = false,
     mmp = false,
     sa = false,
@@ -137,10 +143,12 @@ function Parms(;
         u0,
         σu,
         δu,
+        τu0,
         τu,
         u0Δ,
         τuΔ,
         utility_decrement,
+        threshold_decrement,
         bll,
         mmp,
         sa,
@@ -213,15 +221,15 @@ mutable struct Chunk{T1,T2} <: AbstractChunk
 end
 
 function Chunk(;
-    N=1,
-    L=1.0,
-    time_created=0.0,
-    k=1, 
-    act=0.0, 
-    recent=[0.0],
-    reps=0, 
-    lags=Float64[], 
-    bl=zero(typeof(act)),
+    N = 1,
+    L = 1.0,
+    time_created = 0.0,
+    k = 1, 
+    act = 0.0, 
+    recent = [0.0],
+    reps = 0, 
+    lags = Float64[], 
+    bl = zero(typeof(act)),
     slots...
     )
     T = typeof(act)
@@ -261,15 +269,15 @@ A declarative memory chunk with dynamic slot-value pairs.
 - `bl=0.0`: baselevel constant added to chunks activation
 """
 function Chunk(dynamic::Bool; 
-    N=1,
-    L=1.0,
-    time_created=0.0,
-    k=1, 
-    act=0.0, 
-    recent=[0.0],
-    reps=0, 
-    lags=Float64[], 
-    bl=zero(typeof(act)),
+    N = 1,
+    L = 1.0,
+    time_created = 0.0,
+    k = 1, 
+    act = 0.0, 
+    recent = [0.0],
+    reps = 0, 
+    lags = Float64[], 
+    bl = zero(typeof(act)),
     slots...
     )
     T = typeof(act)
@@ -290,7 +298,7 @@ const chunk_fields = (:slots,:N,:L,:time_created,:recent,:act_mean,:act,:act_blc
 
 function chunk_values(chunk)
     values = [getfield(chunk, f) for f in chunk_fields]
-    return map(x->typeof(x)== Bool ? string(x) : x, values)
+    return map(x -> typeof(x)== Bool ? string(x) : x, values)
 end
 
 function Base.show(io::IO, ::MIME"text/plain", chunk::AbstractChunk)
