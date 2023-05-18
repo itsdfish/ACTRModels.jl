@@ -40,6 +40,15 @@ ACT-R parameters with default values. Default values are overwritten with keywor
 - `sa_fun`: a function for spreading activation which requires arguments for actr and chunk
 - `util_mmp_fun`: utility mismatch penalty function applied to each condition
 - `lf=1.0:` latency factor parameter
+- `u0=0.0`: initial utility value
+- `σu=.2`: standard deviation of utility noise 
+- `δu=1.0`: mismatch penalty parameter for utility
+- `τu0 = -100`: initial value of utility threshold 
+- `τu = τu0': utility threshold 
+- `u0Δ = 1.0`: utility decrement
+- `τuΔ = 1.0`: utility threshold decrement
+- `utility_decrement=1.0`: the utility decrement scalar. After each microlapse, `utility_decrement` is multiplied by u0Δ
+- `threshold_decrement=1.0`: the threshold decrement scalar. After each microlapse, `threshold_decrement` is multiplied by τuΔ
 - `bll=false`: base level learning on
 - `mmp=false`: mismatch penalty on
 - `sa=false`: spreading activatin on
@@ -65,12 +74,21 @@ ACT-R parameters with default values. Default values are overwritten with keywor
     util_mmp_fun
     lf
     τ′
+    u0::Float64
+    σu::Float64
+    δu::Float64
+    τu0::Float64
+    τu::Float64
+    u0Δ::Float64
+    τuΔ::Float64
+    utility_decrement::Float64
+    threshold_decrement::Float64
     bll::Bool
     mmp::Bool
     sa::Bool
     noise::Bool
     mmp_utility
-    utility_noise
+    utility_noise::Bool
     tmp
     misc
 end
@@ -89,6 +107,15 @@ function Parms(;
     util_mmp_fun = utility_match,
     lf = 1.0,
     τ′ = τ,
+    u0 = 0.0,
+    σu = .2,
+    δu = 1.0,
+    τu0 = -100.0,
+    τu = τu0,
+    u0Δ = 1.0,
+    τuΔ = 1.0,
+    utility_decrement = 1.0,
+    threshold_decrement = 1.0,
     bll = false,
     mmp = false,
     sa = false,
@@ -113,6 +140,15 @@ function Parms(;
         util_mmp_fun,
         lf,
         τ′,
+        u0,
+        σu,
+        δu,
+        τu0,
+        τu,
+        u0Δ,
+        τuΔ,
+        utility_decrement,
+        threshold_decrement,
         bll,
         mmp,
         sa,
