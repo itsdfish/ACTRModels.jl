@@ -103,15 +103,14 @@ function find_index(chunks::Array{<:Chunk,1}, funs...; check_value=true, criteri
 end
 
 """
-**find_indices** 
+    find_indices(actr::ACTR; check_value = true, criteria...)
 
 Returns the index of first chunk that matches a set of criteria
+
+# Arguments
+
 - `actr`: an ACTR object
 - `criteria`: a set of keyword arguments for slot-value pairs
-
-Function Signature
-````julia
-find_indices(actr::ACTR; criteria...)
 ````
 ## Example
 ````julia
@@ -122,16 +121,15 @@ find_indices(chunks; animal=:dog)
 find_indices(actr::ACTR; check_value = true, criteria...) = find_indices(actr.declarative.memory; check_value, criteria...)
 
 """
-**find_indices** 
+    find_indices(chunks::Array{<:Chunk,1}; check_value=true, criteria...)
 
 Returns the index of first chunk that matches a set of criteria
+
+# Arguments
+
 - `chunks`: an array of chunks
 - `criteria`: a set of keyword arguments for slot-value pairs
 
-**Function Signature**
-````julia
-find_indices(actr::ACTR; criteria...)
-````
 **Example**
 ````julia
 chunks = [Chunk(animal=:dog), Chunk(animal=:dog), Chunk(animal=cat)]
@@ -147,16 +145,15 @@ function find_indices(chunks::Array{<:Chunk,1}; check_value=true, criteria...)
 end
 
 """
-**find_indices** 
+    find_indices(actr::ACTR, funs...; check_value=true, criteria...) 
 
 Returns the index of first chunk that matches a set of criteria
+
+# Arguments
+
 - `actr`: an ACTR object
 - `funs`: a set of functions
 - `criteria`: a set of keyword arguments for slot-value pairs
-
-**Function Signature**
-````julia
-find_indices(actr::ACTR; criteria...)
 ````
 **Example**
 ````julia
@@ -167,17 +164,16 @@ find_indices(chunks; animal=:dog)
 find_indices(actr::ACTR, funs...; check_value=true, criteria...) = find_indices(actr.declarative.memory, funs...; check_value, criteria...)
 
 """
-**find_indices** 
+    find_indices(chunks::Array{<:Chunk,1}, funs...; check_value=true, criteria...) 
 
-Returns the index of first chunk that matches a set of criteria
+Returns the index of first chunk that matches a set of criteria.
+
+# Arguments
+
 - `chunks`: an array of chunks
 - `funs`: a set of functions
 - `criteria`: a set of keyword arguments for slot-value pairs
 
-**Function Signature**
-````julia
-find_indices(actr::ACTR; criteria...)
-````
 ** Example**
 ````julia
 chunks = [Chunk(animal=:dog), Chunk(animal=:dog), Chunk(animal=cat)]
@@ -193,9 +189,12 @@ function find_indices(chunks::Array{<:Chunk,1}, funs...; check_value=true, crite
 end
 
 """
-**get_iconic_memory** 
+    get_iconic_memory(actr)
 
 Returns array of chunks or visual objects representing iconic memory 
+
+# Arguments
+
 - `actr`: an ACTR object
 
 **Function Signature**
@@ -206,52 +205,46 @@ get_iconic_memory(actr)
 get_iconic_memory(actr) = actr.visual_location.iconic_memory 
 
 """
-**get_visicon** 
+    get_iconic_memory(actr)
 
 Returns array of chunks or visual objects representing all visual objects
 within the simulation
 
-**Function Signature**
-````julia
-get_visicon(actr)
-````
+# Arguments
+
+- `actr`: an ACTR object
 """
 get_visicon(actr) = actr.visicon
 
 """
-**get_buffer** 
+    get_buffer(actr, m)
 
 Returns posterior predictive distribution and optionally applies function to samples 
     on each replication
+
+# Arguments
+
 - `actr`: an ACTR object
 - `m`: name of module as a symbol
-
-
-**Function Signature**
-````julia
-get_buffer(actr, m)
-````
 
 **Example**
 ````julia
 get_buffer(actr, :imaginal)
 ````
 """
+
 get_buffer(actr, m) = getfield(actr, m).buffer
 """
-**get_buffer** 
+    get_buffer(actr, m)
 
 Returns posterior predictive distribution and optionally applies function to samples 
     on each replication
+
+# Arguments
+
 - `actr`: an ACTR object
 - `m`: name of module as a symbol
 - `v`: new value
-
-
-**Function Signature**
-````julia
-set_buffer!(actr, m, v)
-````
 
 Example
 ````julia
@@ -261,27 +254,23 @@ set_buffer!(actr, :imaginal, [chunk])
 set_buffer!(actr, m, v) = getfield(actr, m).buffer = v
 
 """
-**get_mean_activations** 
+    get_mean_activations(actr::AbstractACTR)
+
 
 Returns a vector of mean activations i.e. activation without noise
-- `actr`: an ACTR object
 
-**Function Signature**
-````julia
-get_mean_activations(actr)
-````
+# Arguments
+- `actr::AbstractACTR`: an ACTR object
 """
 get_mean_activations(actr::AbstractACTR) = get_mean_activations(actr.declarative)
 
 """
-**get_mean_activations** 
+    get_mean_activations(declarative::Declarative)
 
 Returns a vector of mean activations i.e. activation without noise
-- `declarative`: an Declarative memory object
 
-**Function Signature**
-````julia
-get_mean_activations(memory)
+# Arguments
+- `declarative::Declarative`: an Declarative memory object
 ````
 """
 get_mean_activations(declarative::Declarative) = get_mean_activations(declarative.memory)
@@ -293,7 +282,7 @@ Returns a vector of mean activations i.e. activation without noise
 
 # Arguments
 
-- `chunks`: an array of chunks
+- `chunks::Vector{<:Chunk}`: an array of chunks
 """
 function get_mean_activations(chunks::Vector{<:Chunk})
     return map(x->x.act - x.act_noise, chunks)
@@ -304,7 +293,9 @@ end
 
 Returns the name of an ACT-R model object. 
 
-- `actr`: an ACTR model object
+# Arguments
+
+- `actr::AbstractACTR`: an ACTR model object
 """
 function get_name(actr::AbstractACTR)
     return actr.name

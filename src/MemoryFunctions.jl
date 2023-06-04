@@ -88,7 +88,7 @@ function compute_activation!(actr::AbstractACTR, chunks::Vector{<:Chunk}; reques
 end
 
 """
-    compute_activation!(actr::AbstractACTR, chunks::Vector{<:Chunk}, cur_time::Float64=0.0; request...) 
+    compute_activation!(actr::AbstractACTR, chunks::Vector{<:Chunk}, cur_time::Float64; request...)
 
 Computes the activation of a vector of chunks
 
