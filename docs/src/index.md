@@ -1,6 +1,6 @@
 # Introduction 
 The goal of this package is to provide basic functions and types for building models based
-on the ACT-R cognitive architecture.
+on the ACT-R cognitive architecture. More documentation to follow.
 
 # Related Packages
 

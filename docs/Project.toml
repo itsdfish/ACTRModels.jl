@@ -1,3 +1,4 @@
 [deps]
 Documenter = "e30172f5-a6a5-5a46-863b-614d45cd2de4"
 Plots = "91a5bcdd-55d7-5caf-9e0b-520d859cae80"
+SequentialSamplingModels = "0e71a2a6-2b30-4447-8742-d083a85e82d1"
