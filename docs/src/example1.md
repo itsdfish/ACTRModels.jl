@@ -6,7 +6,6 @@ This example will demonstrate how to create memory chunks, add them to the model
 \mathbf{c}_1 = \{(\mathrm{name,Bob}),(\mathrm{department,accounting}) \} \\
 
 \mathbf{c}_2 = \{(\mathrm{name,Alice}),(\mathrm{department,HR}) \}
-
 ```
 
 

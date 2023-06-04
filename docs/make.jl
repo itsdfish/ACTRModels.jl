@@ -3,7 +3,16 @@ using ACTRModels
 
 makedocs(
     sitename = "ACTRModels",
-    format = Documenter.HTML(),
+    format = Documenter.HTML(
+        assets = [
+            asset(
+                "https://fonts.googleapis.com/css?family=Montserrat|Source+Code+Pro&display=swap",
+                class = :css,
+            ),
+        ],
+        collapselevel = 1,
+    ),
+
     modules = [ACTRModels],
     pages = ["home" => "index.md",
             "examples" => ["example 1" => "example1.md",
