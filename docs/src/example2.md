@@ -87,7 +87,6 @@ Next, we will compute activation with the function `compute_activation!` and ext
 ```@example examplesetup2
 # compute activation for each chunk
 compute_activation!(actr; department=:accounting)
-compute_activation!(actr; department=:accounting)
 # get mean activation
 μ = get_mean_activations(actr)
 ```
@@ -101,15 +100,12 @@ The standard deviation for activation is computed as follows
 
 ### Construct Distribution Object
 Next, we will create a distribution object for the Log Normal Race model as follows
-
 ```@example examplesetup2
 # lognormal race distribution object
 dist = LNR(;μ=-μ, σ, ϕ=0.0)
 ```
 ### Compute Log Likelihood
-
 Finally, we can use `logpdf` to compute the log likelihood of the retrieved chunk:
-
 ```@example examplesetup2
 # log pdf of retrieval time
 logpdf(dist, chunk_idx, rt)
@@ -117,7 +113,7 @@ logpdf(dist, chunk_idx, rt)
 
 ### PDF Overlay
 
-One way to verify the likelihood function works is to overlay the PDF on a histogram of simulated data (both based on the same parameters)
+One way to verify the likelihood function works is to overlay the PDF on a histogram of simulated data (both based on the same parameters). As expected, the orange line, which represents the PDF, fits the grey histogram well.
 
 ```@example examplesetup2
 # index for accounting
@@ -140,3 +136,9 @@ dens = pdf.(dist, idx, x)
 # overlay PDF on histogram
 plot!(hist, x, dens, color=:darkorange, linewidth=1.5, xlims=(0,3))
 ```
+
+# References
+
+Fisher, C. R., Houpt, J. W., & Gunzelmann, G. (2022). Fundamental tools for developing likelihood functions within ACT-R. Journal of Mathematical Psychology, 107, 102636.
+
+Rouder, J. N., Province, J. M., Morey, R. D., Gomez, P., & Heathcote, A. (2015). The lognormal race: A cognitive-process model of choice and latency with desirable psychometric properties. Psychometrika, 80, 491-513.

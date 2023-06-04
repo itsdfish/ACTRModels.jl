@@ -66,3 +66,7 @@ Retrieval time is computed by passing the ACT-R model object and the retried vec
 ```@example examplesetup1
 rt = compute_RT(actr, chunk)
 ```
+
+# References
+
+Anderson, J. R., Bothell, D., Byrne, M. D., Douglass, S., Lebiere, C., & Qin, Y. (2004). An integrated theory of the mind. Psychological review, 111(4), 1036.
