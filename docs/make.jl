@@ -8,6 +8,7 @@ makedocs(
     format = Documenter.HTML(),
     modules = [ACTRModels],
     pages = ["home" => "index.md",
+            "examples" => ["example 1" => "example1.md"],
             "api" => "api.md"]
 )
 
