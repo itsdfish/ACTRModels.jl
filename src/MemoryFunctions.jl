@@ -273,7 +273,12 @@ Computes activation for partial matching component
 - `request...`: optional keyword arguments for retrieval request
 """
 function partial_matching!(actr, chunk; request...)
-    p = actr.parms.mmp_fun(actr, chunk; request...)
+    slots = chunk.slots
+    p = 0.0; δ = actr.parms.δ
+    for (k,v) in request
+        dissim = actr.parms.dissim_func(slots[k], v)
+        p += δ * dissim
+    end
     chunk.act_pm = p
     return nothing
 end
@@ -1200,7 +1205,7 @@ is only supported for numeric slot-values.
 """
 function blend_chunks(actr::AbstractACTR, cur_time::Float64; request...) 
     blended_slots = setdiff(keys(actr.declarative.memory[1].slots), keys(request))
-    return blend_chunks(actr, blended_slots, cur_time; request...)
+    return blend_chunks(actr, blended_slots, cur_time; sim_func, request...)
 end
 
 """
@@ -1242,8 +1247,8 @@ is only supported for numeric slot-values.
 
 - `request...`: optional keywords for the retrieval request
 """
-function blend_chunks(actr::AbstractACTR, blended_slots; sim_func = ()->(), request...) 
-    return blend_chunks(actr, blended_slots, get_time(actr); sim_func, request...) 
+function blend_chunks(actr::AbstractACTR, blended_slots; request...) 
+    return blend_chunks(actr, blended_slots, get_time(actr); request...) 
 end
 
 """
@@ -1263,20 +1268,20 @@ for numeric slot-values.
 
 - `request...`: optional keywords for the retrieval request
 """
-function blend_chunks(actr, blended_slots, cur_time; sim_func = ()->(), request...)
+function blend_chunks(actr::AbstractACTR, blended_slots, cur_time; request...)
     chunks = retrieval_request(actr; request...)
     compute_activation!(actr, chunks, cur_time; request...)
     probs = soft_max(actr, chunks)
-    return blend_slots(chunks, probs, blended_slots; sim_func)
+    return blend_slots(actr, chunks, probs, blended_slots)
 end
 
-function blend_slots(chunks, probs, blended_slots; sim_func = ()->())
-    return map(s -> blend_slots(chunks, probs, s; sim_func), blended_slots)
+function blend_slots(actr::AbstractACTR, chunks, probs, blended_slots)
+    return map(s -> blend_slots(actr, chunks, probs, s), blended_slots)
 end
 
-function blend_slots(chunks, probs, slot::Symbol; sim_func = ()->())
+function blend_slots(actr::AbstractACTR, chunks, probs, slot::Symbol)
     values = map(c -> c.slots[slot], chunks)
-    return blend_slots(probs, values; sim_func)
+    return blend_slots(actr, probs, values)
 end
 
 """
@@ -1290,20 +1295,22 @@ Computes an expected value over chunks for a specified slot.
 - `probs`: a vector of retrieval probabilities 
 - `slot::Symbol`: a slot over which slot-values are blended    
 """
-function blend_slots(probs, values::AbstractArray{T}; _...) where {T<:Number}
+function blend_slots(actr::AbstractACTR, probs, values::AbstractArray{T}) where {T<:Number}
     return probs' * values
 end
 
-function blend_slots(probs, values::AbstractArray{T}; sim_func) where {T}
+function blend_slots(actr::AbstractACTR, probs, values::AbstractArray{T}) where {T}
     n_vals = length(values)
     vals = zeros(n_vals)
+    dissm_func = actr.parms.dissim_func
     for i ∈ 1:n_vals
         v = 0.0
         for j ∈ 1:n_vals
             i == j ? (continue) : nothing 
-            v += probs[j] * sim_func(values[i], values[j])^2
+            v += probs[j] * dissm_func(values[i], values[j])^2
             println("i $(values[i]) j $(values[j]) probs $(probs[j]) v $v")
         end
+        vals[i] = v
     end
     _,idx = findmin(vals)
     return values[idx]

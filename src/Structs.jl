@@ -36,7 +36,7 @@ ACT-R parameters with default values. Default values are overwritten with keywor
 - `ω=1.0`: weight for source of spreading activation
 - `blc=0.0`: base level constant
 - `ter=0.0`: a constant for encoding and responding time
-- `mmp_fun`: a mismatch penalty function. By default, `mmp_fun` subtracts `δ` from each non-matching slot value
+- `dissim_func`: a mismatch penalty function. By default, `mmp_fun` subtracts `δ` from each non-matching slot value
 - `sa_fun`: a function for spreading activation which requires arguments for actr and chunk
 - `util_mmp_fun`: utility mismatch penalty function applied to each condition
 - `lf=1.0:` latency factor parameter
@@ -69,7 +69,7 @@ ACT-R parameters with default values. Default values are overwritten with keywor
     ω
     blc
     ter
-    mmp_fun
+    dissim_func
     sa_fun
     util_mmp_fun
     lf
@@ -102,7 +102,7 @@ function Parms(;
     ω = 1.0,
     blc = 0.0,
     ter = 0.0,
-    mmp_fun = default_penalty,
+    dissim_func = default_dissim_func,
     sa_fun = spreading_activation!,
     util_mmp_fun = utility_match,
     lf = 1.0,
@@ -135,7 +135,7 @@ function Parms(;
         ω,
         blc,
         ter,
-        mmp_fun,
+        dissim_func,
         sa_fun,
         util_mmp_fun,
         lf,
@@ -278,8 +278,8 @@ function Chunk(dynamic::Bool;
     reps = 0, 
     lags = Float64[], 
     bl = zero(typeof(act)),
-    slots...
-    )
+    slots...)
+    
     T = typeof(act)
     act_mean = zero(T)
     act_pm = zero(T)
@@ -363,30 +363,18 @@ function Declarative(;memory=Chunk[], filtered=(:isa,:retrieved))
 end
 
 """
-    default_penalty(actr, chunk; request...)
+    default_dissim_func(v1, v2)
 
 A default function for mismatch penalty. Subtracts δ if
 slot does not exist or slot value does not match
 
 # Arguments 
 
-- `actr`: an ACTR model object
-- `chunk`: memory chunk object
-
-# Keywords
-
-- `request`: a variable size collection of slot-value pairs for the retrieval request
+- `v1`: slot value 1
+- `v2`: slot value 2
 """
-function default_penalty(actr, chunk; request...)
-    slots = chunk.slots
-    p = 0.0; δ = actr.parms.δ
-    for (k,v) in request
-        if !(k ∈ keys(slots)) || (slots[k] != v)
-            p += δ
-        end
-     end
-     return p
-end
+
+default_dissim_func(v1, v2) = v1 ≠ v2 ? 1.0 : 0.0
 
 Broadcast.broadcastable(x::Declarative) = Ref(x)
 

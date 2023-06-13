@@ -405,7 +405,7 @@ using SafeTestsets
             return compute_RT(actr, retrieved)
         end
         σ = s * pi / sqrt(3)
-        rts = map(_->sim(actr, retrieved), 1:20_000)
+        rts = map(_ -> sim(actr, retrieved), 1:20_000)
         @test mean(rts) ≈ mean(LogNormal(-1.5, σ)) atol = 1e-3
         @test std(rts) ≈ std(LogNormal(-1.5, σ)) atol = 1e-3
     end
@@ -484,7 +484,7 @@ using SafeTestsets
         request = (a=2,)
         blended_slots = :b
         n_sim = 10_000
-        mean_value1 = map(_->blend_chunks(actr, blended_slots; request...), 1:n_sim) |> mean
+        mean_value1 = map(_ -> blend_chunks(actr, blended_slots; request...), 1:n_sim) |> mean
         @test mean_value1 ≈ 1.5 atol = .01
 
         chunks = [Chunk(;a=1, b=0), Chunk(;a=2, b=3)]
@@ -529,7 +529,7 @@ using SafeTestsets
 
         blended_slots = :b
         probs = [.3,.7]
-        v = blend_slots(chunks, probs, blended_slots)
+        v = blend_slots(actr, chunks, probs, blended_slots)
         @test v ≈ 2.1 atol = 1e-4
     end
 
