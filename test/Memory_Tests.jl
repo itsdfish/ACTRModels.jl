@@ -494,7 +494,7 @@ using SafeTestsets
         request = (a=2,)
         blended_slots = :b
         n_sim = 10_000
-        mean_value2 = map(_->blend_chunks(actr, blended_slots; request...), 1:n_sim) |> mean
+        mean_value2 = map(_ -> blend_chunks(actr, blended_slots; request...), 1:n_sim) |> mean
         @test mean_value1 < mean_value2
 
         chunks = [Chunk(;a=2, b=0), Chunk(;a=1, b=3)]
@@ -504,7 +504,7 @@ using SafeTestsets
         request = (a=2,)
         blended_slots = :b
         n_sim = 10_000
-        mean_value3 = map(_->blend_chunks(actr, blended_slots; request...), 1:n_sim) |> mean
+        mean_value3 = map(_ -> blend_chunks(actr, blended_slots; request...), 1:n_sim) |> mean
         @test mean_value1 > mean_value3
 
         chunks = [Chunk(;a=2, b=0), Chunk(;a=1, b=3)]
@@ -514,7 +514,7 @@ using SafeTestsets
         request = (a=2,)
         blended_slots = :b
         n_sim = 10_000
-        mean_value4 = map(_->blend_chunks(actr, blended_slots; request...), 1:n_sim) |> mean
+        mean_value4 = map(_ -> blend_chunks(actr, blended_slots; request...), 1:n_sim) |> mean
         @test mean_value4 > mean_value3
     end
 

@@ -1242,8 +1242,8 @@ is only supported for numeric slot-values.
 
 - `request...`: optional keywords for the retrieval request
 """
-function blend_chunks(actr::AbstractACTR, blended_slots; request...) 
-    return blend_chunks(actr, blended_slots, get_time(actr); request...) 
+function blend_chunks(actr::AbstractACTR, blended_slots; sim_func = ()->(), request...) 
+    return blend_chunks(actr, blended_slots, get_time(actr); sim_func, request...) 
 end
 
 """
@@ -1263,18 +1263,20 @@ for numeric slot-values.
 
 - `request...`: optional keywords for the retrieval request
 """
-function blend_chunks(actr, blended_slots, cur_time; request...)
+function blend_chunks(actr, blended_slots, cur_time; sim_func = ()->(), request...)
     chunks = retrieval_request(actr; request...)
     compute_activation!(actr, chunks, cur_time; request...)
     probs = soft_max(actr, chunks)
-    v = blend_slots(chunks, probs, blended_slots)
-    return v
+    return blend_slots(chunks, probs, blended_slots; sim_func)
 end
 
-function blend_slots(chunks, probs, slots)
-    T = typeof(probs) 
-    v::T = map(s -> blend_slots(chunks, probs, s), slots)
-    return v
+function blend_slots(chunks, probs, blended_slots; sim_func = ()->())
+    return map(s -> blend_slots(chunks, probs, s; sim_func), blended_slots)
+end
+
+function blend_slots(chunks, probs, slot::Symbol; sim_func = ()->())
+    values = map(c -> c.slots[slot], chunks)
+    return blend_slots(probs, values; sim_func)
 end
 
 """
@@ -1288,22 +1290,24 @@ Computes an expected value over chunks for a specified slot.
 - `probs`: a vector of retrieval probabilities 
 - `slot::Symbol`: a slot over which slot-values are blended    
 """
-function blend_slots(chunks, probs, slot::Symbol)
-    T = eltype(probs)
-    v::T = 0.0
-    for (c,p) in zip(chunks, probs)
-        v += p * c.slots[slot]
-    end
-    return v
+function blend_slots(probs, values::AbstractArray{T}; _...) where {T<:Number}
+    return probs' * values
 end
 
-# non numeric
-# blend_chunk(actr, chunks, probs, chunk) = blend_chunk(actr, chunks, probs; chunk.slots...)
-
-# function blend_chunk(actr, chunks, probs; slots...)
-#     penalties = actr.parms.mmp_fun.(actr, chunks; slots...)
-#     return probs' * penalties
-# end
+function blend_slots(probs, values::AbstractArray{T}; sim_func) where {T}
+    n_vals = length(values)
+    vals = zeros(n_vals)
+    for i ∈ 1:n_vals
+        v = 0.0
+        for j ∈ 1:n_vals
+            i == j ? (continue) : nothing 
+            v += probs[j] * sim_func(values[i], values[j])^2
+            println("i $(values[i]) j $(values[j]) probs $(probs[j]) v $v")
+        end
+    end
+    _,idx = findmin(vals)
+    return values[idx]
+end
 
 function soft_max(actr, chunks)
     σ = actr.parms.tmp
