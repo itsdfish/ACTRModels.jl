@@ -36,7 +36,7 @@ ACT-R parameters with default values. Default values are overwritten with keywor
 - `ω=1.0`: weight for source of spreading activation
 - `blc=0.0`: base level constant
 - `ter=0.0`: a constant for encoding and responding time
-- `dissim_func`: a mismatch penalty function. By default, `mmp_fun` subtracts `δ` from each non-matching slot value
+- `dissim_func`: computes dissimilarity between two slot values. Output ranges from 0 (maximally similar) to 1 (maximially dissimilar)
 - `sa_fun`: a function for spreading activation which requires arguments for actr and chunk
 - `util_mmp_fun`: utility mismatch penalty function applied to each condition
 - `lf=1.0:` latency factor parameter
@@ -365,15 +365,13 @@ end
 """
     default_dissim_func(v1, v2)
 
-A default function for mismatch penalty. Subtracts δ if
-slot does not exist or slot value does not match
+A default dissimilarity function which returns 1 for a mismatch and 0 otherwise.
 
 # Arguments 
 
 - `v1`: slot value 1
 - `v2`: slot value 2
 """
-
 default_dissim_func(v1, v2) = v1 ≠ v2 ? 1.0 : 0.0
 
 Broadcast.broadcastable(x::Declarative) = Ref(x)

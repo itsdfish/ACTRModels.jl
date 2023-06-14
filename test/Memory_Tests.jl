@@ -518,7 +518,7 @@ using SafeTestsets
         @test mean_value4 > mean_value3
     end
 
-    @safetestset "blend_slots" begin
+    @safetestset "blend_slots numberic" begin
         using ACTRModels, Test, Random
         import ACTRModels: blend_slots
         Random.seed!(598)
@@ -531,6 +531,50 @@ using SafeTestsets
         probs = [.3,.7]
         v = blend_slots(actr, chunks, probs, blended_slots)
         @test v ≈ 2.1 atol = 1e-4
+    end
+
+    @safetestset "blend_slots non-numeric" begin
+        using ACTRModels, Test, Random
+        import ACTRModels: blend_slots
+
+        function dissim_func(x, y)
+            if (x == :a1 && y == :a2) || (y == :a1 && x == :a2)
+                return 0.1
+            elseif (x == :a1 && y == :a3) || (y == :a1 && x == :a3)
+                return 0.2 
+            elseif (x == :a2 && y == :a3) || (y == :a2 && x == :a3)
+                return .1
+            end 
+            return x ≠ y ? 1.0 : 0.0
+        end
+        
+        chunks = [Chunk(;a = :a1, b = :b1, v = .3, bl = 1.0),
+                Chunk(;a = :a2, b = :b2, v = .2, bl = 1.5),
+                Chunk(;a = :a3, b = :b3, v = .1, bl = .5)]
+        
+        declarative = Declarative(memory=chunks)
+        
+        parms = (noise=true, s=0.20, mmp=true, τ=-10.0)
+        
+        actr = ACTR(;declarative, dissim_func, parms...)
+        
+        blended_slots = :a
+        request = (b=:b1,)
+
+        probs = [.75, .15,.10]
+        values = map(c -> c.slots[blended_slots], chunks)
+
+        blended_value = blend_slots(actr, probs, values)
+
+        @test blended_value == :a1 
+
+        probs = [.05, .85,.10]
+        values = map(c -> c.slots[blended_slots], chunks)
+
+        blended_value = blend_slots(actr, probs, values)
+
+        @test blended_value == :a2 
+
     end
 
     @safetestset "get_chunks_exact" begin

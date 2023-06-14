@@ -1285,20 +1285,31 @@ function blend_slots(actr::AbstractACTR, chunks, probs, slot::Symbol)
 end
 
 """
-    blend_slots(chunks, probs, slot::Symbol)
+    blend_slots(actr::AbstractACTR, probs, values::AbstractArray{T}) where {T<:Number}
 
-Computes an expected value over chunks for a specified slot. 
+Computes an expected value over numerical values. 
 
 # Arguments
 
-- `chunks`: a set of chunks over which slot-values are blended 
+- `actr::AbstractACTR`: an `ACTR` model object 
 - `probs`: a vector of retrieval probabilities 
-- `slot::Symbol`: a slot over which slot-values are blended    
+- `values::AbstractArray{T}`: values to be blended 
 """
 function blend_slots(actr::AbstractACTR, probs, values::AbstractArray{T}) where {T<:Number}
     return probs' * values
 end
 
+"""
+    blend_slots(actr::AbstractACTR, probs, values::AbstractArray{T}) where {T}
+
+Computes an expected value over non-numerical values. 
+
+# Arguments
+
+- `actr::AbstractACTR`: an `ACTR` model object 
+- `probs`: a vector of retrieval probabilities 
+- `values::AbstractArray{T}`: values to be blended 
+"""
 function blend_slots(actr::AbstractACTR, probs, values::AbstractArray{T}) where {T}
     n_vals = length(values)
     vals = zeros(n_vals)
@@ -1308,7 +1319,7 @@ function blend_slots(actr::AbstractACTR, probs, values::AbstractArray{T}) where 
         for j ∈ 1:n_vals
             i == j ? (continue) : nothing 
             v += probs[j] * dissm_func(values[i], values[j])^2
-            println("i $(values[i]) j $(values[j]) probs $(probs[j]) v $v")
+            #println("i $(values[i]) j $(values[j]) probs $(probs[j]) v $v")
         end
         vals[i] = v
     end
