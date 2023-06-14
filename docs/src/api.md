@@ -1,4 +1,5 @@
 ```@autodocs
 Modules = [ACTRModels]
-Order   = [:function, :type]
+Order   = [:type, :function]
+Private = false
 ```

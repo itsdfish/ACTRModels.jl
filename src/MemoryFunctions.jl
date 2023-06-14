@@ -696,7 +696,7 @@ function match_exact(chunk::Chunk, request)
 end
 
 """
-    get_chunks(memory::Vector{<:Chunk}; criteria...)
+    get_chunks(memory::Vector{<:Chunk}; check_value=true, criteria...)
 
 Returns all chunks that matches a set criteria.
 
@@ -716,7 +716,7 @@ function get_chunks(memory::Vector{<:Chunk}; check_value=true, criteria...)
 end
 
 """
-    get_chunks(memory::Vector{<:Chunk}, funs...; criteria...)
+    get_chunks(memory::Vector{<:Chunk}, funs...; check_value=true, criteria...)
 
 Returns all chunks that matches a set `criteria` which are evaluted according to the list of functions in `funs`.
 
@@ -737,7 +737,7 @@ function get_chunks(memory::Vector{<:Chunk}, funs...; check_value=true, criteria
 end
 
 """
-    get_chunks(d::Declarative; criteria...)
+    get_chunks(d::Declarative; check_value=true, criteria...)
 
 Returns all chunks that matches a set criteria.
 
@@ -754,7 +754,7 @@ Returns all chunks that matches a set criteria.
 get_chunks(d::Declarative; check_value=true, criteria...) = get_chunks(d.memory; check_value, criteria...)
 
 """
-    get_chunks(actr::AbstractACTR; )
+    get_chunks(actr::AbstractACTR; check_value=true, criteria...)
 
 Returns all chunks that matches a set criteria
 
@@ -771,7 +771,7 @@ Returns all chunks that matches a set criteria
 get_chunks(actr::AbstractACTR; check_value=true, criteria...) = get_chunks(actr.declarative.memory; check_value, criteria...)
 
 """
-    get_chunks(d::Declarative, funs...; criteria...)
+    get_chunks(d::Declarative, funs...; check_value=true, criteria...)
 
 Returns all chunks that matches a set criteria using `funs...` as matching functions
 
@@ -789,7 +789,7 @@ Returns all chunks that matches a set criteria using `funs...` as matching funct
 get_chunks(d::Declarative, funs...; check_value=true, criteria...) = get_chunks(d.memory, funs...; check_value, criteria...)
 
 """
-    get_chunks(actr::AbstractACTR, funs...; criteria...)
+    get_chunks(actr::AbstractACTR, funs...; check_value=true, criteria...)
 
 Returns all chunks that matches a set criteria using `funs...` as matching functions.
 
@@ -807,7 +807,7 @@ Returns all chunks that matches a set criteria using `funs...` as matching funct
 get_chunks(actr::AbstractACTR, funs...; check_value=true, criteria...) = get_chunks(actr.declarative.memory, funs...; check_value, criteria...)
 
 """
-    first_chunk(memory::Vector{<:Chunk}; criteria...)
+    first_chunk(memory::Vector{<:Chunk}; check_value=true, criteria...)
 
 Returns the first chunk in memory that matches a set of criteria
 
@@ -850,7 +850,7 @@ Returns the first chunk in memory that matches a set of criteria
 first_chunk(d::Declarative; check_value=true, criteria...) = first_chunk(d.memory; check_value, criteria...)
 
 """
-    first_chunk(a::AbstractACTR; criteria...)
+    first_chunk(actr::AbstractACTR; check_value=true, criteria...)
 
 Returns the first chunk in memory that matches a set of criteria
 
@@ -867,7 +867,7 @@ Returns the first chunk in memory that matches a set of criteria
 first_chunk(actr::AbstractACTR; check_value=true, criteria...) = first_chunk(actr.declarative.memory; check_value, criteria...)
 
 """
-    match(chunk::Chunk, request)
+    _match(chunk::Chunk, request; check_value=true)
 
 Returns a boolean indicating whether a request matches a chunk.
 False is returned if the slot does not exist in the chunk or the value

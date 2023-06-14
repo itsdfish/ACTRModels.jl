@@ -14,7 +14,7 @@ function _posterior_predictive(m, chain, f=x -> x)
 end
 
 """
-**posterior_predictive** 
+    posterior_predictive(model, chain, n_samples::Int, f=x -> x)
 
 Returns posterior predictive distribution and optionally applies function to samples 
     on each replication
@@ -22,10 +22,7 @@ Returns posterior predictive distribution and optionally applies function to sam
 - `chain`: an MCMCChains chain object
 - `n_samples`: the number of samples 
 - `f`: a function that is applied to each sample from posterior predictive distribution
-Function Signature
-````julia
-posterior_predictive(model, chain, n_samples::Int, f=x -> x)
-````
+
 """
 function posterior_predictive(model, chain, n_samples::Int, f=x -> x)
     return map(x -> _posterior_predictive(model, chain, f), 1:n_samples)
@@ -34,21 +31,25 @@ end
 find_index(actr::AbstractACTR; check_value=true, criteria...) = find_index(actr.declarative.memory; check_value, criteria...)
 
 """
-**find_index** 
+    find_index(chunks::Array{<:Chunk,1}; check_value=true, criteria...)
 
 Returns the index of first chunk that matches a set of criteria
+
+# Arguments 
+
 - `chunks`: an array of chunks
+
+# Keywords
+
+- `check_value=true`: 
 - `criteria`: a set of keyword arguments for slot-value pairs
 
-Function Signature
-````julia
-find_index(chunks::Array{<:Chunk,1}; criteria...)
-````
-## Example
-````julia
+
+# Example
+```julia
 chunks = [Chunk(animal=:dog), Chunk(animal=cat)]
 find_index(chunks; animal=:dog)
-````
+```
 """
 function find_index(chunks::Array{<:Chunk,1}; check_value=true, criteria...)
     for (i,c) in enumerate(chunks)
@@ -58,42 +59,50 @@ function find_index(chunks::Array{<:Chunk,1}; check_value=true, criteria...)
 end
 
 """
-**find_index** 
+    find_index(actr::ACTR, funs...; check_value=true, criteria...)
 
 Returns the index of first chunk that matches a set of criteria
+
+# Arguments
+
 - `actr`: ACTR object
 - `funs`: a set of functions
+
+# Keywords
+
+- `check_value=true`: 
 - `criteria`: a set of keyword arguments for slot-value pairs
 
-Function Signature
-````julia
-find_index(actr::ACTR, funs...; criteria...)
-````
-## Example
-````julia
+# Example
+
+```julia
 chunks = [Chunk(animal=:dog), Chunk(animal=cat)]
 find_index(chunks; animal=:dog)
-````
+```
 """
 find_index(actr::ACTR, funs...; check_value=true, criteria...) = find_index(actr.declarative.memory, funs...; check_value, criteria...)
 
 """
-**find_index** 
+    find_index(chunks::Array{<:Chunk,1}, funs...; check_value=true, criteria...)
 
 Returns the index of first chunk that matches a set of criteria
+
+# Arguments
+
 - `chunks`: an array of chunks
 - `funs`: a set of functions
 - `criteria`: a set of keyword arguments for slot-value pairs
 
-Function Signature
-````julia
-find_index(chunks::Array{<:Chunk,1}; criteria...)
-````
-## Example
-````julia
+# Keywords
+
+- `check_value=true`: 
+- `criteria`: a set of keyword arguments for slot-value pairs
+
+
+```julia
 chunks = [Chunk(animal=:dog), Chunk(animal=cat)]
 find_index(chunks; animal=:dog)
-````
+```
 """
 function find_index(chunks::Array{<:Chunk,1}, funs...; check_value=true, criteria...)
     for (i,c) in enumerate(chunks)
@@ -112,11 +121,11 @@ Returns the index of first chunk that matches a set of criteria
 - `actr`: an ACTR object
 - `criteria`: a set of keyword arguments for slot-value pairs
 ````
-## Example
-````julia
+# Example
+```julia
 chunks = [Chunk(animal=:dog), Chunk(animal=:dog), Chunk(animal=cat)]
 find_indices(chunks; animal=:dog)
-````
+```
 """
 find_indices(actr::ACTR; check_value = true, criteria...) = find_indices(actr.declarative.memory; check_value, criteria...)
 
@@ -128,13 +137,18 @@ Returns the index of first chunk that matches a set of criteria
 # Arguments
 
 - `chunks`: an array of chunks
+
+# Keywords
+
+- `check_value=true`: 
 - `criteria`: a set of keyword arguments for slot-value pairs
 
-**Example**
-````julia
+# Example 
+
+```julia
 chunks = [Chunk(animal=:dog), Chunk(animal=:dog), Chunk(animal=cat)]
 find_indices(chunks; animal=:dog)
-````
+```
 """
 function find_indices(chunks::Array{<:Chunk,1}; check_value=true, criteria...)
     idx = Int64[]
@@ -153,13 +167,18 @@ Returns the index of first chunk that matches a set of criteria
 
 - `actr`: an ACTR object
 - `funs`: a set of functions
+
+# Keywords
+
+- `check_value=true`: 
 - `criteria`: a set of keyword arguments for slot-value pairs
-````
-**Example**
-````julia
+
+
+# Example 
+```julia
 chunks = [Chunk(animal=:dog), Chunk(animal=:dog), Chunk(animal=cat)]
 find_indices(chunks; animal=:dog)
-````
+```
 """
 find_indices(actr::ACTR, funs...; check_value=true, criteria...) = find_indices(actr.declarative.memory, funs...; check_value, criteria...)
 
@@ -172,13 +191,19 @@ Returns the index of first chunk that matches a set of criteria.
 
 - `chunks`: an array of chunks
 - `funs`: a set of functions
+
+# Keywords
+
+- `check_value=true`: 
 - `criteria`: a set of keyword arguments for slot-value pairs
 
-** Example**
-````julia
+
+# Example
+
+```julia
 chunks = [Chunk(animal=:dog), Chunk(animal=:dog), Chunk(animal=cat)]
 find_indices(chunks; animal=:dog)
-````
+```
 """
 function find_indices(chunks::Array{<:Chunk,1}, funs...; check_value=true, criteria...)
     idx = Int64[]
@@ -197,10 +222,6 @@ Returns array of chunks or visual objects representing iconic memory
 
 - `actr`: an ACTR object
 
-**Function Signature**
-````julia
-get_iconic_memory(actr)
-````
 """
 get_iconic_memory(actr) = actr.visual_location.iconic_memory 
 
@@ -227,13 +248,13 @@ Returns posterior predictive distribution and optionally applies function to sam
 - `actr`: an ACTR object
 - `m`: name of module as a symbol
 
-**Example**
-````julia
+# Example
+```julia
 get_buffer(actr, :imaginal)
-````
+```
 """
-
 get_buffer(actr, m) = getfield(actr, m).buffer
+
 """
     get_buffer(actr, m)
 
@@ -246,10 +267,11 @@ Returns posterior predictive distribution and optionally applies function to sam
 - `m`: name of module as a symbol
 - `v`: new value
 
-Example
-````julia
+# Example
+
+```julia
 set_buffer!(actr, :imaginal, [chunk])
-````
+```
 """
 set_buffer!(actr, m, v) = getfield(actr, m).buffer = v
 
@@ -271,7 +293,6 @@ Returns a vector of mean activations i.e. activation without noise
 
 # Arguments
 - `declarative::Declarative`: an Declarative memory object
-````
 """
 get_mean_activations(declarative::Declarative) = get_mean_activations(declarative.memory)
 
