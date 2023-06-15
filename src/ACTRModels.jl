@@ -12,7 +12,7 @@ module ACTRModels
     export LNR, reduce_data, get_buffer, set_buffer! 
     export get_chunks, update_lags!, update_recent!, update_chunk!, modify!, add_chunk!
     export retrieval_prob, retrieval_probs, retrieve, compute_activation!, get_parm
-    export spreading_activation!, match, compute_RT, retrieval_request, get_subset
+    export match, compute_RT, retrieval_request
     export first_chunk, posterior_predictive, find_index, find_indices, get_mean_activations
     export get_visicon, get_iconic_memory, get_rules
     export get_time, set_time!, add_time!, reset_time!, rnd_time, get_name

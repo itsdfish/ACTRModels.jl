@@ -178,6 +178,7 @@ function Base.show(io::IO, ::MIME"text/plain", parms::Parms)
 end
 
 abstract type AbstractChunk end
+
 """
     Chunk
 
@@ -252,6 +253,14 @@ An object representing a declarative memory chunk.
 - `recent=[0.0]`: time stamps for k recent retrievals
 - `lags=Float64[]`: lags for recent retrievals (L - recent)
 - `bl=0.0`: baselevel constant added to chunks activation
+
+# Example 
+
+```@example
+using ACTRModels
+
+chunk = Chunk(; name = :Bonkers, animal = :rat)
+```
 """
 function Chunk(;
     N = 1,
@@ -356,8 +365,7 @@ function Base.show(io::IO, ::MIME"text/plain", chunk::AbstractChunk)
         row_name_alignment=:l,
         row_names=[chunk_fields...],
         formatters=ft_printf("%5.2f"),
-        alignment=:l,
-    )
+        alignment=:l)
 end
 
 function Base.show(io::IO, ::MIME"text/plain", chunks::Vector{<:Chunk})
@@ -365,6 +373,7 @@ function Base.show(io::IO, ::MIME"text/plain", chunks::Vector{<:Chunk})
     table = hcat(table...)
     table = permutedims(table)
     table = isempty(chunks) ? fill(Missing, 1, length(chunk_fields)) : table 
+
     return pretty_table(
         io,
         table;
@@ -374,8 +383,7 @@ function Base.show(io::IO, ::MIME"text/plain", chunks::Vector{<:Chunk})
         header=[chunk_fields...],
         row_name_alignment=:l,
         formatters=ft_printf("%5.2f"),
-        alignment=:l,
-    )
+        alignment=:l)
 end
 
 abstract type Mod end
@@ -499,22 +507,15 @@ function VisualObject(;x=300.0, y=300.0, color=:black, text="", shape=:_, width=
 end
 
 """
-**VisualLocation**
+    VisualLocation
 
 Visual Location Module.
-- `buffer`: an array holding up to one chunk
-- `state`: buffer state
 
-Constructor
-````julia 
-VisualLocation(;buffer=Chunk[]) 
+# Fields 
 
-VisualLocation(chunk::AbstractChunk, state)
-
-VisualLocation(T::DataType, state)
-
-VisualLocation(chunks, state)
-````
+- `buffer::Array{T1,1}`: an array holding up to one chunk
+- `state::B`: buffer state
+- `iconic_memory::Array{T1,1}`: a temporary memory store for visible objects
 """
 mutable struct VisualLocation{T1,B} <: Mod
     buffer::Array{T1,1}
@@ -571,22 +572,14 @@ A production rule object.
 end
 
 """
-**Procedural**
+    Procedural
 
-Procedural Memory Module.
+Procedural Memory Module object.
+
+# Arguments
+
 - `buffer`: an array holding up to one chunk
 - `state`: buffer state
-
-Constructor
-````julia 
-Procedural(;chunk=Chunk())
-
-Procedural(;rules=Rule[], id="")  
-
-Procedural(rule::Rule, state, id)
-
-Procedural(T::DataType, state, id)
-````
 """
 mutable struct Procedural{R,B} <: Mod
     id::String
@@ -675,7 +668,19 @@ Scheduler(;time=0.0) = Scheduler(time)
 abstract type AbstractACTR end
 
 """
-ACTR(; kwargs...) -> ACTR
+    ACTR(;
+        name="model1", 
+        declarative=Declarative(), 
+        imaginal=Imaginal(), 
+        goal = Goal(), 
+        scheduler=Scheduler(), 
+        visual=nothing, 
+        visual_location=nothing, 
+        procedural=nothing, 
+        motor=nothing, 
+        visicon=init_visicon(), 
+        parm_type = Parms, 
+        parms...) 
 
 ACTR model object
 
@@ -693,12 +698,13 @@ ACTR model object
 
 # Example 
 
-````julia 
+```@example 
+using ACTRModels
 parms = (noise=true, τ=-1.0)
 chunks = [Chunk(;animal=:dog,name=:Sigma), Chunk(;animal=:rat,name=:Bonkers)]
 declarative = Declarative(;memory=chunks)
 actr = ACTR(;declarative, parms...)
-````
+```
 """
 @concrete mutable struct ACTR <: AbstractACTR
     name
@@ -716,11 +722,33 @@ end
 
 Broadcast.broadcastable(x::ACTR) = Ref(x)
 
-function ACTR(;name="model1", declarative=Declarative(), imaginal=Imaginal(), 
-    goal = Goal(), scheduler=Scheduler(), visual=nothing, visual_location=nothing, 
-    procedural=nothing, motor=nothing, visicon=init_visicon(), parm_type = Parms, parms...) 
+function ACTR(;
+    name="model1", 
+    declarative=Declarative(), 
+    imaginal=Imaginal(), 
+    goal = Goal(), 
+    scheduler=Scheduler(), 
+    visual=nothing, 
+    visual_location=nothing, 
+    procedural=nothing, 
+    motor=nothing, 
+    visicon=init_visicon(), 
+    parm_type = Parms, 
+    parms...) 
+
     parms′ = parm_type(;parms...)
-    ACTR(name, declarative, imaginal, visual, visual_location, goal, procedural, motor, visicon, parms′, scheduler)
+
+    ACTR(name, 
+        declarative, 
+        imaginal, 
+        visual, 
+        visual_location, 
+        goal, 
+        procedural, 
+        motor, 
+        visicon, 
+        parms′, 
+        scheduler)
 end
 
 function init_visicon()

@@ -98,7 +98,6 @@ Returns the index of first chunk that matches a set of criteria
 - `check_value=true`: 
 - `criteria`: a set of keyword arguments for slot-value pairs
 
-
 ```julia
 chunks = [Chunk(animal=:dog), Chunk(animal=cat)]
 find_index(chunks; animal=:dog)
@@ -120,7 +119,7 @@ Returns the index of first chunk that matches a set of criteria
 
 - `actr`: an ACTR object
 - `criteria`: a set of keyword arguments for slot-value pairs
-````
+
 # Example
 ```julia
 chunks = [Chunk(animal=:dog), Chunk(animal=:dog), Chunk(animal=cat)]
@@ -173,7 +172,6 @@ Returns the index of first chunk that matches a set of criteria
 - `check_value=true`: 
 - `criteria`: a set of keyword arguments for slot-value pairs
 
-
 # Example 
 ```julia
 chunks = [Chunk(animal=:dog), Chunk(animal=:dog), Chunk(animal=cat)]
@@ -196,7 +194,6 @@ Returns the index of first chunk that matches a set of criteria.
 
 - `check_value=true`: 
 - `criteria`: a set of keyword arguments for slot-value pairs
-
 
 # Example
 
@@ -282,6 +279,7 @@ set_buffer!(actr, m, v) = getfield(actr, m).buffer = v
 Returns a vector of mean activations i.e. activation without noise
 
 # Arguments
+
 - `actr::AbstractACTR`: an ACTR object
 """
 get_mean_activations(actr::AbstractACTR) = get_mean_activations(actr.declarative)
@@ -292,6 +290,7 @@ get_mean_activations(actr::AbstractACTR) = get_mean_activations(actr.declarative
 Returns a vector of mean activations i.e. activation without noise
 
 # Arguments
+
 - `declarative::Declarative`: an Declarative memory object
 """
 get_mean_activations(declarative::Declarative) = get_mean_activations(declarative.memory)
@@ -322,10 +321,50 @@ function get_name(actr::AbstractACTR)
     return actr.name
 end
 
+"""
+    get_time(actr::AbstractACTR)
+
+Get the current time of the simulation. 
+
+# Arguments
+
+- `actr::AbstractACTR`: an ACTR model object
+"""
 get_time(actr::AbstractACTR) = get_time(actr.scheduler)
+
+"""
+    get_time(scheduler)
+
+Get the current time of the simulation. 
+
+# Arguments
+
+- `scheduler`: an event scheduler
+"""
 get_time(scheduler) = scheduler.time 
 
+"""
+    add_time!(actr::AbstractACTR, t)
+
+Add time to simulation.
+
+# Arguments
+
+- `actr::AbstractACTR`: an ACTR model object
+- `t`: time in seconds
+"""
 add_time!(actr::AbstractACTR, t) = add_time!(actr.scheduler, t)
+
+"""
+    add_time!(actr::AbstractACTR, t)
+
+Add time to simulation.
+
+# Arguments
+
+- `scheduler`: an event scheduler
+- `t`: time in seconds
+"""
 add_time!(scheduler, t) = scheduler.time += t
 
 reset_time!(actr::AbstractACTR) = reset_time!(actr.scheduler)
