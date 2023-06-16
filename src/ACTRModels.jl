@@ -1,22 +1,62 @@
 __precompile__()
 module ACTRModels
-    using Reexport
-    @reexport using Distributions, Parameters, Random, StatsBase, StatsFuns
-    using  ConcreteStructs, PrettyTables
-    import Distributions: pdf, logpdf
-    import SequentialSamplingModels: LNR
-    import Base: rand, match
-    export AbstractACTR, ACTR, Declarative, Imaginal, Chunk, BufferState, Mod 
-    export Goal, Visual, Motor, VisualLocation, Procedural, Rule
-    export AbstractVisualObject, VisualObject, Parms, AbstractParms
-    export LNR, reduce_data, get_buffer, set_buffer! 
-    export get_chunks, update_lags!, update_recent!, update_chunk!, modify!, add_chunk!
-    export retrieval_prob, retrieval_probs, retrieve, compute_activation!, get_parm
-    export match, compute_RT, retrieval_request
-    export first_chunk, posterior_predictive, find_index, find_indices, get_mean_activations
-    export get_visicon, get_iconic_memory, get_rules
-    export get_time, set_time!, add_time!, reset_time!, rnd_time, get_name
-    export blend_chunks, blended_activation
+    using Distributions
+    using ConcreteStructs
+    using PrettyTables
+
+    import Base: rand
+    import Base: match
+
+    export AbstractACTR
+    export ACTR
+    export Declarative
+    export Imaginal
+    export Chunk
+    export BufferState
+    export Mod 
+    export Goal
+    export Visual
+    export Motor
+    export VisualLocation
+    export Procedural
+    export Rule
+    export AbstractVisualObject
+    export VisualObject
+    export Parms
+    export AbstractParms
+    export reduce_data
+    export get_buffer
+    export set_buffer! 
+    export get_chunks
+    export update_lags!
+    export update_recent!
+    export update_chunk!
+    export modify!
+    export add_chunk!
+    export retrieval_prob
+    export retrieval_probs
+    export retrieve
+    export compute_activation!
+    export get_parm
+    export match
+    export compute_RT
+    export retrieval_request
+    export first_chunk
+    export posterior_predictive
+    export find_index
+    export find_indices
+    export get_mean_activations
+    export get_visicon
+    export get_iconic_memory
+    export get_rules
+    export get_time
+    export set_time!
+    export add_time!
+    export reset_time!
+    export rnd_time
+    export get_name
+    export blend_chunks
+    export blended_activation
 
     include("Structs.jl")
     include("Utilities/Utilities.jl")

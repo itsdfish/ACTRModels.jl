@@ -52,7 +52,7 @@ Computes baselevel activation with hybrid approximation.
 - `chunk`: a chunk
 """
 function baselevel!(actr, chunk)
-    @unpack N,L,k,lags = chunk
+    (;N,L,k,lags) = chunk
     d = actr.parms.d
     chunk.act_bll = baselevel!(N, L, k, lags, d)
     return nothing
@@ -103,7 +103,7 @@ Computes the activation of a vector of chunks
 - `request...`: optional keywords for the retrieval request
 """
 function compute_activation!(actr::AbstractACTR, chunks::Vector{<:Chunk}, cur_time::Float64; request...)
-    @unpack sa = actr.parms
+    (;sa) = actr.parms
     sa ? cache_denomitors(actr) : nothing
     # compute activation for each chunk
     for chunk in chunks
@@ -197,7 +197,7 @@ Computes the activation of a chunk
 """
 function activation!(actr, chunk::Chunk, cur_time=0.0; request...)
     memory = actr.declarative
-    @unpack sa_fun,bll,mmp,sa,noise,blc,τ = actr.parms
+    (;sa_fun,bll,mmp,sa,noise,blc,τ) = actr.parms
     reset_activation!(chunk)
     chunk.act_blc = blc + chunk.bl
     if bll
@@ -245,14 +245,14 @@ function total_activation!(chunk)
 end
 
 function add_noise!(actr, chunk)
-    @unpack τ,s = actr.parms
+    (;τ,s) = actr.parms
     σ = s * pi / sqrt(3)
     chunk.act_noise = rand(Normal(0, σ))
     return nothing
 end
 
 function add_noise!(actr)
-    @unpack τ,s = actr.parms
+    (;τ,s) = actr.parms
     σ = s * pi / sqrt(3)
     actr.parms.τ′ = rand(Normal(τ, σ))
     nothing
@@ -308,7 +308,7 @@ Computes the spreading activation for a given chunk
 - `chunk`: the chunk for which spreading activation is computed
 """
 function spreading_activation!(actr, chunk)
-    @unpack γ,ω = actr.parms 
+    (;γ,ω) = actr.parms 
     imaginal = actr.imaginal
     isempty(imaginal.buffer) ? (return nothing) : nothing 
     w = compute_weights(imaginal, ω)
@@ -335,7 +335,7 @@ Caches denominator of spreading activation calculations
 - `actr`: an `ACTR` oject
 """
 function cache_denomitors(actr)
-    @unpack imaginal,declarative = actr
+    (;imaginal,declarative) = actr
     isempty(imaginal.buffer) ? (return nothing) : nothing 
     slots = imaginal.buffer[1].slots
     denoms = fill(0, length(slots))
@@ -433,7 +433,7 @@ Retrieval probability is computed with the softmax approximation.
 - `request...`: optional keywords for the retrieval request
 """
 function retrieval_prob(actr::AbstractACTR, target::Array{<:Chunk,1}, cur_time; request...)
-    @unpack τ,s,noise = actr.parms
+    (;τ,s,noise) = actr.parms
     σ = s * sqrt(2)
     chunks = retrieval_request(actr; request...)
     filter!(x -> (x ∈ chunks), target)
@@ -485,7 +485,7 @@ Uses the softmax approximation to compute the retrieval probability of retrievin
 - `request...`: optional keyword pairs representing a retrieval request
 """
 function retrieval_prob(actr::AbstractACTR, chunk::Chunk, cur_time; request...)
-    @unpack τ,s,noise = actr.parms
+    (;τ,s,noise) = actr.parms
     σ = s * sqrt(2)
     chunks = retrieval_request(actr; request...)
     !(chunk ∈ chunks) ? (return (0.0,1.0)) : nothing
@@ -534,7 +534,7 @@ Computes the retrieval probability for each chunk matching the retrieval request
 - `request...`: optional keyword pairs representing a retrieval request
 """
 function retrieval_probs(actr::AbstractACTR, cur_time; request...)
-    @unpack τ,s,noise = actr.parms
+    (;τ,s,noise) = actr.parms
     σ = s * sqrt(2)
     chunks = retrieval_request(actr; request...)
     isempty(chunks) ? (return ([0.0],chunks)) : nothing
@@ -995,7 +995,7 @@ Returns chunks matching a retrieval request.
 - `request...`: optional keyword arguments corresponding to retrieval request e.g. dog = :fiddo
 """
 function retrieval_request(actr::AbstractACTR; request...)
-    @unpack mmp = actr.parms
+    (;mmp,) = actr.parms
     !mmp ? (return get_chunks(actr; request...)) : nothing
     chunks = get_chunks(actr; check_value=false, request...)
     c = get_subset(actr; request...)
@@ -1075,7 +1075,7 @@ Retrieves a chunk given a retrieval request
 - `request...`: optional keyword arguments representing a retrieval request, e.g. person=:bob
 """
 function retrieve(actr::AbstractACTR, cur_time; request...)
-    @unpack declarative,parms = actr
+    (;declarative,parms) = actr
     arr = Array{eltype(declarative.memory),1}()
     chunks = retrieval_request(actr; request...)
     # add noise to threshold even if result of request is empty
@@ -1123,7 +1123,7 @@ for a retrieval failure is returned.
 - `chunk`: a vector that is empty or contains one chunk
 """
 function compute_RT(actr, chunk)
-    @unpack τ′,lf = actr.parms
+    (;τ′,lf) = actr.parms
     if isempty(chunk)
         return lf * exp(-τ′)
     end
@@ -1143,7 +1143,7 @@ on the current activation levels of a chunk.
 - `chunk`: a chunk
 """
 function compute_RT(actr, chunk::Chunk)
-    @unpack lf = actr.parms
+    (;lf) = actr.parms
     return lf * exp(-chunk.act)
 end
 
@@ -1295,7 +1295,7 @@ Computes an expected value over numerical values.
 - `probs`: a vector of retrieval probabilities 
 - `values::AbstractArray{T}`: values to be blended 
 """
-function blend_slots(actr::AbstractACTR, probs, values::AbstractArray{T}) where {T<:Number}
+function blend_slots(actr::AbstractACTR, probs, values::AbstractArray{T})::Float64 where {T<:Number}
     return probs' * values
 end
 
@@ -1310,7 +1310,7 @@ Computes an expected value over non-numerical values.
 - `probs`: a vector of retrieval probabilities 
 - `values::AbstractArray{T}`: values to be blended 
 """
-function blend_slots(actr::AbstractACTR, probs, values::AbstractArray{T}) where {T}
+function blend_slots(actr::AbstractACTR, probs, values::AbstractArray{T})::T where {T}
     n_vals = length(values)
     vals = zeros(n_vals)
     dissm_func = actr.parms.dissim_func

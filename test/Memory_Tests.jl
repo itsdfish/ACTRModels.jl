@@ -474,7 +474,7 @@ using SafeTestsets
     end
 
     @safetestset "blend_chunks" begin
-        using ACTRModels, Test, Random
+        using ACTRModels, Test, Random, Distributions
         Random.seed!(598)
         chunks = [Chunk(;a=1, b=0), Chunk(;a=1, b=3)]
         parms = (mmp = true, δ=1.0, noise=true, s=.2)
