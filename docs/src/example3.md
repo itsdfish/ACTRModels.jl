@@ -47,7 +47,6 @@ First, we will load the required packages.
 using ACTRModels
 using Random
 using Plots
-
 Random.seed!(87545)
 ```
 

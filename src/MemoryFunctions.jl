@@ -51,7 +51,7 @@ Computes baselevel activation with hybrid approximation.
 - `actr`: an `ACTR` model object
 - `chunk`: a chunk
 """
-function baselevel!(actr, chunk)
+function baselevel!(actr::AbstractACTR, chunk::AbstractChunk)
     (;N,L,k,lags) = chunk
     d = actr.parms.d
     chunk.act_bll = baselevel!(N, L, k, lags, d)
@@ -67,7 +67,7 @@ Computes baselevel activation with hybrid approximation.
 
 - `actr`: an `ACTR` model object
 """
-baselevel!(actr) = activation!.(actr, memory.memory)
+baselevel!(actr::AbstractACTR) = activation!.(actr, memory.memory)
 
 """
     compute_activation!(actr::AbstractACTR, chunks::Vector{<:Chunk}; request...) 
@@ -83,7 +83,7 @@ Computes the activation of a vector of chunks. By default, current time is compu
 
 - `request...`: optional keywords for the retrieval request
 """
-function compute_activation!(actr::AbstractACTR, chunks::Vector{<:Chunk}; request...)
+function compute_activation!(actr::AbstractACTR, chunks::Vector{<:AbstractChunk}; request...)
     return compute_activation!(actr, chunks, get_time(actr); request...)
 end
 
@@ -102,7 +102,7 @@ Computes the activation of a vector of chunks
 
 - `request...`: optional keywords for the retrieval request
 """
-function compute_activation!(actr::AbstractACTR, chunks::Vector{<:Chunk}, cur_time::Float64; request...)
+function compute_activation!(actr::AbstractACTR, chunks::Vector{<:AbstractChunk}, cur_time::Float64; request...)
     (;sa) = actr.parms
     sa ? cache_denomitors(actr) : nothing
     # compute activation for each chunk
@@ -111,7 +111,6 @@ function compute_activation!(actr::AbstractACTR, chunks::Vector{<:Chunk}, cur_ti
     end
     return nothing
 end
-
 """
     compute_activation!(actr, chunk::Chunk; request...) 
 
@@ -127,7 +126,7 @@ with `get_time`.
 
 - `request...`: optional keywords for the retrieval request
 """
-function compute_activation!(actr, chunk::Chunk; request...)
+function compute_activation!(actr::AbstractACTR, chunk::AbstractChunk; request...)
     return compute_activation!(actr, chunk, get_time(actr); request...)
 end
 
@@ -146,7 +145,7 @@ Computes the activation of a chunk
 
 - `request...`: optional keywords for the retrieval request
 """
-compute_activation!(actr, chunk::Chunk, cur_time; request...) = compute_activation!(actr, [chunk], cur_time; request...)
+compute_activation!(actr::AbstractACTR, chunk::AbstractChunk, cur_time; request...) = compute_activation!(actr, [chunk], cur_time; request...)
 
 """
     compute_activation!(actr::AbstractACTR; request...)
@@ -195,7 +194,7 @@ Computes the activation of a chunk
 
 - `request...`: optional keywords for the retrieval request
 """
-function activation!(actr, chunk::Chunk, cur_time=0.0; request...)
+function activation!(actr::AbstractACTR, chunk::AbstractChunk, cur_time=0.0; request...)
     memory = actr.declarative
     (;sa_fun,bll,mmp,sa,noise,blc,τ) = actr.parms
     reset_activation!(chunk)
@@ -237,21 +236,21 @@ Assigns sum of all components to of activation to `chunk.act`.
 
 - `chunk`: a chunk object
 """
-function total_activation!(chunk)
+function total_activation!(chunk::AbstractChunk)
     chunk.act_mean = chunk.act_blc + chunk.act_bll - chunk.act_pm +
         chunk.act_sa 
     chunk.act = chunk.act_mean + chunk.act_noise
     return nothing
 end
 
-function add_noise!(actr, chunk)
+function add_noise!(actr::AbstractACTR, chunk)
     (;τ,s) = actr.parms
     σ = s * pi / sqrt(3)
     chunk.act_noise = rand(Normal(0, σ))
     return nothing
 end
 
-function add_noise!(actr)
+function add_noise!(actr::AbstractACTR)
     (;τ,s) = actr.parms
     σ = s * pi / sqrt(3)
     actr.parms.τ′ = rand(Normal(τ, σ))
@@ -272,7 +271,7 @@ Computes activation for partial matching component
 
 - `request...`: optional keyword arguments for retrieval request
 """
-function partial_matching!(actr, chunk; request...)
+function partial_matching!(actr::AbstractACTR, chunk::AbstractChunk; request...)
     slots = chunk.slots
     p = 0.0; δ = actr.parms.δ
     for (k,v) in request
@@ -293,7 +292,7 @@ Sets noise true or false.
 - `actr`: ACTR object
 - `b`: boolean value
 """
-function set_noise!(actr, b)
+function set_noise!(actr::AbstractACTR, b)
     actr.parms.noise = b
 end
 
@@ -307,7 +306,7 @@ Computes the spreading activation for a given chunk
 - `actr`: an `ACTR` oject
 - `chunk`: the chunk for which spreading activation is computed
 """
-function spreading_activation!(actr, chunk)
+function spreading_activation!(actr::AbstractACTR, chunk::AbstractChunk)
     (;γ,ω) = actr.parms 
     imaginal = actr.imaginal
     isempty(imaginal.buffer) ? (return nothing) : nothing 
@@ -334,7 +333,7 @@ Caches denominator of spreading activation calculations
 
 - `actr`: an `ACTR` oject
 """
-function cache_denomitors(actr)
+function cache_denomitors(actr::AbstractACTR)
     (;imaginal,declarative) = actr
     isempty(imaginal.buffer) ? (return nothing) : nothing 
     slots = imaginal.buffer[1].slots
@@ -388,7 +387,7 @@ length equals k.
 * `chunk`: memory chunk object
 * `cur_time`: current simulated time in seconds
 """
-function update_recent!(chunk, cur_time)
+function update_recent!(chunk::AbstractChunk, cur_time)
     k = chunk.k; recent = chunk.recent
     if length(recent) == k
         pop!(recent)
@@ -412,7 +411,7 @@ By default, current time is computed from `get_time`.
 
 - `request...`: optional keyword pairs representing a retrieval request
 """
-function retrieval_prob(actr::AbstractACTR, target::Array{<:Chunk,1}; request...)
+function retrieval_prob(actr::AbstractACTR, target::Array{<:AbstractChunk,1}; request...)
     return retrieval_prob(actr, target, get_time(actr); request...)
 end
 
@@ -432,7 +431,7 @@ Retrieval probability is computed with the softmax approximation.
 
 - `request...`: optional keywords for the retrieval request
 """
-function retrieval_prob(actr::AbstractACTR, target::Array{<:Chunk,1}, cur_time; request...)
+function retrieval_prob(actr::AbstractACTR, target::Array{<:AbstractChunk,1}, cur_time; request...)
     (;τ,s,noise) = actr.parms
     σ = s * sqrt(2)
     chunks = retrieval_request(actr; request...)
@@ -484,7 +483,7 @@ Uses the softmax approximation to compute the retrieval probability of retrievin
 
 - `request...`: optional keyword pairs representing a retrieval request
 """
-function retrieval_prob(actr::AbstractACTR, chunk::Chunk, cur_time; request...)
+function retrieval_prob(actr::AbstractACTR, chunk::AbstractChunk, cur_time; request...)
     (;τ,s,noise) = actr.parms
     σ = s * sqrt(2)
     chunks = retrieval_request(actr; request...)
@@ -559,7 +558,7 @@ Compute lags for each use of a chunk.
 - `cur_time`: current simulated time in seconds.
 
 """
-function update_lags!(chunk::Chunk, cur_time)
+function update_lags!(chunk::AbstractChunk, cur_time)
     chunk.L = cur_time - chunk.time_created
     chunk.lags = cur_time .- chunk.recent
     return nothing
@@ -599,7 +598,7 @@ Increments number of uses and adds `cur_time` as the most recent time of use.
 - `chunk`: a chunk object 
 - `cur_time': current simulated time in seconds 
 """
-function update_chunk!(chunk, cur_time)
+function update_chunk!(chunk::AbstractChunk, cur_time)
     update_recent!(chunk, cur_time)
     chunk.N += 1
     return nothing
@@ -677,7 +676,7 @@ Returns all chunks that matches a set criteria and has the same number of slots.
 
 -`criteria...`: optional keyword arguments corresponding to critiria for matching chunk
 """
-function get_chunks_exact(memory::Vector{<:Chunk}; criteria...)
+function get_chunks_exact(memory::Vector{<:AbstractChunk}; criteria...)
     c = filter(x -> match_exact(x, criteria), memory)
     return c
 end
@@ -710,7 +709,7 @@ Returns all chunks that matches a set criteria.
 
 -`criteria...`: optional keyword arguments corresponding to critiria for matching chunk
 """
-function get_chunks(memory::Vector{<:Chunk}; check_value=true, criteria...)
+function get_chunks(memory::Vector{<:AbstractChunk}; check_value=true, criteria...)
     c = filter(x -> _match(x, criteria; check_value), memory)
     return c
 end
@@ -731,7 +730,7 @@ Returns all chunks that matches a set `criteria` which are evaluted according to
 
 - `criteria...`: optional keyword arguments corresponding to critiria for matching chunk
 """
-function get_chunks(memory::Vector{<:Chunk}, funs...; check_value=true, criteria...)
+function get_chunks(memory::Vector{<:AbstractChunk}, funs...; check_value=true, criteria...)
     c = filter(x -> _match(x, funs, criteria; check_value), memory)
     return c
 end
@@ -821,7 +820,7 @@ Returns the first chunk in memory that matches a set of criteria
 
 - `criteria...`: optional keyword arguments corresponding to critiria for matching chunk
 """
-function first_chunk(memory::Vector{<:Chunk}; check_value=true, criteria...)
+function first_chunk(memory::Vector{<:AbstractChunk}; check_value=true, criteria...)
     chunk = Array{eltype(memory),1}()
     for m in memory
         if _match(m, criteria; check_value)
@@ -913,7 +912,7 @@ of the slot does not match the request value.
 
  - `check_value=true`: check slot value 
 """
-function _match(chunk::Chunk, f, request; check_value=true)
+function _match(chunk::AbstractChunk, f, request; check_value=true)
     slots = chunk.slots
     i = 0
     for (k,v) in request
@@ -944,7 +943,7 @@ of the slot does not match the request value.
 
 - `request...`: optional keyword arguments corresponding to critiria for matching chunk
 """
-function match(chunk::Chunk; check_value=true, request...) 
+function match(chunk::AbstractChunk; check_value=true, request...) 
     return _match(chunk, request; check_value)
 end
 """
@@ -958,7 +957,7 @@ of the slot does not match the request value.
 - `funs...`: a list of functions such as `!=, ==`
 - `request...`: a NamedTuple of slot value pairs
 """
-function match(chunk::Chunk, funs...; check_value=true, request...) 
+function match(chunk::AbstractChunk, funs...; check_value=true, request...) 
     return _match(chunk, funs, request; check_value)
 end
 
@@ -976,7 +975,7 @@ By default, slot values for isa and retrieved must match exactly.
 
 - `request...`: an option set of keyword arguments corresponding to a retrieval request.
 """
-function get_subset(actr; request...)
+function get_subset(actr::AbstractACTR; request...)
     return Iterators.filter(x -> any(s -> s == x[1], actr.declarative.filtered),
     request)
 end
@@ -1122,7 +1121,7 @@ for a retrieval failure is returned.
 - `actr`: ACTR object
 - `chunk`: a vector that is empty or contains one chunk
 """
-function compute_RT(actr, chunk)
+function compute_RT(actr::AbstractACTR, chunk)
     (;τ′,lf) = actr.parms
     if isempty(chunk)
         return lf * exp(-τ′)
@@ -1142,7 +1141,7 @@ on the current activation levels of a chunk.
 - `actr`: ACTR object
 - `chunk`: a chunk
 """
-function compute_RT(actr, chunk::Chunk)
+function compute_RT(actr::AbstractACTR, chunk::AbstractChunk)
     (;lf) = actr.parms
     return lf * exp(-chunk.act)
 end
@@ -1157,7 +1156,7 @@ Returns the value of a parameter
 - `actr`: ACTR object
 - ` p`: parameter name
 """
-function get_parm(actr, p)
+function get_parm(actr::AbstractACTR, p)
     misc = actr.parms.misc
     if p in keys(misc)
         return misc[p]
@@ -1182,7 +1181,7 @@ is only supported for numeric slot-values.
 
 - `request...`: optional keywords for the retrieval request
 """
-function blend_chunks(actr; request...) 
+function blend_chunks(actr::AbstractACTR; request...) 
     return blend_chunks(actr, get_time(actr); request...) 
 end
 

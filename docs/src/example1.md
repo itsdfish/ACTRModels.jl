@@ -28,14 +28,18 @@ declarative = Declarative(memory=chunks)
 # create an ACT-R object with activation noise and partial matching
 actr = ACTR(;declarative, Θ...)
 ```
-## Create Chunks
-The first step is to load the required packages. Next, we set a seed for the random number generator. Finally, we can create a vector of chunks using the `Chunk` constructor. Constructor accepts a variable number of keyword arguments as slot-value pairs.
+## Load Packages 
+The first step is to load the required packages. Next, we set a seed for the random number generator.
 ```@example examplesetup1
 using ACTRModels
 using Random
 using Plots
-
 Random.seed!(87545)
+```
+## Create Chunks
+we can create a vector of chunks using the `Chunk` constructor. Constructor accepts a variable number of keyword arguments as slot-value pairs.
+```@example examplesetup1
+
 # create chunks of declarative knowledge
 chunks = [Chunk(;name=:Bob, department=:accounting),
     Chunk(;name=:Alice, department=:HR)]
