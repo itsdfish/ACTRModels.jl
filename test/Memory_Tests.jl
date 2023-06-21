@@ -518,7 +518,7 @@ using SafeTestsets
         @test mean_value4 > mean_value3
     end
 
-    @safetestset "blend_slots numberic" begin
+    @safetestset "blend_slots numeric" begin
         using ACTRModels, Test, Random
         import ACTRModels: blend_slots
         Random.seed!(598)
@@ -549,6 +549,7 @@ using SafeTestsets
         end
         
         chunks = [Chunk(;a = :a1, b = :b1, v = .3, bl = 1.0),
+                 Chunk(;a = :a1, b = :b1, v = .2, bl = 1.0),
                 Chunk(;a = :a2, b = :b2, v = .2, bl = 1.5),
                 Chunk(;a = :a3, b = :b3, v = .1, bl = .5)]
         
@@ -561,14 +562,14 @@ using SafeTestsets
         blended_slots = :a
         request = (b=:b1,)
 
-        probs = [.75, .15,.10]
+        probs = [.40, .35, .15,.10]
         values = map(c -> c.slots[blended_slots], chunks)
 
         blended_value = blend_slots(actr, probs, values)
 
         @test blended_value == :a1 
 
-        probs = [.05, .85,.10]
+        probs = [.30,.05,.55,.10]
         values = map(c -> c.slots[blended_slots], chunks)
 
         blended_value = blend_slots(actr, probs, values)

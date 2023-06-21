@@ -1311,19 +1311,20 @@ Computes an expected value over non-numerical values.
 """
 function blend_slots(actr::AbstractACTR, probs, values::AbstractArray{T})::T where {T}
     n_vals = length(values)
-    vals = zeros(n_vals)
+    u_values = unique(values)
+    n_unique = length(u_values)
+    vals = zeros(n_unique)
     dissm_func = actr.parms.dissim_func
-    for i ∈ 1:n_vals
+    for i ∈ 1:n_unique
         v = 0.0
         for j ∈ 1:n_vals
-            i == j ? (continue) : nothing 
-            v += probs[j] * dissm_func(values[i], values[j])^2
-            #println("i $(values[i]) j $(values[j]) probs $(probs[j]) v $v")
+            v += probs[j] * dissm_func(u_values[i], values[j])^2
+            #println("i $(u_values[i]) j $(values[j]) probs $(probs[j]) distance $(dissm_func(u_values[i], values[j])^2) v $v")
         end
         vals[i] = v
     end
     _,idx = findmin(vals)
-    return values[idx]
+    return u_values[idx]
 end
 
 function soft_max(actr, chunks)
