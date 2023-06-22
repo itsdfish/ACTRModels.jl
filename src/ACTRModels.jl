@@ -3,6 +3,7 @@ module ACTRModels
     using Distributions
     using ConcreteStructs
     using PrettyTables
+    using Random
 
     import Base: rand
     import Base: match

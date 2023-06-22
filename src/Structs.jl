@@ -668,7 +668,7 @@ Scheduler(;time=0.0) = Scheduler(time)
 abstract type AbstractACTR end
 
 """
-    ACTR(;
+    function ACTR(;
         name="model1", 
         declarative=Declarative(), 
         imaginal=Imaginal(), 
@@ -680,6 +680,7 @@ abstract type AbstractACTR end
         motor=nothing, 
         visicon=init_visicon(), 
         parm_type = Parms, 
+        rng = Random.default_rng(),
         parms...) 
 
 ACTR model object
@@ -695,6 +696,7 @@ ACTR model object
 - `visicon`: a vector of VisualObjects available in the task
 - `parms`: model parameters
 - `scheduler`: event scheduler
+- `rng': random number generator
 
 # Example 
 
@@ -718,6 +720,7 @@ actr = ACTR(;declarative, parms...)
     visicon
     parms
     scheduler
+    rng
 end
 
 Broadcast.broadcastable(x::ACTR) = Ref(x)
@@ -734,6 +737,7 @@ function ACTR(;
     motor=nothing, 
     visicon=init_visicon(), 
     parm_type = Parms, 
+    rng = Random.default_rng(),
     parms...) 
 
     parms′ = parm_type(;parms...)
@@ -748,7 +752,8 @@ function ACTR(;
         motor, 
         visicon, 
         parms′, 
-        scheduler)
+        scheduler,
+        rng)
 end
 
 function init_visicon()

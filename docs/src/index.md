@@ -1,8 +1,7 @@
 # Goals and Scope 
+
 The goal of this package is to provide basic functions and types for building models based
-on the ACT-R cognitive architecture. More documentation to follow. [ACTRTutorials.jl](https://github.com/itsdfish/ACTRTutorials.jl) is a collection of tutorials for developing analytic likelihood functions for ACTR models. [ACTRSimulators.jl](https://github.com/itsdfish/ACTRSimulators.jl) is an experimental package for performing "classic" discrete event simulations with ACT-R.
-
-
+on the ACT-R cognitive architecture. There are several approaches for developing ACT-R models. The classic approach involves simulating the internal cognitive processes as a discrete event simulation. A proof-of-concept implementation in Julia can be found in the package [ACTRSimulators.jl](https://github.com/itsdfish/ACTRSimulators.jl). Another approach is to derive a likelihood function to enable maximum likelihood or Bayesian parameter estimation. This approach is limited to mathematically *tractible* ACT-R models, typically of low to moderate complexity. The repo [ACTRTutorials.jl](https://github.com/itsdfish/ACTRTutorials.jl) provides a collection of tutorials for developing ACT-R models within the likelihood approach.
 
 # Installation
 

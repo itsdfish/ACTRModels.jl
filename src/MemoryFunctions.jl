@@ -246,14 +246,14 @@ end
 function add_noise!(actr::AbstractACTR, chunk)
     (;τ,s) = actr.parms
     σ = s * pi / sqrt(3)
-    chunk.act_noise = rand(Normal(0, σ))
+    chunk.act_noise = rand(actr.rng, Normal(0, σ))
     return nothing
 end
 
 function add_noise!(actr::AbstractACTR)
     (;τ,s) = actr.parms
     σ = s * pi / sqrt(3)
-    actr.parms.τ′ = rand(Normal(τ, σ))
+    actr.parms.τ′ = rand(actr.rng, Normal(τ, σ))
     nothing
 end
 
