@@ -11,6 +11,29 @@ In the REPL, type `]` to enter the package model and enter the following:
 add ACTRModels
 ```
 
+# Help
+
+You can find information about the package in one of two ways. First, you can navigate through the documation using the panel on the left. Second, you can switch to the help model in the REPL by typing `?` followed by the name of a function or type. For example,
+
+```@julia 
+help?> retrieve
+search: retrieve retrieval_request retrieval_prob retrieval_probs DiscreteUnivariateDistribution DiscreteMultivariateDistribution
+
+  retrieve(actr::AbstractACTR; request...)
+
+  Retrieves a chunk given a retrieval request. By default, current time is computed with get_time.
+
+  Arguments
+  ≡≡≡≡≡≡≡≡≡≡≡
+
+    •  actr: an ACT-R object
+
+  Keywords
+  ≡≡≡≡≡≡≡≡≡≡
+
+    •  request...: optional keyword arguments representing a retrieval request, e.g. person=:bob
+```
+
 # Quick Example
 The example below shows how to create a simple ACT-R model and retrieve a memory using `(animal,rat)` as a retrieval request. 
 

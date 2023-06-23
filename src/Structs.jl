@@ -670,6 +670,40 @@ Scheduler(;time=0.0) = Scheduler(time)
 abstract type AbstractACTR end
 
 """
+    ACTR <: AbstractACTR
+
+An object representing an ACTR model.
+
+# Fields
+
+- `name="model1"`: model name
+- `declarative`: declarative memory module
+- `imaginal`: imaginal memory module
+- `visual`: visual module
+- `goal`: goal module
+- `visual_location`: visual location module
+- `visicon`: a vector of VisualObjects available in the task
+- `parms`: model parameters
+- `scheduler`: event scheduler
+- `rng': random number generator
+"""
+@concrete mutable struct ACTR <: AbstractACTR
+    name
+    declarative
+    imaginal
+    visual
+    visual_location
+    goal
+    procedural
+    motor
+    visicon
+    parms
+    scheduler
+    rng
+end
+
+Broadcast.broadcastable(x::ACTR) = Ref(x)
+"""
     function ACTR(;
         name="model1", 
         declarative=Declarative(), 
@@ -685,11 +719,11 @@ abstract type AbstractACTR end
         rng = Random.default_rng(),
         parms...) 
 
-ACTR model object
+A constructor for creating an `ACTR` model object. 
+    
+# Keywords
 
-# Fields
-
-- `name="model1"`: model name
+- `name`: model name
 - `declarative`: declarative memory module
 - `imaginal`: imaginal memory module
 - `visual`: visual module
@@ -709,24 +743,9 @@ chunks = [Chunk(;animal=:dog,name=:Sigma), Chunk(;animal=:rat,name=:Bonkers)]
 declarative = Declarative(;memory=chunks)
 actr = ACTR(;declarative, parms...)
 ```
+
+
 """
-@concrete mutable struct ACTR <: AbstractACTR
-    name
-    declarative
-    imaginal
-    visual
-    visual_location
-    goal
-    procedural
-    motor
-    visicon
-    parms
-    scheduler
-    rng
-end
-
-Broadcast.broadcastable(x::ACTR) = Ref(x)
-
 function ACTR(;
     name="model1", 
     declarative=Declarative(), 

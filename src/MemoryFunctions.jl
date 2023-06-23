@@ -1054,6 +1054,17 @@ computed with `get_time`.
 # Keywords
 
 - `request...`: optional keyword arguments representing a retrieval request, e.g. person=:bob
+
+# Example 
+```julia
+using ACTRModels 
+chunks = [Chunk(country=:Germany, capitol=:Berlin),
+        Chunk(country=:Australia, capitol=:Canberra)]
+declarative = Declarative(memory=chunks)
+parms = (noise=true, s=0.20)
+actr = ACTR(;declarative, parms...)
+retrieve(actr; country=:Germany)
+```
 """
 function retrieve(actr::AbstractACTR; request...) 
     return retrieve(actr, get_time(actr); request...)
