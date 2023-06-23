@@ -60,36 +60,36 @@ ACT-R parameters with default values. Default values are overwritten with keywor
 - `filtered:` a list of slots that must absolutely match with mismatch penalty. `isa` and `retrieval` are included
     by default
 """
-@concrete mutable struct Parms <: AbstractParms
-    d
-    τ
-    s
-    γ
-    δ
-    ω
-    blc
-    ter
+@concrete mutable struct Parms{T<:Real} <: AbstractParms
+    d::T
+    τ::T
+    s::T
+    γ::T
+    δ::T
+    ω::T
+    blc::T
+    ter::T
     dissim_func
     sa_fun
     util_mmp_fun
-    lf
-    τ′
-    u0::Float64
-    σu::Float64
-    δu::Float64
-    τu0::Float64
-    τu::Float64
-    u0Δ::Float64
-    τuΔ::Float64
-    utility_decrement::Float64
-    threshold_decrement::Float64
+    lf::T
+    τ′::T
+    u0::T
+    σu::T
+    δu::T
+    τu0::T
+    τu::T
+    u0Δ::T
+    τuΔ::T
+    utility_decrement::T
+    threshold_decrement::T
     bll::Bool
     mmp::Bool
     sa::Bool
     noise::Bool
-    mmp_utility
+    mmp_utility::Bool
     utility_noise::Bool
-    tmp
+    tmp::T
     misc
 end
 
@@ -123,9 +123,11 @@ function Parms(;
     mmp_utility = false,
     utility_noise = false,
     tmp = s * sqrt(2),
-    kwargs...
-    )
+    kwargs...)
 
+    d,τ,s,γ,δ,ω,blc,ter,lf,τ′,u0,σu,δu,τu0,τu,u0Δ,τuΔ,utility_decrement,threshold_decrement = 
+        promote(d,τ,s,γ,δ,ω,blc,ter,lf,τ′,u0,σu,δu,τu0,τu,u0Δ,τuΔ,utility_decrement,threshold_decrement) 
+    
     Parms(
         d,
         τ,

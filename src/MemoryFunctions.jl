@@ -1165,56 +1165,12 @@ function get_parm(actr::AbstractACTR, p)
 end
 
 """
-    blend_chunks(actr; request...) 
-
-Computes blended value over chunks given a retrieval request. By default, 
-values are blended over the set of slots formed by the set difference between all 
-slots of a chunk and the slots specified in the retrieval request. The default time used 
-in activation calculations is taken from `get_time`. Currently, blended 
-is only supported for numeric slot-values. 
-
-# Arguments
-
-- `actr::AbstractACTR`: an `ACTR` model object 
-
-# Keywords
-
-- `request...`: optional keywords for the retrieval request
-"""
-function blend_chunks(actr::AbstractACTR; request...) 
-    return blend_chunks(actr, get_time(actr); request...) 
-end
-
-"""
-    blend_chunks(actr::AbstractACTR, cur_time::Float64; request...) 
-
-Computes blended value over chunks given a retrieval request. By default, 
-values are blended over the set of slots formed by the set difference between all 
-slots of a chunk and the slots specified in the retrieval request. Currently, blended 
-is only supported for numeric slot-values. 
-
-# Arguments
-
-- `actr::AbstractACTR`: an `ACTR` model object 
-- `cur_time::Float64`: current simulated time
-
-# Keywords
-
-- `request...`: optional keywords for the retrieval request
-"""
-function blend_chunks(actr::AbstractACTR, cur_time::Float64; request...) 
-    blended_slots = setdiff(keys(actr.declarative.memory[1].slots), keys(request))
-    return blend_chunks(actr, blended_slots, cur_time; sim_func, request...)
-end
-
-"""
     blend_chunks(actr::AbstractACTR; request...) 
 
 Computes blended value over chunks given a retrieval request. By default, 
 values are blended over the set of slots formed by the set difference between all 
 slots of a chunk and the slots specified in the retrieval request. The default time used 
-in activation calculations is taken from `get_time`. Currently, blended 
-is only supported for numeric slot-values. 
+in activation calculations is taken from `get_time`.
 
 # Arguments
 
