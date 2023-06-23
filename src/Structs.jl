@@ -125,8 +125,8 @@ function Parms(;
     tmp = s * sqrt(2),
     kwargs...)
 
-    d,τ,s,γ,δ,ω,blc,ter,lf,τ′,u0,σu,δu,τu0,τu,u0Δ,τuΔ,utility_decrement,threshold_decrement = 
-        promote(d,τ,s,γ,δ,ω,blc,ter,lf,τ′,u0,σu,δu,τu0,τu,u0Δ,τuΔ,utility_decrement,threshold_decrement) 
+    d,τ,s,γ,δ,ω,blc,ter,lf,τ′,u0,σu,δu,τu0,τu,u0Δ,τuΔ,utility_decrement,threshold_decrement,tmp = 
+        promote(d,τ,s,γ,δ,ω,blc,ter,lf,τ′,u0,σu,δu,τu0,τu,u0Δ,τuΔ,utility_decrement,threshold_decrement, tmp) 
     
     Parms(
         d,

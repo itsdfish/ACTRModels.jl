@@ -578,6 +578,80 @@ using SafeTestsets
 
     end
 
+    @safetestset "custom dissim_func" begin
+        using ACTRModels
+        using Test
+
+        function dissim_func(x, y)
+            if (x == :a1 && y == :a2) || (y == :a1 && x == :a2)
+                return 0.1
+            elseif (x == :a1 && y == :a3) || (y == :a1 && x == :a3)
+                return 0.2 
+            elseif (x == :a2 && y == :a3) || (y == :a2 && x == :a3)
+                return .1
+            end 
+            return x ≠ y ? 1.0 : 0.0
+        end
+        
+        chunks = [Chunk(;a = :a1, b = :b1, v = .3, bl = 1.0),
+                Chunk(;a = :a2, b = :b2, v = .2, bl = 1.5),
+                Chunk(;a = :a3, b = :b3, v = .1, bl = .5)]
+        
+        declarative = Declarative(memory=chunks)
+        
+        parms = (noise=true, s=0.20, mmp=true, τ=-10.0, δ=2.0)
+        
+        actr = ACTR(;declarative, dissim_func, parms...)
+        
+        retrieve(actr; a = :a1)
+        @test chunks[1].act_pm ≈ 0.00
+        @test chunks[2].act_pm ≈ 0.20
+        @test chunks[3].act_pm ≈ 0.40
+
+        retrieve(actr; a = :a2)
+        @test chunks[1].act_pm ≈ 0.20
+        @test chunks[2].act_pm ≈ 0.00
+        @test chunks[3].act_pm ≈ 0.20
+
+        retrieve(actr)
+        @test chunks[1].act_pm ≈ 0.00
+        @test chunks[2].act_pm ≈ 0.00
+        @test chunks[3].act_pm ≈ 0.00
+
+        requested = retrieve(actr; zz = 1.0)
+        @test isempty(requested)
+    end
+
+    @safetestset "default dissim_func" begin
+        using ACTRModels
+        using Test
+        
+        chunks = [Chunk(;a = :a1, b = :b1, v = .3, bl = 1.0),
+                Chunk(;a = :a2, b = :b2, v = .2, bl = 1.5),
+                Chunk(;a = :a3, b = :b3, v = .1, bl = .5)]
+        
+        declarative = Declarative(memory=chunks)
+        
+        parms = (noise=true, s=0.20, mmp=true, τ=-10.0, δ=2.0)
+        
+        actr = ACTR(;declarative, parms...)
+        
+        retrieve(actr; a = :a1)
+        @test chunks[1].act_pm ≈ 0.00
+        @test chunks[2].act_pm ≈ 2.00
+        @test chunks[3].act_pm ≈ 2.00
+
+        retrieve(actr; a = :a2)
+        @test chunks[1].act_pm ≈ 2.00
+        @test chunks[2].act_pm ≈ 0.00
+        @test chunks[3].act_pm ≈ 2.00
+
+        retrieve(actr)
+        @test chunks[1].act_pm ≈ 0.00
+        @test chunks[2].act_pm ≈ 0.00
+        @test chunks[3].act_pm ≈ 0.00
+    end
+
     @safetestset "get_chunks_exact" begin
         using ACTRModels, Test
         using ACTRModels: get_chunks_exact
