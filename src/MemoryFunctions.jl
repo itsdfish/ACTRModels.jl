@@ -35,7 +35,7 @@ function baselevel!(N, L, k, lags, d)
     if N > k
         tk = lags[k]
         x1 = (N - k) * (L^(1 - d) - tk^(1 - d))
-        x2 = (1 - d) * (L - tk)
+        x2 = (1 - d) * max(L - tk, .001)
         approx = x1 / x2
     end
     return log(exp(exact) + approx)
