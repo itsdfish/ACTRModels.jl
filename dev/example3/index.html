@@ -23,7 +23,7 @@ blended_values2 = map(_ -&gt; blend_chunks(actr, blended_slots; request...), 1:n
 request = (option=3,)
 blended_values3 = map(_ -&gt; blend_chunks(actr, blended_slots; request...), 1:n_sim)</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">10000-element Vector{Float64}:
  2.6793117665380883
- 3.0045988653358524
+ 3.004598865335853
  2.9798303615851673
  2.7689520696618652
  2.4252535204986505
@@ -33,14 +33,14 @@ blended_values3 = map(_ -&gt; blend_chunks(actr, blended_slots; request...), 1:n
  3.1892010533044255
  2.99864601918356
  ⋮
- 2.640498240800614
- 2.9449185187976417
+ 2.6404982408006146
+ 2.944918518797642
  3.0059698244534614
  2.8542188851643653
  2.9872973588852894
  2.3127354543097054
- 2.989814252399894
+ 2.9898142523998943
  3.0423003313083212
- 3.0068536237380363</code></pre><h2 id="Plot-Results"><a class="docs-heading-anchor" href="#Plot-Results">Plot Results</a><a id="Plot-Results-1"></a><a class="docs-heading-anchor-permalink" href="#Plot-Results" title="Permalink"></a></h2><p>The distribution of blended values for each option is plotted below.</p><pre><code class="language-julia hljs">histogram(blended_values1, norm=true, xlabel=&quot;Blended Values&quot;, ylabel=&quot;Density&quot;, label=&quot;Option 1&quot;, alpha=.75)
+ 3.0068536237380368</code></pre><h2 id="Plot-Results"><a class="docs-heading-anchor" href="#Plot-Results">Plot Results</a><a id="Plot-Results-1"></a><a class="docs-heading-anchor-permalink" href="#Plot-Results" title="Permalink"></a></h2><p>The distribution of blended values for each option is plotted below.</p><pre><code class="language-julia hljs">histogram(blended_values1, norm=true, xlabel=&quot;Blended Values&quot;, ylabel=&quot;Density&quot;, label=&quot;Option 1&quot;, alpha=.75)
 histogram!(blended_values2, norm=true, xlabel=&quot;Blended Values&quot;, ylabel=&quot;Density&quot;, label=&quot;Option 2&quot;, alpha=.75)
-histogram!(blended_values3, norm=true, xlabel=&quot;Blended Values&quot;, ylabel=&quot;Density&quot;, label=&quot;Option 3&quot;, alpha=.75)</code></pre><img src="d0a144bf.svg" alt="Example block output"/></article><nav class="docs-footer"><a class="docs-footer-prevpage" href="../example2/">« example 2</a><a class="docs-footer-nextpage" href="../api/">api »</a><div class="flexbox-break"></div><p class="footer-message">Powered by <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> and the <a href="https://julialang.org/">Julia Programming Language</a>.</p></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option><option value="auto">Automatic (OS)</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> version 1.1.1 on <span class="colophon-date" title="Wednesday 18 October 2023 19:41">Wednesday 18 October 2023</span>. Using Julia version 1.8.5.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>
+histogram!(blended_values3, norm=true, xlabel=&quot;Blended Values&quot;, ylabel=&quot;Density&quot;, label=&quot;Option 3&quot;, alpha=.75)</code></pre><img src="199cfb63.svg" alt="Example block output"/></article><nav class="docs-footer"><a class="docs-footer-prevpage" href="../example2/">« example 2</a><a class="docs-footer-nextpage" href="../api/">api »</a><div class="flexbox-break"></div><p class="footer-message">Powered by <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> and the <a href="https://julialang.org/">Julia Programming Language</a>.</p></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option><option value="auto">Automatic (OS)</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> version 1.1.1 on <span class="colophon-date" title="Wednesday 18 October 2023 22:05">Wednesday 18 October 2023</span>. Using Julia version 1.9.3.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>
