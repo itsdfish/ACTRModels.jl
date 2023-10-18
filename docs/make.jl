@@ -2,6 +2,7 @@ using Documenter
 using ACTRModels
 
 makedocs(
+    warnonly = true,
     sitename = "ACTRModels",
     format = Documenter.HTML(
         assets = [

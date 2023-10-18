@@ -52,7 +52,7 @@ After creating the chunks, the next step is to pass them to the constructor `Dec
 declarative = Declarative(memory=chunks)
 
 # specify model parameters: partial matching, noise, mismatch penalty, activation noise
-Θ = (mmp=true, noise=true, δ=1.0, s=.2)  
+Θ = (mmp=true, noise=true, δ=1.0, s=.20)  
 
 # create an ACT-R object with activation noise and partial matching
 actr = ACTR(;declarative, Θ...)

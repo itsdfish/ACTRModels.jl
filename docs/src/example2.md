@@ -14,7 +14,7 @@ chunks = [Chunk(;name=:Bob, department=:accounting),
 declarative = Declarative(memory=chunks)
 
 # specify model parameters: partial matching, noise, mismatch penalty, activation noise
-Θ = (mmp=true, noise=true, δ=1.0, s=.2)  
+Θ = (mmp=true, noise=true, δ=1.0, s=.20)  
 
 # create an ACT-R object with activation noise and partial matching
 actr = ACTR(;declarative, Θ...)
@@ -33,7 +33,7 @@ compute_activation!(actr; department=:accounting)
 # standard deviation 
 σ = Θ.s * pi / sqrt(3)
 # lognormal race distribution object
-dist = LNR(;μ=-μ, σ, ϕ=0.0)
+dist = LNR(;ν=-μ, σ=fill(σ, 2), τ=0.0)
 # log pdf of retrieval time
 logpdf(dist, chunk_idx, rt)
 ```
@@ -57,7 +57,7 @@ chunks = [Chunk(;name=:Bob, department=:accounting),
 declarative = Declarative(memory=chunks)
 
 # specify model parameters: partial matching, noise, mismatch penalty, activation noise
-Θ = (mmp=true, noise=true, δ=1.0, s=.2)  
+Θ = (mmp=true, noise=true, δ=.50, s=.20)  
 
 # create an ACT-R object with activation noise and partial matching
 actr = ACTR(;declarative, Θ...)
@@ -102,7 +102,7 @@ The standard deviation for activation is computed as follows
 Next, we will create a distribution object for the Log Normal Race model as follows
 ```@example examplesetup2
 # lognormal race distribution object
-dist = LNR(;μ=-μ, σ, ϕ=0.0)
+dist = LNR(;ν=-μ, σ=fill(σ, 2), τ=0.0)
 ```
 ### Compute Log Likelihood
 Finally, we can use `logpdf` to compute the log likelihood of the retrieved chunk:
@@ -116,25 +116,8 @@ logpdf(dist, chunk_idx, rt)
 One way to verify the likelihood function works is to overlay the PDF on a histogram of simulated data (both based on the same parameters). As expected, the orange line, which represents the PDF, fits the grey histogram well.
 
 ```@example examplesetup2
-# index for accounting
-idx = find_index(actr; department=:accounting)
-# generate retrieval times
-choices,rts = rand(dist, 10^5)
-# extract rts for accounting
-acc_rts = rts[choices .== idx]
-# probability of retrieving accounting
-p_acc = length(acc_rts)/length(rts)
-# histogram of retrieval times
-hist = histogram(acc_rts, color=:grey, leg=false, grid=false, size=(500,300),
-    bins = 100, norm=true, xlabel="Retrieval Time", ylabel="Density")
-# weight histogram according to retrieval probability
-hist[1][1][:y] *= p_acc
-# collection of retrieval time values
-x = 0:.01:3
-# density for each x value
-dens = pdf.(dist, idx, x)
-# overlay PDF on histogram
-plot!(hist, x, dens, color=:darkorange, linewidth=1.5, xlims=(0,3))
+histogram(dist; xlims=(0,2.5))
+plot!(dist; t_range=range(0, 2.5, length=100))
 ```
 
 # References
