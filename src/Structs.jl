@@ -169,11 +169,11 @@ function Base.show(io::IO, ::MIME"text/plain", parms::Parms)
         io,
         values;
         title="Model Parameters",
-        row_name_column_title="Parameter",
+        row_label_column_title="Parameter",
         compact_printing=false,
         header=["Value"],
-        row_name_alignment=:l,
-        row_names=[fieldnames(Parms)...],
+        row_label_alignment=:l,
+        row_labels=[fieldnames(Parms)...],
         formatters=ft_printf("%5.2f"),
         alignment=:l,
     )
@@ -361,11 +361,11 @@ function Base.show(io::IO, ::MIME"text/plain", chunk::AbstractChunk)
         io,
         values;
         title="Chunk",
-        row_name_column_title="Property",
+        row_label_column_title="Property",
         compact_printing=false,
         header=["Value"],
-        row_name_alignment=:l,
-        row_names=[chunk_fields...],
+        row_label_alignment=:l,
+        row_labels=[chunk_fields...],
         formatters=ft_printf("%5.2f"),
         alignment=:l)
 end
@@ -383,7 +383,7 @@ function Base.show(io::IO, ::MIME"text/plain", chunks::Vector{<:Chunk})
         # row_name_column_title="Parameter",
         compact_printing=false,
         header=[chunk_fields...],
-        row_name_alignment=:l,
+        row_label_alignment=:l,
         formatters=ft_printf("%5.2f"),
         alignment=:l)
 end
