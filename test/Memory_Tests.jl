@@ -582,7 +582,7 @@ using SafeTestsets
         using ACTRModels
         using Test
 
-        function dissim_func(x, y)
+        function dissim_func(s, x, y)
             if (x == :a1 && y == :a2) || (y == :a1 && x == :a2)
                 return 0.1
             elseif (x == :a1 && y == :a3) || (y == :a1 && x == :a3)

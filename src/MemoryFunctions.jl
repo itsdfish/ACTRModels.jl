@@ -275,7 +275,7 @@ function partial_matching!(actr::AbstractACTR, chunk::AbstractChunk; request...)
     slots = chunk.slots
     p = 0.0; δ = actr.parms.δ
     for (k,v) in request
-        dissim = actr.parms.dissim_func(slots[k], v)
+        dissim = actr.parms.dissim_func(k, slots[k], v)
         p += δ * dissim
     end
     chunk.act_pm = p
