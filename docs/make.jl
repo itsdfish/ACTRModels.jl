@@ -13,15 +13,16 @@ makedocs(
         ],
         collapselevel = 1,
     ),
-
     modules = [ACTRModels],
-    pages = ["home" => "index.md",
-            "examples" => ["example 1" => "example1.md",
-                            "example 2" => "example2.md",
-                            "example 3" => "example3.md"],
-            "api" => "api.md"]
+    pages = [
+        "home" => "index.md",
+        "examples" => [
+            "example 1" => "example1.md",
+            "example 2" => "example2.md",
+            "example 3" => "example3.md",
+        ],
+        "api" => "api.md",
+    ],
 )
 
-deploydocs(
-    repo = "github.com/itsdfish/ACTRModels.jl.git",
-)
+deploydocs(repo = "github.com/itsdfish/ACTRModels.jl.git")

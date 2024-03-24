@@ -7,7 +7,7 @@ using SafeTestsets
         include("Utility_Functions.jl")
 
         chunks = populateMemory()
-        declarative = Declarative(memory=chunks)
+        declarative = Declarative(memory = chunks)
         actr = ACTR(declarative = declarative)
         idx = find_index(actr; attribute = :wings)
         @test chunks[idx].slots.attribute == :wings
@@ -26,11 +26,14 @@ using SafeTestsets
         idx = find_indices(actr; attribute = :locomotion, value = :swimming)
         @test length(idx) == 3
         chunk_set = chunks[idx]
-        @test all(x->x.slots.attribute == :locomotion && x.slots.value == :swimming, chunk_set)
+        @test all(
+            x -> x.slots.attribute == :locomotion && x.slots.value == :swimming,
+            chunk_set,
+        )
 
         idx = find_indices(actr, ==, !=; attribute = :category, value = :bird)
         @test length(idx) == 4
         chunk_set = chunks[idx]
-        @test all(x->x.slots.attribute == :category && x.slots.value != :bird, chunk_set)
+        @test all(x -> x.slots.attribute == :category && x.slots.value != :bird, chunk_set)
     end
 end

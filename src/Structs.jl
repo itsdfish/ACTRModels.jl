@@ -17,7 +17,7 @@ mutable struct BufferState <: AbstractBufferState
     empty::Bool
 end
 
-BufferState(;busy=false, error=false, empty=true) = BufferState(busy, error, empty)
+BufferState(; busy = false, error = false, empty = true) = BufferState(busy, error, empty)
 
 abstract type AbstractParms end
 
@@ -69,9 +69,9 @@ ACT-R parameters with default values. Default values are overwritten with keywor
     ω::T
     blc::T
     ter::T
-    dissim_func
-    sa_fun
-    util_mmp_fun
+    dissim_func::Any
+    sa_fun::Any
+    util_mmp_fun::Any
     lf::T
     τ′::T
     u0::T
@@ -90,13 +90,13 @@ ACT-R parameters with default values. Default values are overwritten with keywor
     mmp_utility::Bool
     utility_noise::Bool
     tmp::T
-    misc
+    misc::Any
 end
 
 function Parms(;
-    d = .5,
-    τ = 0.0, 
-    s = .3,
+    d = 0.5,
+    τ = 0.0,
+    s = 0.3,
     γ = 0.0,
     δ = 0.0,
     ω = 1.0,
@@ -108,7 +108,7 @@ function Parms(;
     lf = 1.0,
     τ′ = τ,
     u0 = 0.0,
-    σu = .2,
+    σu = 0.2,
     δu = 1.0,
     τu0 = -100.0,
     τu = τu0,
@@ -123,11 +123,51 @@ function Parms(;
     mmp_utility = false,
     utility_noise = false,
     tmp = s * sqrt(2),
-    kwargs...)
+    kwargs...,
+)
 
-    d,τ,s,γ,δ,ω,blc,ter,lf,τ′,u0,σu,δu,τu0,τu,u0Δ,τuΔ,utility_decrement,threshold_decrement,tmp = 
-        promote(d,τ,s,γ,δ,ω,blc,ter,lf,τ′,u0,σu,δu,τu0,τu,u0Δ,τuΔ,utility_decrement,threshold_decrement, tmp) 
-    
+    d,
+    τ,
+    s,
+    γ,
+    δ,
+    ω,
+    blc,
+    ter,
+    lf,
+    τ′,
+    u0,
+    σu,
+    δu,
+    τu0,
+    τu,
+    u0Δ,
+    τuΔ,
+    utility_decrement,
+    threshold_decrement,
+    tmp = promote(
+        d,
+        τ,
+        s,
+        γ,
+        δ,
+        ω,
+        blc,
+        ter,
+        lf,
+        τ′,
+        u0,
+        σu,
+        δu,
+        τu0,
+        τu,
+        u0Δ,
+        τuΔ,
+        utility_decrement,
+        threshold_decrement,
+        tmp,
+    )
+
     Parms(
         d,
         τ,
@@ -158,24 +198,24 @@ function Parms(;
         mmp_utility,
         utility_noise,
         tmp,
-        NamedTuple(kwargs)
+        NamedTuple(kwargs),
     )
 end
 
 function Base.show(io::IO, ::MIME"text/plain", parms::Parms)
     values = [getfield(parms, f) for f in fieldnames(Parms)]
-    values = map(x->typeof(x)== Bool ? string(x) : x, values)
+    values = map(x -> typeof(x) == Bool ? string(x) : x, values)
     return pretty_table(
         io,
         values;
-        title="Model Parameters",
-        row_label_column_title="Parameter",
-        compact_printing=false,
-        header=["Value"],
-        row_label_alignment=:l,
-        row_labels=[fieldnames(Parms)...],
-        formatters=ft_printf("%5.2f"),
-        alignment=:l,
+        title = "Model Parameters",
+        row_label_column_title = "Parameter",
+        compact_printing = false,
+        header = ["Value"],
+        row_label_alignment = :l,
+        row_labels = [fieldnames(Parms)...],
+        formatters = ft_printf("%5.2f"),
+        alignment = :l,
     )
 end
 
@@ -205,22 +245,22 @@ An object representing a declarative memory chunk.
 - `bl=0.0`: baselevel constant added to chunks activation
 """
 mutable struct Chunk{T1,T2} <: AbstractChunk
-  N::Int
-  L::Float64
-  time_created::Float64
-  k::Int
-  act_mean::T2
-  act::T2
-  act_blc::T2
-  act_bll::T2
-  act_pm::T2
-  act_sa::T2
-  act_noise::T2
-  slots::T1
-  reps::Int64
-  recent::Array{Float64,1}
-  lags::Array{Float64,1}
-  bl::T2
+    N::Int
+    L::Float64
+    time_created::Float64
+    k::Int
+    act_mean::T2
+    act::T2
+    act_blc::T2
+    act_bll::T2
+    act_pm::T2
+    act_sa::T2
+    act_noise::T2
+    slots::T1
+    reps::Int64
+    recent::Array{Float64,1}
+    lags::Array{Float64,1}
+    bl::T2
 end
 
 """
@@ -268,13 +308,14 @@ function Chunk(;
     N = 1,
     L = 1.0,
     time_created = 0.0,
-    k = 1, 
-    act = 0.0, 
+    k = 1,
+    act = 0.0,
     recent = [0.0],
-    reps = 0, 
-    lags = Float64[], 
+    reps = 0,
+    lags = Float64[],
     bl = zero(typeof(act)),
-    slots...)
+    slots...,
+)
 
     T = typeof(act)
     act_mean = zero(T)
@@ -283,8 +324,24 @@ function Chunk(;
     act_bll = zero(T)
     act_noise = zero(T)
     act_sa = zero(T)
-    return Chunk(N, L, time_created, k, act_mean, act, act_blc, act_bll, act_pm, act_sa, act_noise,
-        NamedTuple(slots), reps, recent, lags, bl)
+    return Chunk(
+        N,
+        L,
+        time_created,
+        k,
+        act_mean,
+        act,
+        act_blc,
+        act_bll,
+        act_pm,
+        act_sa,
+        act_noise,
+        NamedTuple(slots),
+        reps,
+        recent,
+        lags,
+        bl,
+    )
 end
 
 """
@@ -322,18 +379,20 @@ A declarative memory chunk with dynamic slot-value pairs.
 - `lags=Float64[]`: lags for recent retrievals (L - recent)
 - `bl=0.0`: baselevel constant added to chunks activation
 """
-function Chunk(dynamic::Bool; 
+function Chunk(
+    dynamic::Bool;
     N = 1,
     L = 1.0,
     time_created = 0.0,
-    k = 1, 
-    act = 0.0, 
+    k = 1,
+    act = 0.0,
     recent = [0.0],
-    reps = 0, 
-    lags = Float64[], 
+    reps = 0,
+    lags = Float64[],
     bl = zero(typeof(act)),
-    slots...)
-    
+    slots...,
+)
+
     T = typeof(act)
     act_mean = zero(T)
     act_pm = zero(T)
@@ -341,18 +400,47 @@ function Chunk(dynamic::Bool;
     act_bll = zero(T)
     act_noise = zero(T)
     act_sa = zero(T)
-    slots = Dict(k=>v for (k,v) in pairs(slots))
-    return Chunk(N, L, time_created, k, act_mean, act, act_blc, act_bll, act_pm, act_sa, act_noise,
-        slots, reps, recent, lags, bl)
+    slots = Dict(k => v for (k, v) in pairs(slots))
+    return Chunk(
+        N,
+        L,
+        time_created,
+        k,
+        act_mean,
+        act,
+        act_blc,
+        act_bll,
+        act_pm,
+        act_sa,
+        act_noise,
+        slots,
+        reps,
+        recent,
+        lags,
+        bl,
+    )
 end
 
 Broadcast.broadcastable(x::AbstractChunk) = Ref(x)
 
-const chunk_fields = (:slots,:N,:L,:time_created,:recent,:act_mean,:act,:act_blc,:bl,:act_bll,:act_pm,:act_noise)
+const chunk_fields = (
+    :slots,
+    :N,
+    :L,
+    :time_created,
+    :recent,
+    :act_mean,
+    :act,
+    :act_blc,
+    :bl,
+    :act_bll,
+    :act_pm,
+    :act_noise,
+)
 
 function chunk_values(chunk)
     values = [getfield(chunk, f) for f in chunk_fields]
-    return map(x -> typeof(x)== Bool ? string(x) : x, values)
+    return map(x -> typeof(x) == Bool ? string(x) : x, values)
 end
 
 function Base.show(io::IO, ::MIME"text/plain", chunk::AbstractChunk)
@@ -360,32 +448,34 @@ function Base.show(io::IO, ::MIME"text/plain", chunk::AbstractChunk)
     return pretty_table(
         io,
         values;
-        title="Chunk",
-        row_label_column_title="Property",
-        compact_printing=false,
-        header=["Value"],
-        row_label_alignment=:l,
-        row_labels=[chunk_fields...],
-        formatters=ft_printf("%5.2f"),
-        alignment=:l)
+        title = "Chunk",
+        row_label_column_title = "Property",
+        compact_printing = false,
+        header = ["Value"],
+        row_label_alignment = :l,
+        row_labels = [chunk_fields...],
+        formatters = ft_printf("%5.2f"),
+        alignment = :l,
+    )
 end
 
 function Base.show(io::IO, ::MIME"text/plain", chunks::Vector{<:Chunk})
     table = [chunk_values(chunk) for chunk in chunks]
     table = hcat(table...)
     table = permutedims(table)
-    table = isempty(chunks) ? fill(Missing, 1, length(chunk_fields)) : table 
+    table = isempty(chunks) ? fill(Missing, 1, length(chunk_fields)) : table
 
     return pretty_table(
         io,
         table;
-        title="Chunks",
+        title = "Chunks",
         # row_name_column_title="Parameter",
-        compact_printing=false,
-        header=[chunk_fields...],
-        row_label_alignment=:l,
-        formatters=ft_printf("%5.2f"),
-        alignment=:l)
+        compact_printing = false,
+        header = [chunk_fields...],
+        row_label_alignment = :l,
+        formatters = ft_printf("%5.2f"),
+        alignment = :l,
+    )
 end
 
 abstract type Mod end
@@ -410,9 +500,9 @@ mutable struct Declarative{T1,T2,B} <: Mod
     state::B
 end
 
-function Declarative(;memory=Chunk[], filtered=(:isa,:retrieved))
+function Declarative(; memory = Chunk[], filtered = (:isa, :retrieved))
     state = BufferState()
-    return  Declarative(memory, filtered, typeof(memory)(undef,1), state)
+    return Declarative(memory, filtered, typeof(memory)(undef, 1), state)
 end
 
 """
@@ -449,13 +539,13 @@ mutable struct Imaginal{T1,T2,B} <: Mod
     denoms::Vector{Int64}
 end
 
-function Imaginal(;buffer=Chunk[], ω=1.0, denoms=Int64[]) 
+function Imaginal(; buffer = Chunk[], ω = 1.0, denoms = Int64[])
     state = BufferState()
     Imaginal(buffer, state, ω, denoms)
 end
 
 Imaginal(chunk::AbstractChunk, state, ω, denoms) = Imaginal([chunk], state, ω, denoms)
-Imaginal(T::DataType, state, ω, denoms) = Imaginal(T(undef,1), state, ω, denoms)
+Imaginal(T::DataType, state, ω, denoms) = Imaginal(T(undef, 1), state, ω, denoms)
 
 """
     Visual(;chunk=Chunk()) 
@@ -474,12 +564,12 @@ mutable struct Visual{T1,B} <: Mod
     focus::Vector{Float64}
 end
 
-Visual(;buffer=Chunk[]) = Visual(buffer, BufferState(), fill(0.0,2))
+Visual(; buffer = Chunk[]) = Visual(buffer, BufferState(), fill(0.0, 2))
 Visual(chunk::AbstractChunk, state, focus) = Visual([chunk], state, focus)
-Visual(T::DataType, state, focus) = Visual(T(undef,1), state, focus)
+Visual(T::DataType, state, focus) = Visual(T(undef, 1), state, focus)
 
 
-abstract type AbstractVisualObject end 
+abstract type AbstractVisualObject end
 """
     VisualObject(;x=300.0, y=300.0, color=:black, text="", shape=:_, width=30.0, height=30.0) 
 
@@ -505,7 +595,15 @@ mutable struct VisualObject <: AbstractVisualObject
     height::Float64
 end
 
-function VisualObject(;x=300.0, y=300.0, color=:black, text="", shape=:_, width=30.0, height=30.0)
+function VisualObject(;
+    x = 300.0,
+    y = 300.0,
+    color = :black,
+    text = "",
+    shape = :_,
+    width = 30.0,
+    height = 30.0,
+)
     return VisualObject(x, y, color, shape, text, width, height)
 end
 
@@ -526,17 +624,17 @@ mutable struct VisualLocation{T1,B} <: Mod
     iconic_memory::Array{T1,1}
 end
 
-function VisualLocation(;buffer=Chunk[]) 
+function VisualLocation(; buffer = Chunk[])
     VisualLocation(buffer, BufferState())
 end
 
 function VisualLocation(chunk::AbstractChunk, state)
     T = typeof(chunk)
-     VisualLocation([chunk], state, Vector{T}(undef,1))
+    VisualLocation([chunk], state, Vector{T}(undef, 1))
 end
 
 function VisualLocation(T::DataType, state)
-    VisualLocation(T(undef,1), state, T(undef,1))
+    VisualLocation(T(undef, 1), state, T(undef, 1))
 end
 
 function VisualLocation(chunks, state)
@@ -563,14 +661,14 @@ A production rule object.
 - `name`: name of production
 """
 @concrete mutable struct Rule <: AbstractRule
-    utility
-    initial_utility
-    utility_mean
-    utility_penalty
-    utility_noise  
-    conditions
-    action
-    can_pm
+    utility::Any
+    initial_utility::Any
+    utility_mean::Any
+    utility_penalty::Any
+    utility_noise::Any
+    conditions::Any
+    action::Any
+    can_pm::Any
     name::String
 end
 
@@ -590,7 +688,7 @@ mutable struct Procedural{R,B} <: Mod
     state::B
 end
 
-function Procedural(;rules=Rule[], id="") 
+function Procedural(; rules = Rule[], id = "")
     Procedural(id, rules, BufferState())
 end
 
@@ -599,7 +697,7 @@ function Procedural(rule::Rule, state, id)
 end
 
 function Procedural(T::DataType, state, id)
-    Procedural(id, T(undef,1), state)
+    Procedural(id, T(undef, 1), state)
 end
 
 function utility_match(actr, condition)
@@ -621,7 +719,7 @@ mutable struct Goal{T1,B} <: Mod
     state::B
 end
 
-function Goal(;buffer=Chunk[]) 
+function Goal(; buffer = Chunk[])
     Goal(buffer, BufferState())
 end
 
@@ -630,7 +728,7 @@ function Goal(chunk::AbstractChunk, state)
 end
 
 function Goal(T::DataType, state)
-    Goal(T(undef,1), state)
+    Goal(T(undef, 1), state)
 end
 
 """
@@ -650,7 +748,7 @@ mutable struct Motor{T1,B} <: Mod
     mouse_position::Vector{Float64}
 end
 
-function Motor(;buffer=Chunk[], mouse_position=[0.0,0.0]) 
+function Motor(; buffer = Chunk[], mouse_position = [0.0, 0.0])
     Motor(buffer, BufferState(), mouse_position)
 end
 
@@ -659,14 +757,14 @@ function Motor(chunk::AbstractChunk, state, mouse_position)
 end
 
 function Motor(T::DataType, state, mouse_position)
-    Motor(T(undef,1), state, mouse_position)
+    Motor(T(undef, 1), state, mouse_position)
 end
 
 mutable struct Scheduler
     time::Float64
 end
 
-Scheduler(;time=0.0) = Scheduler(time)
+Scheduler(; time = 0.0) = Scheduler(time)
 
 abstract type AbstractACTR end
 
@@ -689,18 +787,18 @@ An object representing an ACTR model.
 - `rng': random number generator
 """
 @concrete mutable struct ACTR <: AbstractACTR
-    name
-    declarative
-    imaginal
-    visual
-    visual_location
-    goal
-    procedural
-    motor
-    visicon
-    parms
-    scheduler
-    rng
+    name::Any
+    declarative::Any
+    imaginal::Any
+    visual::Any
+    visual_location::Any
+    goal::Any
+    procedural::Any
+    motor::Any
+    visicon::Any
+    parms::Any
+    scheduler::Any
+    rng::Any
 end
 
 Broadcast.broadcastable(x::ACTR) = Ref(x)
@@ -748,34 +846,37 @@ actr = ACTR(;declarative, parms...)
 
 """
 function ACTR(;
-    name="model1", 
-    declarative=Declarative(), 
-    imaginal=Imaginal(), 
-    goal = Goal(), 
-    scheduler=Scheduler(), 
-    visual=nothing, 
-    visual_location=nothing, 
-    procedural=nothing, 
-    motor=nothing, 
-    visicon=init_visicon(), 
-    parm_type = Parms, 
+    name = "model1",
+    declarative = Declarative(),
+    imaginal = Imaginal(),
+    goal = Goal(),
+    scheduler = Scheduler(),
+    visual = nothing,
+    visual_location = nothing,
+    procedural = nothing,
+    motor = nothing,
+    visicon = init_visicon(),
+    parm_type = Parms,
     rng = Random.default_rng(),
-    parms...) 
+    parms...,
+)
 
-    parms′ = parm_type(;parms...)
+    parms′ = parm_type(; parms...)
 
-    ACTR(name, 
-        declarative, 
-        imaginal, 
-        visual, 
-        visual_location, 
-        goal, 
-        procedural, 
-        motor, 
-        visicon, 
-        parms′, 
+    ACTR(
+        name,
+        declarative,
+        imaginal,
+        visual,
+        visual_location,
+        goal,
+        procedural,
+        motor,
+        visicon,
+        parms′,
         scheduler,
-        rng)
+        rng,
+    )
 end
 
 function init_visicon()

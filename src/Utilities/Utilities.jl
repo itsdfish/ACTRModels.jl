@@ -2,13 +2,13 @@ import Distributions: rand, logpdf, pdf, estimate
 
 function sample_chain(chain)
     parms = (Symbol.(chain.name_map.parameters)...,)
-    n = size(chain, 1)*size(chain, 3)
+    n = size(chain, 1) * size(chain, 3)
     idx = rand(1:n)
     vals = map(x -> chain[x][idx], parms)
     return NamedTuple{parms}(vals)
 end
 
-function _posterior_predictive(m, chain, f=x -> x)
+function _posterior_predictive(m, chain, f = x -> x)
     parms = sample_chain(chain)
     return f(m(parms))
 end
@@ -24,11 +24,12 @@ Returns posterior predictive distribution and optionally applies function to sam
 - `f`: a function that is applied to each sample from posterior predictive distribution
 
 """
-function posterior_predictive(model, chain, n_samples::Int, f=x -> x)
+function posterior_predictive(model, chain, n_samples::Int, f = x -> x)
     return map(x -> _posterior_predictive(model, chain, f), 1:n_samples)
 end
 
-find_index(actr::AbstractACTR; check_value=true, criteria...) = find_index(actr.declarative.memory; check_value, criteria...)
+find_index(actr::AbstractACTR; check_value = true, criteria...) =
+    find_index(actr.declarative.memory; check_value, criteria...)
 
 """
     find_index(chunks::Array{<:Chunk,1}; check_value=true, criteria...)
@@ -51,8 +52,8 @@ chunks = [Chunk(animal=:dog), Chunk(animal=cat)]
 find_index(chunks; animal=:dog)
 ```
 """
-function find_index(chunks::Array{<:Chunk,1}; check_value=true, criteria...)
-    for (i,c) in enumerate(chunks)
+function find_index(chunks::Array{<:Chunk,1}; check_value = true, criteria...)
+    for (i, c) in enumerate(chunks)
         match(c; check_value, criteria...) ? (return i) : nothing
     end
     return -100
@@ -80,7 +81,8 @@ chunks = [Chunk(animal=:dog), Chunk(animal=cat)]
 find_index(chunks; animal=:dog)
 ```
 """
-find_index(actr::ACTR, funs...; check_value=true, criteria...) = find_index(actr.declarative.memory, funs...; check_value, criteria...)
+find_index(actr::ACTR, funs...; check_value = true, criteria...) =
+    find_index(actr.declarative.memory, funs...; check_value, criteria...)
 
 """
     find_index(chunks::Array{<:Chunk,1}, funs...; check_value=true, criteria...)
@@ -103,8 +105,8 @@ chunks = [Chunk(animal=:dog), Chunk(animal=cat)]
 find_index(chunks; animal=:dog)
 ```
 """
-function find_index(chunks::Array{<:Chunk,1}, funs...; check_value=true, criteria...)
-    for (i,c) in enumerate(chunks)
+function find_index(chunks::Array{<:Chunk,1}, funs...; check_value = true, criteria...)
+    for (i, c) in enumerate(chunks)
         match(c, funs...; check_value, criteria...) ? (return i) : nothing
     end
     return -100
@@ -126,7 +128,8 @@ chunks = [Chunk(animal=:dog), Chunk(animal=:dog), Chunk(animal=cat)]
 find_indices(chunks; animal=:dog)
 ```
 """
-find_indices(actr::ACTR; check_value = true, criteria...) = find_indices(actr.declarative.memory; check_value, criteria...)
+find_indices(actr::ACTR; check_value = true, criteria...) =
+    find_indices(actr.declarative.memory; check_value, criteria...)
 
 """
     find_indices(chunks::Array{<:Chunk,1}; check_value=true, criteria...)
@@ -149,9 +152,9 @@ chunks = [Chunk(animal=:dog), Chunk(animal=:dog), Chunk(animal=cat)]
 find_indices(chunks; animal=:dog)
 ```
 """
-function find_indices(chunks::Array{<:Chunk,1}; check_value=true, criteria...)
+function find_indices(chunks::Array{<:Chunk,1}; check_value = true, criteria...)
     idx = Int64[]
-    for (i,c) in enumerate(chunks)
+    for (i, c) in enumerate(chunks)
         match(c; check_value, criteria...) ? push!(idx, i) : nothing
     end
     return idx
@@ -178,7 +181,8 @@ chunks = [Chunk(animal=:dog), Chunk(animal=:dog), Chunk(animal=cat)]
 find_indices(chunks; animal=:dog)
 ```
 """
-find_indices(actr::ACTR, funs...; check_value=true, criteria...) = find_indices(actr.declarative.memory, funs...; check_value, criteria...)
+find_indices(actr::ACTR, funs...; check_value = true, criteria...) =
+    find_indices(actr.declarative.memory, funs...; check_value, criteria...)
 
 """
     find_indices(chunks::Array{<:Chunk,1}, funs...; check_value=true, criteria...) 
@@ -202,9 +206,9 @@ chunks = [Chunk(animal=:dog), Chunk(animal=:dog), Chunk(animal=cat)]
 find_indices(chunks; animal=:dog)
 ```
 """
-function find_indices(chunks::Array{<:Chunk,1}, funs...; check_value=true, criteria...)
+function find_indices(chunks::Array{<:Chunk,1}, funs...; check_value = true, criteria...)
     idx = Int64[]
-    for (i,c) in enumerate(chunks)
+    for (i, c) in enumerate(chunks)
         match(c, funs...; check_value, criteria...) ? push!(idx, i) : nothing
     end
     return idx
@@ -220,7 +224,7 @@ Returns array of chunks or visual objects representing iconic memory
 - `actr`: an ACTR object
 
 """
-get_iconic_memory(actr) = actr.visual_location.iconic_memory 
+get_iconic_memory(actr) = actr.visual_location.iconic_memory
 
 """
     get_iconic_memory(actr)
@@ -305,7 +309,7 @@ Returns a vector of mean activations i.e. activation without noise
 - `chunks::Vector{<:Chunk}`: an array of chunks
 """
 function get_mean_activations(chunks::Vector{<:Chunk})
-    return map(x->x.act - x.act_noise, chunks)
+    return map(x -> x.act - x.act_noise, chunks)
 end
 
 """
@@ -341,7 +345,7 @@ Get the current time of the simulation.
 
 - `scheduler`: an event scheduler
 """
-get_time(scheduler) = scheduler.time 
+get_time(scheduler) = scheduler.time
 
 """
     add_time!(actr::AbstractACTR, t)
@@ -373,4 +377,4 @@ reset_time!(scheduler) = scheduler.time = 0.0
 set_time!(actr::AbstractACTR, t) = set_time!(actr.scheduler, t)
 set_time!(scheduler, t) = scheduler.time = t
 
-rnd_time(μ) = rand(Uniform(μ * (2/3), μ * (4/3)))
+rnd_time(μ) = rand(Uniform(μ * (2 / 3), μ * (4 / 3)))

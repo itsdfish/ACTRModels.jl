@@ -35,7 +35,7 @@ function baselevel!(N, L, k, lags, d)
     if N > k
         tk = lags[k]
         x1 = (N - k) * (L^(1 - d) - tk^(1 - d))
-        x2 = (1 - d) * max(L - tk, .001)
+        x2 = (1 - d) * max(L - tk, 0.001)
         approx = x1 / x2
     end
     return log(exp(exact) + approx)
@@ -52,7 +52,7 @@ Computes baselevel activation with hybrid approximation.
 - `chunk`: a chunk
 """
 function baselevel!(actr::AbstractACTR, chunk::AbstractChunk)
-    (;N,L,k,lags) = chunk
+    (; N, L, k, lags) = chunk
     d = actr.parms.d
     chunk.act_bll = baselevel!(N, L, k, lags, d)
     return nothing
@@ -83,7 +83,11 @@ Computes the activation of a vector of chunks. By default, current time is compu
 
 - `request...`: optional keywords for the retrieval request
 """
-function compute_activation!(actr::AbstractACTR, chunks::Vector{<:AbstractChunk}; request...)
+function compute_activation!(
+    actr::AbstractACTR,
+    chunks::Vector{<:AbstractChunk};
+    request...,
+)
     return compute_activation!(actr, chunks, get_time(actr); request...)
 end
 
@@ -102,8 +106,13 @@ Computes the activation of a vector of chunks
 
 - `request...`: optional keywords for the retrieval request
 """
-function compute_activation!(actr::AbstractACTR, chunks::Vector{<:AbstractChunk}, cur_time::Float64; request...)
-    (;sa) = actr.parms
+function compute_activation!(
+    actr::AbstractACTR,
+    chunks::Vector{<:AbstractChunk},
+    cur_time::Float64;
+    request...,
+)
+    (; sa) = actr.parms
     sa ? cache_denomitors(actr) : nothing
     # compute activation for each chunk
     for chunk in chunks
@@ -145,7 +154,8 @@ Computes the activation of a chunk
 
 - `request...`: optional keywords for the retrieval request
 """
-compute_activation!(actr::AbstractACTR, chunk::AbstractChunk, cur_time; request...) = compute_activation!(actr, [chunk], cur_time; request...)
+compute_activation!(actr::AbstractACTR, chunk::AbstractChunk, cur_time; request...) =
+    compute_activation!(actr, [chunk], cur_time; request...)
 
 """
     compute_activation!(actr::AbstractACTR; request...)
@@ -161,7 +171,8 @@ with `get_time`.
 
 - `request...`: optional keywords for the retrieval request
 """
-compute_activation!(actr::AbstractACTR; request...) = compute_activation!(actr, actr.declarative.memory, get_time(actr); request...)
+compute_activation!(actr::AbstractACTR; request...) =
+    compute_activation!(actr, actr.declarative.memory, get_time(actr); request...)
 
 """
     compute_activation!(actr::AbstractACTR, cur_time::Float64; request...)
@@ -177,7 +188,8 @@ Computes the activation of all chunks in declarative memory
 
 - `request...`: optional keywords for the retrieval request
 """
-compute_activation!(actr::AbstractACTR, cur_time::Float64; request...) = compute_activation!(actr, actr.declarative.memory, cur_time; request...)
+compute_activation!(actr::AbstractACTR, cur_time::Float64; request...) =
+    compute_activation!(actr, actr.declarative.memory, cur_time; request...)
 
 """
     activation!(actr, chunk::Chunk, cur_time; request...) 
@@ -194,9 +206,9 @@ Computes the activation of a chunk
 
 - `request...`: optional keywords for the retrieval request
 """
-function activation!(actr::AbstractACTR, chunk::AbstractChunk, cur_time=0.0; request...)
+function activation!(actr::AbstractACTR, chunk::AbstractChunk, cur_time = 0.0; request...)
     memory = actr.declarative
-    (;sa_fun,bll,mmp,sa,noise,blc,τ) = actr.parms
+    (; sa_fun, bll, mmp, sa, noise, blc, τ) = actr.parms
     reset_activation!(chunk)
     chunk.act_blc = blc + chunk.bl
     if bll
@@ -237,21 +249,20 @@ Assigns sum of all components to of activation to `chunk.act`.
 - `chunk`: a chunk object
 """
 function total_activation!(chunk::AbstractChunk)
-    chunk.act_mean = chunk.act_blc + chunk.act_bll - chunk.act_pm +
-        chunk.act_sa 
+    chunk.act_mean = chunk.act_blc + chunk.act_bll - chunk.act_pm + chunk.act_sa
     chunk.act = chunk.act_mean + chunk.act_noise
     return nothing
 end
 
 function add_noise!(actr::AbstractACTR, chunk)
-    (;τ,s) = actr.parms
+    (; τ, s) = actr.parms
     σ = s * pi / sqrt(3)
     chunk.act_noise = rand(actr.rng, Normal(0, σ))
     return nothing
 end
 
 function add_noise!(actr::AbstractACTR)
-    (;τ,s) = actr.parms
+    (; τ, s) = actr.parms
     σ = s * pi / sqrt(3)
     actr.parms.τ′ = rand(actr.rng, Normal(τ, σ))
     nothing
@@ -273,8 +284,9 @@ Computes activation for partial matching component
 """
 function partial_matching!(actr::AbstractACTR, chunk::AbstractChunk; request...)
     slots = chunk.slots
-    p = 0.0; δ = actr.parms.δ
-    for (k,v) in request
+    p = 0.0
+    δ = actr.parms.δ
+    for (k, v) in request
         dissim = actr.parms.dissim_func(k, slots[k], v)
         p += δ * dissim
     end
@@ -307,14 +319,15 @@ Computes the spreading activation for a given chunk
 - `chunk`: the chunk for which spreading activation is computed
 """
 function spreading_activation!(actr::AbstractACTR, chunk::AbstractChunk)
-    (;γ,ω) = actr.parms 
+    (; γ, ω) = actr.parms
     imaginal = actr.imaginal
-    isempty(imaginal.buffer) ? (return nothing) : nothing 
+    isempty(imaginal.buffer) ? (return nothing) : nothing
     w = compute_weights(imaginal, ω)
-    r = zero(γ); sa = zero(γ)
+    r = zero(γ)
+    sa = zero(γ)
     slots = imaginal.buffer[1].slots
     denoms = imaginal.denoms
-    for (v,d) in zip(slots, denoms)
+    for (v, d) in zip(slots, denoms)
         num = count_values(chunk, v)
         fan = num / (d + 1)
         r = fan == 0 ? zero(γ) : γ + log(fan)
@@ -334,11 +347,11 @@ Caches denominator of spreading activation calculations
 - `actr`: an `ACTR` oject
 """
 function cache_denomitors(actr::AbstractACTR)
-    (;imaginal,declarative) = actr
-    isempty(imaginal.buffer) ? (return nothing) : nothing 
+    (; imaginal, declarative) = actr
+    isempty(imaginal.buffer) ? (return nothing) : nothing
     slots = imaginal.buffer[1].slots
     denoms = fill(0, length(slots))
-    for (i,v) in enumerate(slots)
+    for (i, v) in enumerate(slots)
         denoms[i] = compute_denom(declarative, v)
     end
     imaginal.denoms = denoms
@@ -388,7 +401,8 @@ length equals k.
 * `cur_time`: current simulated time in seconds
 """
 function update_recent!(chunk::AbstractChunk, cur_time)
-    k = chunk.k; recent = chunk.recent
+    k = chunk.k
+    recent = chunk.recent
     if length(recent) == k
         pop!(recent)
     end
@@ -431,12 +445,17 @@ Retrieval probability is computed with the softmax approximation.
 
 - `request...`: optional keywords for the retrieval request
 """
-function retrieval_prob(actr::AbstractACTR, target::Array{<:AbstractChunk,1}, cur_time; request...)
-    (;τ,s,noise) = actr.parms
+function retrieval_prob(
+    actr::AbstractACTR,
+    target::Array{<:AbstractChunk,1},
+    cur_time;
+    request...,
+)
+    (; τ, s, noise) = actr.parms
     σ = s * sqrt(2)
     chunks = retrieval_request(actr; request...)
     filter!(x -> (x ∈ chunks), target)
-    isempty(target) ? (return (0.0,1.0)) : nothing
+    isempty(target) ? (return (0.0, 1.0)) : nothing
     set_noise!(actr, false)
     compute_activation!(actr, chunks, cur_time; request...)
     set_noise!(actr, noise)
@@ -446,7 +465,7 @@ function retrieval_prob(actr::AbstractACTR, target::Array{<:AbstractChunk,1}, cu
     num = map(x -> exp(x.act_mean / σ), target)
     prob = sum(num) / sum(denom)
     fail = denom[end] / sum(denom)
-    return prob,fail
+    return prob, fail
 end
 
 """
@@ -484,10 +503,10 @@ Uses the softmax approximation to compute the retrieval probability of retrievin
 - `request...`: optional keyword pairs representing a retrieval request
 """
 function retrieval_prob(actr::AbstractACTR, chunk::AbstractChunk, cur_time; request...)
-    (;τ,s,noise) = actr.parms
+    (; τ, s, noise) = actr.parms
     σ = s * sqrt(2)
     chunks = retrieval_request(actr; request...)
-    !(chunk ∈ chunks) ? (return (0.0,1.0)) : nothing
+    !(chunk ∈ chunks) ? (return (0.0, 1.0)) : nothing
     set_noise!(actr, false)
     compute_activation!(actr, chunks, cur_time; request...)
     set_noise!(actr, noise)
@@ -496,7 +515,7 @@ function retrieval_prob(actr::AbstractACTR, chunk::AbstractChunk, cur_time; requ
     v[end] = exp(τ / σ)
     prob = exp(chunk.act_mean / σ) / sum(v)
     fail = v[end] / sum(v)
-    return prob,fail
+    return prob, fail
 end
 
 """
@@ -533,10 +552,10 @@ Computes the retrieval probability for each chunk matching the retrieval request
 - `request...`: optional keyword pairs representing a retrieval request
 """
 function retrieval_probs(actr::AbstractACTR, cur_time; request...)
-    (;τ,s,noise) = actr.parms
+    (; τ, s, noise) = actr.parms
     σ = s * sqrt(2)
     chunks = retrieval_request(actr; request...)
-    isempty(chunks) ? (return ([0.0],chunks)) : nothing
+    isempty(chunks) ? (return ([0.0], chunks)) : nothing
     set_noise!(actr, false)
     compute_activation!(actr, chunks, cur_time; request...)
     set_noise!(actr, noise)
@@ -544,7 +563,7 @@ function retrieval_probs(actr::AbstractACTR, cur_time; request...)
     map!(x -> exp(x.act_mean / σ), v, chunks)
     v[end] = exp(τ / σ)
     p = v ./ sum(v)
-    return p,chunks
+    return p, chunks
 end
 
 """
@@ -618,7 +637,8 @@ computed from `get_time`.
 
 - `slots...`: optional keyword arguments corresponding to slot-value pairs, e.g. name=:Bob
 """
-add_chunk!(actr::AbstractACTR; slots...) = add_chunk!(actr.declarative, get_time(actr); slots...)
+add_chunk!(actr::AbstractACTR; slots...) =
+    add_chunk!(actr.declarative, get_time(actr); slots...)
 
 """
     add_chunk!(memory::Declarative, cur_time=0.0; act=0.0, slots...)
@@ -635,10 +655,16 @@ Adds new chunk to declarative memory or updates existing chunk with new use
 
 - `slots...`: optional keyword arguments corresponding to slot-value pairs, e.g. name=:Bob
 """
-function add_chunk!(memory::Declarative, cur_time=0.0; bl::T=0.0, slots...) where {T}
+function add_chunk!(memory::Declarative, cur_time = 0.0; bl::T = 0.0, slots...) where {T}
     chunk = get_chunks_exact(memory; slots...)
     if isempty(chunk)
-        c = Chunk(;act=zero(T), bl, time_created=cur_time, recent=[cur_time], slots...)
+        c = Chunk(;
+            act = zero(T),
+            bl,
+            time_created = cur_time,
+            recent = [cur_time],
+            slots...,
+        )
         push!(memory.memory, c)
     else
         update_chunk!(chunk[1], cur_time)
@@ -660,7 +686,8 @@ Adds new chunk to declarative memory or updates existing chunk with new use
 
 - `slots...`: optional keyword arguments corresponding to slot-value pairs, e.g. name=:Bob
 """
-add_chunk!(actr::AbstractACTR, cur_time; slots...) = add_chunk!(actr.declarative, cur_time; slots...)
+add_chunk!(actr::AbstractACTR, cur_time; slots...) =
+    add_chunk!(actr.declarative, cur_time; slots...)
 
 
 """
@@ -686,7 +713,7 @@ get_chunks_exact(d::Declarative; criteria...) = get_chunks_exact(d.memory; crite
 function match_exact(chunk::Chunk, request)
     slots = chunk.slots
     length(slots) ≠ length(request) ? (return false) : nothing
-    for (k,v) in request
+    for (k, v) in request
         if !(k ∈ keys(slots)) || (slots[k] != v)
             return false
         end
@@ -709,7 +736,7 @@ Returns all chunks that matches a set criteria.
 
 -`criteria...`: optional keyword arguments corresponding to critiria for matching chunk
 """
-function get_chunks(memory::Vector{<:AbstractChunk}; check_value=true, criteria...)
+function get_chunks(memory::Vector{<:AbstractChunk}; check_value = true, criteria...)
     c = filter(x -> _match(x, criteria; check_value), memory)
     return c
 end
@@ -730,7 +757,12 @@ Returns all chunks that matches a set `criteria` which are evaluted according to
 
 - `criteria...`: optional keyword arguments corresponding to critiria for matching chunk
 """
-function get_chunks(memory::Vector{<:AbstractChunk}, funs...; check_value=true, criteria...)
+function get_chunks(
+    memory::Vector{<:AbstractChunk},
+    funs...;
+    check_value = true,
+    criteria...,
+)
     c = filter(x -> _match(x, funs, criteria; check_value), memory)
     return c
 end
@@ -750,7 +782,8 @@ Returns all chunks that matches a set criteria.
 
 - `criteria...`: optional keyword arguments corresponding to critiria for matching chunk
 """
-get_chunks(d::Declarative; check_value=true, criteria...) = get_chunks(d.memory; check_value, criteria...)
+get_chunks(d::Declarative; check_value = true, criteria...) =
+    get_chunks(d.memory; check_value, criteria...)
 
 """
     get_chunks(actr::AbstractACTR; check_value=true, criteria...)
@@ -767,7 +800,8 @@ Returns all chunks that matches a set criteria
 
 - `criteria...`: optional keyword arguments corresponding to critiria for matching chunk
 """
-get_chunks(actr::AbstractACTR; check_value=true, criteria...) = get_chunks(actr.declarative.memory; check_value, criteria...)
+get_chunks(actr::AbstractACTR; check_value = true, criteria...) =
+    get_chunks(actr.declarative.memory; check_value, criteria...)
 
 """
     get_chunks(d::Declarative, funs...; check_value=true, criteria...)
@@ -785,7 +819,8 @@ Returns all chunks that matches a set criteria using `funs...` as matching funct
 
 - `criteria...`: optional keyword arguments corresponding to critiria for matching chunk
 """
-get_chunks(d::Declarative, funs...; check_value=true, criteria...) = get_chunks(d.memory, funs...; check_value, criteria...)
+get_chunks(d::Declarative, funs...; check_value = true, criteria...) =
+    get_chunks(d.memory, funs...; check_value, criteria...)
 
 """
     get_chunks(actr::AbstractACTR, funs...; check_value=true, criteria...)
@@ -803,7 +838,8 @@ Returns all chunks that matches a set criteria using `funs...` as matching funct
 
 - `criteria...`: optional keyword arguments corresponding to critiria for matching chunk
 """
-get_chunks(actr::AbstractACTR, funs...; check_value=true, criteria...) = get_chunks(actr.declarative.memory, funs...; check_value, criteria...)
+get_chunks(actr::AbstractACTR, funs...; check_value = true, criteria...) =
+    get_chunks(actr.declarative.memory, funs...; check_value, criteria...)
 
 """
     first_chunk(memory::Vector{<:Chunk}; check_value=true, criteria...)
@@ -820,7 +856,7 @@ Returns the first chunk in memory that matches a set of criteria
 
 - `criteria...`: optional keyword arguments corresponding to critiria for matching chunk
 """
-function first_chunk(memory::Vector{<:AbstractChunk}; check_value=true, criteria...)
+function first_chunk(memory::Vector{<:AbstractChunk}; check_value = true, criteria...)
     chunk = Array{eltype(memory),1}()
     for m in memory
         if _match(m, criteria; check_value)
@@ -846,7 +882,8 @@ Returns the first chunk in memory that matches a set of criteria
 
 - `criteria...`: optional keyword arguments corresponding to critiria for matching chunk
 """
-first_chunk(d::Declarative; check_value=true, criteria...) = first_chunk(d.memory; check_value, criteria...)
+first_chunk(d::Declarative; check_value = true, criteria...) =
+    first_chunk(d.memory; check_value, criteria...)
 
 """
     first_chunk(actr::AbstractACTR; check_value=true, criteria...)
@@ -863,7 +900,8 @@ Returns the first chunk in memory that matches a set of criteria
 
 - `criteria...`: optional keyword arguments corresponding to critiria for matching chunk
 """
-first_chunk(actr::AbstractACTR; check_value=true, criteria...) = first_chunk(actr.declarative.memory; check_value, criteria...)
+first_chunk(actr::AbstractACTR; check_value = true, criteria...) =
+    first_chunk(actr.declarative.memory; check_value, criteria...)
 
 """
     _match(chunk::Chunk, request; check_value=true)
@@ -881,12 +919,12 @@ of the slot does not match the request value.
 
  - `check_value=true`: check slot value 
 """
-function _match(chunk::Chunk, request; check_value=true)
+function _match(chunk::Chunk, request; check_value = true)
     slots = chunk.slots
-    for (k,v) in request
+    for (k, v) in request
         if !(k ∈ keys(slots))
             return false
-        elseif check_value 
+        elseif check_value
             if (slots[k] != v)
                 return false
             end
@@ -912,16 +950,16 @@ of the slot does not match the request value.
 
  - `check_value=true`: check slot value 
 """
-function _match(chunk::AbstractChunk, f, request; check_value=true)
+function _match(chunk::AbstractChunk, f, request; check_value = true)
     slots = chunk.slots
     i = 0
-    for (k,v) in request
+    for (k, v) in request
         i += 1
-        if !(k ∈ keys(slots)) 
+        if !(k ∈ keys(slots))
             return false
         elseif check_value
             if !(f[i](slots[k], v))
-                return false 
+                return false
             end
         end
     end
@@ -943,7 +981,7 @@ of the slot does not match the request value.
 
 - `request...`: optional keyword arguments corresponding to critiria for matching chunk
 """
-function match(chunk::AbstractChunk; check_value=true, request...) 
+function match(chunk::AbstractChunk; check_value = true, request...)
     return _match(chunk, request; check_value)
 end
 """
@@ -957,7 +995,7 @@ of the slot does not match the request value.
 - `funs...`: a list of functions such as `!=, ==`
 - `request...`: a NamedTuple of slot value pairs
 """
-function match(chunk::AbstractChunk, funs...; check_value=true, request...) 
+function match(chunk::AbstractChunk, funs...; check_value = true, request...)
     return _match(chunk, funs, request; check_value)
 end
 
@@ -976,8 +1014,7 @@ By default, slot values for isa and retrieved must match exactly.
 - `request...`: an option set of keyword arguments corresponding to a retrieval request.
 """
 function get_subset(actr::AbstractACTR; request...)
-    return Iterators.filter(x -> any(s -> s == x[1], actr.declarative.filtered),
-    request)
+    return Iterators.filter(x -> any(s -> s == x[1], actr.declarative.filtered), request)
 end
 
 """
@@ -994,11 +1031,11 @@ Returns chunks matching a retrieval request.
 - `request...`: optional keyword arguments corresponding to retrieval request e.g. dog = :fiddo
 """
 function retrieval_request(actr::AbstractACTR; request...)
-    (;mmp,) = actr.parms
+    (; mmp,) = actr.parms
     !mmp ? (return get_chunks(actr; request...)) : nothing
-    chunks = get_chunks(actr; check_value=false, request...)
+    chunks = get_chunks(actr; check_value = false, request...)
     c = get_subset(actr; request...)
-    return get_chunks(chunks; check_value=true, c...)
+    return get_chunks(chunks; check_value = true, c...)
 end
 
 """
@@ -1015,7 +1052,7 @@ Modifies fields of an object
 - `args...`: optional keywords for field and values
 """
 function modify!(c; args...)
-    for (k,v) in args
+    for (k, v) in args
         setfield!(c, k, v)
     end
     return nothing
@@ -1035,7 +1072,7 @@ Modifies fields of NamedTuple
 - `args...`: optional keywords for field and values
 """
 function modify!(c::NamedTuple; args...)
-    for (k,v) in args
+    for (k, v) in args
         c[k][1] = v
     end
     return nothing
@@ -1066,7 +1103,7 @@ actr = ACTR(;declarative, parms...)
 retrieve(actr; country=:Germany)
 ```
 """
-function retrieve(actr::AbstractACTR; request...) 
+function retrieve(actr::AbstractACTR; request...)
     return retrieve(actr, get_time(actr); request...)
 end
 
@@ -1085,7 +1122,7 @@ Retrieves a chunk given a retrieval request
 - `request...`: optional keyword arguments representing a retrieval request, e.g. person=:bob
 """
 function retrieve(actr::AbstractACTR, cur_time; request...)
-    (;declarative,parms) = actr
+    (; declarative, parms) = actr
     arr = Array{eltype(declarative.memory),1}()
     chunks = retrieval_request(actr; request...)
     # add noise to threshold even if result of request is empty
@@ -1133,7 +1170,7 @@ for a retrieval failure is returned.
 - `chunk`: a vector that is empty or contains one chunk
 """
 function compute_RT(actr::AbstractACTR, chunk)
-    (;τ′,lf) = actr.parms
+    (; τ′, lf) = actr.parms
     if isempty(chunk)
         return lf * exp(-τ′)
     end
@@ -1153,7 +1190,7 @@ on the current activation levels of a chunk.
 - `chunk`: a chunk
 """
 function compute_RT(actr::AbstractACTR, chunk::AbstractChunk)
-    (;lf) = actr.parms
+    (; lf) = actr.parms
     return lf * exp(-chunk.act)
 end
 
@@ -1193,8 +1230,8 @@ is only supported for numeric slot-values.
 
 - `request...`: optional keywords for the retrieval request
 """
-function blend_chunks(actr::AbstractACTR, blended_slots; request...) 
-    return blend_chunks(actr, blended_slots, get_time(actr); request...) 
+function blend_chunks(actr::AbstractACTR, blended_slots; request...)
+    return blend_chunks(actr, blended_slots, get_time(actr); request...)
 end
 
 """
@@ -1241,7 +1278,11 @@ Computes an expected value over numerical values.
 - `probs`: a vector of retrieval probabilities 
 - `values::AbstractArray{T}`: values to be blended 
 """
-function blend_slots(actr::AbstractACTR, probs, values::AbstractArray{T})::Float64 where {T<:Number}
+function blend_slots(
+    actr::AbstractACTR,
+    probs,
+    values::AbstractArray{T},
+)::Float64 where {T<:Number}
     return probs' * values
 end
 
@@ -1270,7 +1311,7 @@ function blend_slots(actr::AbstractACTR, probs, values::AbstractArray{T})::T whe
         end
         vals[i] = v
     end
-    _,idx = findmin(vals)
+    _, idx = findmin(vals)
     return u_values[idx]
 end
 
