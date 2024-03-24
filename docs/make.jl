@@ -8,10 +8,10 @@ makedocs(
         assets = [
             asset(
                 "https://fonts.googleapis.com/css?family=Montserrat|Source+Code+Pro&display=swap",
-                class = :css,
-            ),
+                class = :css
+            )
         ],
-        collapselevel = 1,
+        collapselevel = 1
     ),
     modules = [ACTRModels],
     pages = [
@@ -19,10 +19,10 @@ makedocs(
         "examples" => [
             "example 1" => "example1.md",
             "example 2" => "example2.md",
-            "example 3" => "example3.md",
+            "example 3" => "example3.md"
         ],
-        "api" => "api.md",
-    ],
+        "api" => "api.md"
+    ]
 )
 
 deploydocs(repo = "github.com/itsdfish/ACTRModels.jl.git")

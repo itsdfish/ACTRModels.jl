@@ -86,7 +86,7 @@ Computes the activation of a vector of chunks. By default, current time is compu
 function compute_activation!(
     actr::AbstractACTR,
     chunks::Vector{<:AbstractChunk};
-    request...,
+    request...
 )
     return compute_activation!(actr, chunks, get_time(actr); request...)
 end
@@ -110,7 +110,7 @@ function compute_activation!(
     actr::AbstractACTR,
     chunks::Vector{<:AbstractChunk},
     cur_time::Float64;
-    request...,
+    request...
 )
     (; sa) = actr.parms
     sa ? cache_denomitors(actr) : nothing
@@ -374,7 +374,6 @@ function count_values(chunk, value)
     return count(x -> x == value, values(chunk.slots))
 end
 
-
 """
     update_recent!(actr, chunk)
 
@@ -425,7 +424,7 @@ By default, current time is computed from `get_time`.
 
 - `request...`: optional keyword pairs representing a retrieval request
 """
-function retrieval_prob(actr::AbstractACTR, target::Array{<:AbstractChunk,1}; request...)
+function retrieval_prob(actr::AbstractACTR, target::Array{<:AbstractChunk, 1}; request...)
     return retrieval_prob(actr, target, get_time(actr); request...)
 end
 
@@ -447,9 +446,9 @@ Retrieval probability is computed with the softmax approximation.
 """
 function retrieval_prob(
     actr::AbstractACTR,
-    target::Array{<:AbstractChunk,1},
+    target::Array{<:AbstractChunk, 1},
     cur_time;
-    request...,
+    request...
 )
     (; τ, s, noise) = actr.parms
     σ = s * sqrt(2)
@@ -559,7 +558,7 @@ function retrieval_probs(actr::AbstractACTR, cur_time; request...)
     set_noise!(actr, false)
     compute_activation!(actr, chunks, cur_time; request...)
     set_noise!(actr, noise)
-    v = Array{typeof(chunks[1].act),1}(undef, length(chunks) + 1)
+    v = Array{typeof(chunks[1].act), 1}(undef, length(chunks) + 1)
     map!(x -> exp(x.act_mean / σ), v, chunks)
     v[end] = exp(τ / σ)
     p = v ./ sum(v)
@@ -663,7 +662,7 @@ function add_chunk!(memory::Declarative, cur_time = 0.0; bl::T = 0.0, slots...) 
             bl,
             time_created = cur_time,
             recent = [cur_time],
-            slots...,
+            slots...
         )
         push!(memory.memory, c)
     else
@@ -688,7 +687,6 @@ Adds new chunk to declarative memory or updates existing chunk with new use
 """
 add_chunk!(actr::AbstractACTR, cur_time; slots...) =
     add_chunk!(actr.declarative, cur_time; slots...)
-
 
 """
     get_chunks_exact(memory::Vector{<:Chunk}; criteria...)
@@ -761,7 +759,7 @@ function get_chunks(
     memory::Vector{<:AbstractChunk},
     funs...;
     check_value = true,
-    criteria...,
+    criteria...
 )
     c = filter(x -> _match(x, funs, criteria; check_value), memory)
     return c
@@ -857,7 +855,7 @@ Returns the first chunk in memory that matches a set of criteria
 - `criteria...`: optional keyword arguments corresponding to critiria for matching chunk
 """
 function first_chunk(memory::Vector{<:AbstractChunk}; check_value = true, criteria...)
-    chunk = Array{eltype(memory),1}()
+    chunk = Array{eltype(memory), 1}()
     for m in memory
         if _match(m, criteria; check_value)
             push!(chunk, m)
@@ -1123,7 +1121,7 @@ Retrieves a chunk given a retrieval request
 """
 function retrieve(actr::AbstractACTR, cur_time; request...)
     (; declarative, parms) = actr
-    arr = Array{eltype(declarative.memory),1}()
+    arr = Array{eltype(declarative.memory), 1}()
     chunks = retrieval_request(actr; request...)
     # add noise to threshold even if result of request is empty
     actr.parms.noise ? add_noise!(actr) : (parms.τ′ = parms.τ)
@@ -1176,7 +1174,6 @@ function compute_RT(actr::AbstractACTR, chunk)
     end
     return lf * exp(-chunk[1].act)
 end
-
 
 """
     compute_RT(actr, chunk)
@@ -1281,8 +1278,8 @@ Computes an expected value over numerical values.
 function blend_slots(
     actr::AbstractACTR,
     probs,
-    values::AbstractArray{T},
-)::Float64 where {T<:Number}
+    values::AbstractArray{T}
+)::Float64 where {T <: Number}
     return probs' * values
 end
 
