@@ -44,7 +44,7 @@ ACT-R parameters with default values. Default values are overwritten with keywor
 - `σu=.2`: standard deviation of utility noise 
 - `δu=1.0`: mismatch penalty parameter for utility
 - `τu0 = -100`: initial value of utility threshold 
-- `τu = τu0': utility threshold 
+- `τu = τu0`: utility threshold 
 - `u0Δ = 1.0`: utility decrement
 - `τuΔ = 1.0`: utility threshold decrement
 - `utility_decrement=1.0`: the utility decrement scalar. After each microlapse, `utility_decrement` is multiplied by u0Δ
