@@ -121,7 +121,7 @@ function compute_activation!(
     return nothing
 end
 """
-    compute_activation!(actr, chunk::Chunk; request...) 
+    compute_activation!(actr, chunk::AbstractChunk; request...) 
 
 Computes the activation of a chunk. By default, current time is computed 
 with `get_time`.
@@ -129,7 +129,7 @@ with `get_time`.
 # Arguments
 
 - `actr`: actr object
-- `chunk::Chunk`: a chunk.
+- `chunk::AbstractChunk`: a chunk.
 
 # Keywords
 
@@ -140,14 +140,14 @@ function compute_activation!(actr::AbstractACTR, chunk::AbstractChunk; request..
 end
 
 """
-    compute_activation!(actr, chunk::Chunk, cur_time; request...) 
+    compute_activation!(actr, chunk::AbstractChunk, cur_time; request...) 
 
 Computes the activation of a chunk
 
 # Arguments
 
 - `actr`: actr object
-- `chunk::Chunk`: a chunk.
+- `chunk::AbstractChunk`: a chunk.
 - `cur_time`: current simulated time in seconds
 
 # Keywords
@@ -192,14 +192,14 @@ compute_activation!(actr::AbstractACTR, cur_time::Float64; request...) =
     compute_activation!(actr, actr.declarative.memory, cur_time; request...)
 
 """
-    activation!(actr, chunk::Chunk, cur_time; request...) 
+    activation!(actr, chunk::AbstractChunk, cur_time; request...) 
 
 Computes the activation of a chunk
 
 # Arguments
 
 - `actr`: an `ACTR` object
-- `chunk::Chunk`: a chunk.
+- `chunk::AbstractChunk`: a chunk.
 - `cur_time`: current simulated time in seconds
 
 # Keywords
@@ -236,7 +236,7 @@ function reset_activation!(chunk)
     chunk.act_pm = zero(a)
     chunk.act_sa = zero(a)
     chunk.act_noise = zero(a)
-    chunk.act = zero(a)
+    return chunk.act = zero(a)
 end
 
 """
@@ -265,7 +265,7 @@ function add_noise!(actr::AbstractACTR)
     (; τ, s) = actr.parms
     σ = s * pi / sqrt(3)
     actr.parms.τ′ = rand(actr.rng, Normal(τ, σ))
-    nothing
+    return nothing
 end
 
 """
@@ -305,7 +305,7 @@ Sets noise true or false.
 - `b`: boolean value
 """
 function set_noise!(actr::AbstractACTR, b)
-    actr.parms.noise = b
+    return actr.parms.noise = b
 end
 
 """
@@ -468,7 +468,7 @@ function retrieval_prob(
 end
 
 """
-    retrieval_prob(actr::AbstractACTR, chunk::Chunk; request...)
+    retrieval_prob(actr::AbstractACTR, chunk::AbstractChunk; request...)
 
 Uses the softmax approximation to compute the retrieval probability of retrieving a chunk.
 By default, current time is computed from `get_time`.
@@ -476,25 +476,25 @@ By default, current time is computed from `get_time`.
 # Arguments
 
 - `actr::AbstractACTR`: an ACT-R object
-- `chunk::Chunk`: a chunk
+- `chunk::AbstractChunk`: a chunk
 
 # Keywords
 
 - `request...`: optional keyword pairs representing a retrieval request
 """
-function retrieval_prob(actr::AbstractACTR, chunk::Chunk; request...)
+function retrieval_prob(actr::AbstractACTR, chunk::AbstractChunk; request...)
     return retrieval_prob(actr, chunk, get_time(actr); request...)
 end
 
 """
-    retrieval_prob(actr::AbstractACTR, chunk::Chunk, cur_time=0.0; request...)
+    retrieval_prob(actr::AbstractACTR, chunk::AbstractChunk, cur_time=0.0; request...)
 
 Uses the softmax approximation to compute the retrieval probability of retrieving a chunk.
 
 # Arguments
 
 - `actr::AbstractACTR`: an ACT-R object
-- `chunk::Chunk`: a chunk
+- `chunk::AbstractChunk`: a chunk
 - `cur_time`: current simulated time in seconds
 
 # Keywords
@@ -566,13 +566,13 @@ function retrieval_probs(actr::AbstractACTR, cur_time; request...)
 end
 
 """
-    update_lags!(chunk::Chunk, cur_time)
+    update_lags!(chunk::AbstractChunk, cur_time)
 
 Compute lags for each use of a chunk.
 
 # Arguments
 
-- `chunk::Chunks`: a chunk
+- `chunk::AbstractChunks`: a chunk
 - `cur_time`: current simulated time in seconds.
 
 """
@@ -708,7 +708,7 @@ end
 
 get_chunks_exact(d::Declarative; criteria...) = get_chunks_exact(d.memory; criteria...)
 
-function match_exact(chunk::Chunk, request)
+function match_exact(chunk::AbstractChunk, request)
     slots = chunk.slots
     length(slots) ≠ length(request) ? (return false) : nothing
     for (k, v) in request
@@ -720,13 +720,13 @@ function match_exact(chunk::Chunk, request)
 end
 
 """
-    get_chunks(memory::Vector{<:Chunk}; check_value=true, criteria...)
+    get_chunks(memory::Vector{<:AbstractChunk}; check_value=true, criteria...)
 
 Returns all chunks that matches a set criteria.
 
 # Arguments
 
-- `memory::Vector{<:Chunk}`: vector of chunk objects
+- `memory::Vector{<:AbstractChunk}`: vector of chunk objects
 
 # Keywords
 
@@ -740,13 +740,13 @@ function get_chunks(memory::Vector{<:AbstractChunk}; check_value = true, criteri
 end
 
 """
-    get_chunks(memory::Vector{<:Chunk}, funs...; check_value=true, criteria...)
+    get_chunks(memory::Vector{<:AbstractChunk}, funs...; check_value=true, criteria...)
 
 Returns all chunks that matches a set `criteria` which are evaluted according to the list of functions in `funs`.
 
 # Arguments 
 
-- `memory::Vector{<:Chunk}`: vector of chunk objects
+- `memory::Vector{<:AbstractChunk}`: vector of chunk objects
 - `funs...`: a list of functions
 
 # Keywords
@@ -902,7 +902,7 @@ first_chunk(actr::AbstractACTR; check_value = true, criteria...) =
     first_chunk(actr.declarative.memory; check_value, criteria...)
 
 """
-    _match(chunk::Chunk, request; check_value=true)
+    _match(chunk::AbstractChunk, request; check_value=true)
 
 Returns a boolean indicating whether a request matches a chunk.
 False is returned if the slot does not exist in the chunk or the value
@@ -910,14 +910,14 @@ of the slot does not match the request value.
 
 # Arguments
 
-- `chunk::Chunk`: chunk object
+- `chunk::AbstractChunk`: chunk object
 - `request`: a NamedTuple of slot value pairs
 
 # Keywords
 
  - `check_value=true`: check slot value 
 """
-function _match(chunk::Chunk, request; check_value = true)
+function _match(chunk::AbstractChunk, request; check_value = true)
     slots = chunk.slots
     for (k, v) in request
         if !(k ∈ keys(slots))
@@ -932,7 +932,7 @@ function _match(chunk::Chunk, request; check_value = true)
 end
 
 """
-    match(chunk::Chunk, f, request)
+    match(chunk::AbstractChunk, f, request)
 
 Returns a boolean indicating whether a request matches a chunk.
 False is returned if the slot does not exist in the chunk or the value
@@ -940,7 +940,7 @@ of the slot does not match the request value.
 
 # Arguments
 
-- `chunk`: a chunk object
+- `chunk::AbstractChunk`: a chunk object
 - `f`: a list of functions such as `!=, ==`
 - `request`: a NamedTuple of slot value pairs
 
@@ -965,7 +965,7 @@ function _match(chunk::AbstractChunk, f, request; check_value = true)
 end
 
 """
-    match(chunk::Chunk; request...)
+    match(chunk::AbstractChunk; request...)
 
 Returns a boolean indicating whether a request matches a chunk.
 False is returned if the slot does not exist in the chunk or the value
@@ -973,7 +973,7 @@ of the slot does not match the request value.
 
 # Arguments
 
-- `chunk::Chunk`: a chunk object
+- `chunk::AbstractChunk`: a chunk object
 
 # Keywords
 
@@ -983,13 +983,13 @@ function match(chunk::AbstractChunk; check_value = true, request...)
     return _match(chunk, request; check_value)
 end
 """
-    match(chunk::Chunk, funs...; request...)
+    match(chunk::AbstractChunk, funs...; request...)
 
 Returns a boolean indicating whether a request matches a chunk.
 False is returned if the slot does not exist in the chunk or the value
 of the slot does not match the request value.
 
-- `chunk`: chunk object
+- `chunk::AbstractChunk`: chunk object
 - `funs...`: a list of functions such as `!=, ==`
 - `request...`: a NamedTuple of slot value pairs
 """
@@ -998,14 +998,14 @@ function match(chunk::AbstractChunk, funs...; check_value = true, request...)
 end
 
 """
-    get_subset(actr; request...)
+    get_subset(actr::AbstractACTR; request...)
 
 Returns a filtered subset of the retrieval request when partial matching is on.
 By default, slot values for isa and retrieved must match exactly.
 
 # Arguments
 
-- `actr`: an ACTR object
+- `actr::AbstractACTR`: an ACTR object
 
 # Keywords
 
@@ -1022,7 +1022,7 @@ Returns chunks matching a retrieval request.
 
 # Arguments
 
-- `memory`: declarative memory object
+- `actr::AbstractACTR`: an ACT-R Object
 
 # Keywords
 
@@ -1084,7 +1084,7 @@ computed with `get_time`.
 
 # Arguments 
 
-- `actr`: an ACT-R object
+- `actr::AbstractACTR`: an ACT-R object
 
 # Keywords
 
@@ -1112,7 +1112,7 @@ Retrieves a chunk given a retrieval request
 
 # Arguments 
 
-- `actr`: an ACT-R object
+- `actr::AbstractACTR`: an ACT-R object
 - `cur_time`: current simulated time in seconds
 
 # Keywords
@@ -1176,15 +1176,15 @@ function compute_RT(actr::AbstractACTR, chunk)
 end
 
 """
-    compute_RT(actr, chunk)
+    compute_RT(actr::AbstractACTR, chunk::AbstractChunk)
 
 Generates a reaction time for retrieving a chunk based
 on the current activation levels of a chunk.
 
 # Arguments
 
-- `actr`: ACTR object
-- `chunk`: a chunk
+- `actr::AbstractACTR`: ACTR object
+- `chunk::AbstractChunk`: a chunk
 """
 function compute_RT(actr::AbstractACTR, chunk::AbstractChunk)
     (; lf) = actr.parms
@@ -1192,13 +1192,13 @@ function compute_RT(actr::AbstractACTR, chunk::AbstractChunk)
 end
 
 """
-    get_parm(actr, p)
+    get_parm(actr::AbstractACTR, p)
 
 Returns the value of a parameter
 
 # Arguments
 
-- `actr`: ACTR object
+- `actr::AbstractACTR`: ACTR object
 - ` p`: parameter name
 """
 function get_parm(actr::AbstractACTR, p)

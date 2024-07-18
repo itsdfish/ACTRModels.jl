@@ -11,8 +11,10 @@ The goal of ACTRModels.jl is to provide basic types and functions for developing
 using ACTRModels
 
 # create chunks of declarative knowledge
-chunks = [Chunk(; name = :Bob, department = :accounting),
-    Chunk(; name = :Alice, department = :HR)]
+chunks = [
+    Chunk(; name = :Bob, department = :accounting),
+    Chunk(; name = :Alice, department = :HR)
+]
 # initialize declarative memory
 declarative = Declarative(memory = chunks)
 

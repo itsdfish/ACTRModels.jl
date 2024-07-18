@@ -167,7 +167,7 @@ function Parms(;
         tmp
     )
 
-    Parms(
+    return Parms(
         d,
         τ,
         s,
@@ -538,7 +538,7 @@ end
 
 function Imaginal(; buffer = Chunk[], ω = 1.0, denoms = Int64[])
     state = BufferState()
-    Imaginal(buffer, state, ω, denoms)
+    return Imaginal(buffer, state, ω, denoms)
 end
 
 Imaginal(chunk::AbstractChunk, state, ω, denoms) = Imaginal([chunk], state, ω, denoms)
@@ -621,21 +621,21 @@ mutable struct VisualLocation{T1, B} <: Mod
 end
 
 function VisualLocation(; buffer = Chunk[])
-    VisualLocation(buffer, BufferState())
+    return VisualLocation(buffer, BufferState())
 end
 
 function VisualLocation(chunk::AbstractChunk, state)
     T = typeof(chunk)
-    VisualLocation([chunk], state, Vector{T}(undef, 1))
+    return VisualLocation([chunk], state, Vector{T}(undef, 1))
 end
 
 function VisualLocation(T::DataType, state)
-    VisualLocation(T(undef, 1), state, T(undef, 1))
+    return VisualLocation(T(undef, 1), state, T(undef, 1))
 end
 
 function VisualLocation(chunks, state)
     c_chunks = copy(chunks)
-    VisualLocation(chunks, state, c_chunks)
+    return VisualLocation(chunks, state, c_chunks)
 end
 
 abstract type AbstractRule end
@@ -685,15 +685,15 @@ mutable struct Procedural{R, B} <: Mod
 end
 
 function Procedural(; rules = Rule[], id = "")
-    Procedural(id, rules, BufferState())
+    return Procedural(id, rules, BufferState())
 end
 
 function Procedural(rule::Rule, state, id)
-    Procedural(id, [rule], state)
+    return Procedural(id, [rule], state)
 end
 
 function Procedural(T::DataType, state, id)
-    Procedural(id, T(undef, 1), state)
+    return Procedural(id, T(undef, 1), state)
 end
 
 function utility_match(actr, condition)
@@ -716,15 +716,15 @@ mutable struct Goal{T1, B} <: Mod
 end
 
 function Goal(; buffer = Chunk[])
-    Goal(buffer, BufferState())
+    return Goal(buffer, BufferState())
 end
 
 function Goal(chunk::AbstractChunk, state)
-    Goal([chunk], state)
+    return Goal([chunk], state)
 end
 
 function Goal(T::DataType, state)
-    Goal(T(undef, 1), state)
+    return Goal(T(undef, 1), state)
 end
 
 """
@@ -745,15 +745,15 @@ mutable struct Motor{T1, B} <: Mod
 end
 
 function Motor(; buffer = Chunk[], mouse_position = [0.0, 0.0])
-    Motor(buffer, BufferState(), mouse_position)
+    return Motor(buffer, BufferState(), mouse_position)
 end
 
 function Motor(chunk::AbstractChunk, state, mouse_position)
-    Motor([chunk], state, mouse_position)
+    return Motor([chunk], state, mouse_position)
 end
 
 function Motor(T::DataType, state, mouse_position)
-    Motor(T(undef, 1), state, mouse_position)
+    return Motor(T(undef, 1), state, mouse_position)
 end
 
 mutable struct Scheduler
@@ -858,7 +858,7 @@ function ACTR(;
 )
     parms′ = parm_type(; parms...)
 
-    ACTR(
+    return ACTR(
         name,
         declarative,
         imaginal,
@@ -875,5 +875,5 @@ function ACTR(;
 end
 
 function init_visicon()
-    Dict{String, VisualObject}()
+    return Dict{String, VisualObject}()
 end
