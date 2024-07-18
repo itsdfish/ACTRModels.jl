@@ -1,7 +1,6 @@
 using SafeTestsets
 
 @safetestset "Memory Tests" begin
-
     @safetestset "baselevel" begin
         using ACTRModels, Test
         import ACTRModels: baselevel, baselevel!
@@ -155,7 +154,7 @@ using SafeTestsets
         using ACTRModels, Test
         chunks = Chunk[
             Chunk(; isa = :bafoon, animal = :dog, name = :Sigma, retrieved = [false]),
-            Chunk(; isa = :mammal, animal = :cat, name = :Butters, retrieved = [false]),
+            Chunk(; isa = :mammal, animal = :cat, name = :Butters, retrieved = [false])
         ]
         memory = Declarative(; memory = chunks)
         actr = ACTR(; declarative = memory)
@@ -167,7 +166,7 @@ using SafeTestsets
         using ACTRModels, Test
         chunks = Chunk[
             Chunk(; isa = :bafoon, animal = :dog, name = :Sigma, retrieved = [false]),
-            Chunk(; isa = :mammal, animal = :cat, name = :Butters, retrieved = [false]),
+            Chunk(; isa = :mammal, animal = :cat, name = :Butters, retrieved = [false])
         ]
         memory = Declarative(; memory = chunks)
         actr = ACTR(; declarative = memory, mmp = true)
@@ -242,7 +241,7 @@ using SafeTestsets
         using ACTRModels, Test
         chunks = [
             Chunk(; isa = :mammal, animal = :dog, name = :Sigma),
-            Chunk(; isa = :mammal, animal = :cat, name = :Butters),
+            Chunk(; isa = :mammal, animal = :cat, name = :Butters)
         ]
         memory = Declarative(; memory = chunks)
         actr = ACTR(; declarative = memory, sa = true, γ = 1.0)
@@ -354,7 +353,7 @@ using SafeTestsets
             bll = true,
             sa = true,
             γ = 1.6,
-            δ = 1.0,
+            δ = 1.0
         )
         compute_activation!(actr, 3.0; a = :b)
         @test chunk.act_bll != 0
@@ -394,7 +393,7 @@ using SafeTestsets
             sa = true,
             γ = 1.6,
             δ = 1.0,
-            Σ = 0.3,
+            Σ = 0.3
         )
         @test get_parm(actr, :δ) ≈ 1.0 atol = 1e-5
         @test get_parm(actr, :Σ) ≈ 0.3 atol = 1e-5
@@ -451,7 +450,7 @@ using SafeTestsets
         Random.seed!(41140)
         chunks = [
             Chunk(a = :a, b = :b, c = :c, bl = -1.0),
-            Chunk(a = :a, b = :b, c = :a, bl = -1.0),
+            Chunk(a = :a, b = :b, c = :a, bl = -1.0)
         ]
         memory = Declarative(memory = chunks)
         τ = 0.0
@@ -581,7 +580,7 @@ using SafeTestsets
             Chunk(; a = :a1, b = :b1, v = 0.3, bl = 1.0),
             Chunk(; a = :a1, b = :b1, v = 0.2, bl = 1.0),
             Chunk(; a = :a2, b = :b2, v = 0.2, bl = 1.5),
-            Chunk(; a = :a3, b = :b3, v = 0.1, bl = 0.5),
+            Chunk(; a = :a3, b = :b3, v = 0.1, bl = 0.5)
         ]
 
         declarative = Declarative(memory = chunks)
@@ -606,7 +605,6 @@ using SafeTestsets
         blended_value = blend_slots(actr, probs, values)
 
         @test blended_value == :a2
-
     end
 
     @safetestset "custom dissim_func" begin
@@ -627,7 +625,7 @@ using SafeTestsets
         chunks = [
             Chunk(; a = :a1, b = :b1, v = 0.3, bl = 1.0),
             Chunk(; a = :a2, b = :b2, v = 0.2, bl = 1.5),
-            Chunk(; a = :a3, b = :b3, v = 0.1, bl = 0.5),
+            Chunk(; a = :a3, b = :b3, v = 0.1, bl = 0.5)
         ]
 
         declarative = Declarative(memory = chunks)
@@ -662,7 +660,7 @@ using SafeTestsets
         chunks = [
             Chunk(; a = :a1, b = :b1, v = 0.3, bl = 1.0),
             Chunk(; a = :a2, b = :b2, v = 0.2, bl = 1.5),
-            Chunk(; a = :a3, b = :b3, v = 0.1, bl = 0.5),
+            Chunk(; a = :a3, b = :b3, v = 0.1, bl = 0.5)
         ]
 
         declarative = Declarative(memory = chunks)

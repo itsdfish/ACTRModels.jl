@@ -52,7 +52,7 @@ chunks = [Chunk(animal=:dog), Chunk(animal=cat)]
 find_index(chunks; animal=:dog)
 ```
 """
-function find_index(chunks::Array{<:Chunk,1}; check_value = true, criteria...)
+function find_index(chunks::Array{<:Chunk, 1}; check_value = true, criteria...)
     for (i, c) in enumerate(chunks)
         match(c; check_value, criteria...) ? (return i) : nothing
     end
@@ -105,7 +105,7 @@ chunks = [Chunk(animal=:dog), Chunk(animal=cat)]
 find_index(chunks; animal=:dog)
 ```
 """
-function find_index(chunks::Array{<:Chunk,1}, funs...; check_value = true, criteria...)
+function find_index(chunks::Array{<:Chunk, 1}, funs...; check_value = true, criteria...)
     for (i, c) in enumerate(chunks)
         match(c, funs...; check_value, criteria...) ? (return i) : nothing
     end
@@ -152,7 +152,7 @@ chunks = [Chunk(animal=:dog), Chunk(animal=:dog), Chunk(animal=cat)]
 find_indices(chunks; animal=:dog)
 ```
 """
-function find_indices(chunks::Array{<:Chunk,1}; check_value = true, criteria...)
+function find_indices(chunks::Array{<:Chunk, 1}; check_value = true, criteria...)
     idx = Int64[]
     for (i, c) in enumerate(chunks)
         match(c; check_value, criteria...) ? push!(idx, i) : nothing
@@ -206,7 +206,7 @@ chunks = [Chunk(animal=:dog), Chunk(animal=:dog), Chunk(animal=cat)]
 find_indices(chunks; animal=:dog)
 ```
 """
-function find_indices(chunks::Array{<:Chunk,1}, funs...; check_value = true, criteria...)
+function find_indices(chunks::Array{<:Chunk, 1}, funs...; check_value = true, criteria...)
     idx = Int64[]
     for (i, c) in enumerate(chunks)
         match(c, funs...; check_value, criteria...) ? push!(idx, i) : nothing

@@ -1,7 +1,6 @@
 using SafeTestsets
 
 @safetestset "Utility Tests" begin
-
     @safetestset "find_index" begin
         using ACTRModels, Test
         include("Utility_Functions.jl")
@@ -28,7 +27,7 @@ using SafeTestsets
         chunk_set = chunks[idx]
         @test all(
             x -> x.slots.attribute == :locomotion && x.slots.value == :swimming,
-            chunk_set,
+            chunk_set
         )
 
         idx = find_indices(actr, ==, !=; attribute = :category, value = :bird)
