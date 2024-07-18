@@ -107,7 +107,7 @@ end
 ####################################################################################################
 SUITE[:blend] = BenchmarkGroup()
 parms1 = (blc = 1.0, δ = 1.0, γ = 6, mmp = false, sa = false, bll = false, noise = true)
-blended_slots = [:slot,]
+blended_slots = [:slot]
 for n ∈ n_chunks
     SUITE[:blend][n] = @benchmarkable(
         blend_chunks(actr, blended_slots; s = 1),
