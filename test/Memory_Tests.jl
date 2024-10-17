@@ -437,8 +437,8 @@ using SafeTestsets
         @test match(chunk, a = :a)
         @test !match(chunk, a = :b)
         @test !match(chunk, d = :b)
-        @test match(chunk, !=, ==, a = :b, b = :b)
-        @test !match(chunk, !=, ==, a = :a, b = :b)
+        @test match(chunk,!=,==,a = :b,b = :b)
+        @test !match(chunk,!=,==,a = :a,b = :b)
 
         @test match(chunk, a = :a; check_value = false)
         @test match(chunk, a = :b; check_value = false)

@@ -13,7 +13,7 @@ using SafeTestsets
         @test chunks[idx].slots.object == :bird
         @test chunks[idx].slots.value == :True
 
-        idx = find_index(actr, ==, !=; attribute = :locomotion, value = :swimming)
+        idx = find_index(actr,==,!=; attribute = :locomotion, value = :swimming)
         @test chunks[idx].slots.value == :flying
         @test chunks[idx].slots.object == :bird
         @test chunks[idx].slots.attribute == :locomotion
@@ -34,7 +34,7 @@ using SafeTestsets
             chunk_set
         )
 
-        idx = find_indices(actr, ==, !=; attribute = :category, value = :bird)
+        idx = find_indices(actr,==,!=; attribute = :category, value = :bird)
         @test length(idx) == 4
         chunk_set = chunks[idx]
         @test all(x -> x.slots.attribute == :category && x.slots.value != :bird, chunk_set)
