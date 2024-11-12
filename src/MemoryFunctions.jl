@@ -1255,13 +1255,13 @@ function blend_chunks(actr::AbstractACTR, blended_slots, cur_time; request...)
     return blend_slots(actr, chunks, probs, blended_slots)
 end
 
-function blend_slots(actr::AbstractACTR, chunks, probs, blended_slots)
+function blend_slots(actr::AbstractACTR, chunks::Vector{<:AbstractChunk}, probs::Vector{<:Real}, blended_slots)
     return map(s -> blend_slots(actr, chunks, probs, s), blended_slots)
 end
 
-function blend_slots(actr::AbstractACTR, chunks, probs, slot::Symbol)
+function blend_slots(actr::AbstractACTR, chunks::Vector{<:AbstractChunk}, probs::Vector{<:Real}, slot::Symbol)
     values = map(c -> c.slots[slot], chunks)
-    return blend_slots(actr, probs, values)
+    return blend_slots(actr, probs, values, slot)
 end
 
 """
@@ -1277,8 +1277,9 @@ Computes an expected value over numerical values.
 """
 function blend_slots(
     actr::AbstractACTR,
-    probs,
-    values::AbstractArray{T}
+    probs::Vector{<:Real},
+    values::AbstractArray{T},
+    slot::Symbol
 )::Float64 where {T <: Number}
     return probs' * values
 end
@@ -1294,16 +1295,17 @@ Computes an expected value over non-numerical values.
 - `probs`: a vector of retrieval probabilities 
 - `values::AbstractArray{T}`: values to be blended 
 """
-function blend_slots(actr::AbstractACTR, probs, values::AbstractArray{T})::T where {T}
+function blend_slots(actr::AbstractACTR, probs::Vector{<:Real}, values::AbstractArray{T}, slot::Symbol)::T where {T}
     n_vals = length(values)
     u_values = unique(values)
     n_unique = length(u_values)
     vals = zeros(n_unique)
     dissm_func = actr.parms.dissim_func
+    println("values $values")
     for i ∈ 1:n_unique
         v = 0.0
         for j ∈ 1:n_vals
-            v += probs[j] * dissm_func(u_values[i], values[j])^2
+            v += probs[j] * dissm_func(slot, u_values[i], values[j])^2
             #println("i $(u_values[i]) j $(values[j]) probs $(probs[j]) distance $(dissm_func(u_values[i], values[j])^2) v $v")
         end
         vals[i] = v
