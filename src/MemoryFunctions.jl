@@ -1255,7 +1255,12 @@ function blend_chunks(actr::AbstractACTR, blended_slots, cur_time; request...)
     return blend_slots(actr, chunks, probs, blended_slots)
 end
 
-function blend_slots(actr::AbstractACTR, chunks::Vector{<:AbstractChunk}, probs::Vector{<:Real}, blended_slots)
+function blend_slots(
+    actr::AbstractACTR,
+    chunks::Vector{<:AbstractChunk},
+    probs::Vector{<:Real},
+    blended_slots
+)
     return map(s -> blend_slots(actr, chunks, probs, s), blended_slots)
 end
 
