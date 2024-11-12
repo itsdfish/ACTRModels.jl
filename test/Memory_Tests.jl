@@ -565,7 +565,7 @@ using SafeTestsets
         using ACTRModels, Test, Random
         import ACTRModels: blend_slots
 
-        function dissim_func(x, y)
+        function dissim_func(s, x, y)
             if (x == :a1 && y == :a2) || (y == :a1 && x == :a2)
                 return 0.1
             elseif (x == :a1 && y == :a3) || (y == :a1 && x == :a3)
@@ -595,14 +595,14 @@ using SafeTestsets
         probs = [0.40, 0.35, 0.15, 0.10]
         values = map(c -> c.slots[blended_slots], chunks)
 
-        blended_value = blend_slots(actr, probs, values)
+        blended_value = blend_slots(actr, probs, values, blended_slots)
 
         @test blended_value == :a1
 
         probs = [0.30, 0.05, 0.55, 0.10]
         values = map(c -> c.slots[blended_slots], chunks)
 
-        blended_value = blend_slots(actr, probs, values)
+        blended_value = blend_slots(actr, probs, values, blended_slots)
 
         @test blended_value == :a2
     end
