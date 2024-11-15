@@ -665,8 +665,10 @@ function add_chunk!(memory::Declarative, cur_time = 0.0; bl::T = 0.0, slots...) 
             slots...
         )
         push!(memory.memory, c)
+        return c
     else
         update_chunk!(chunk[1], cur_time)
+        return chunk[1]
     end
     return nothing
 end
@@ -1346,7 +1348,7 @@ log of activations across a set of chunks.
 - `chunks`: a set of chunks over which slot-values are blended
 """
 function blended_activation(chunks)
-    exp_act = map(x -> exp(x.act_mean), chunks)
+    exp_act = map(x -> exp(x.act), chunks)
     return log(sum(exp_act))
 end
 

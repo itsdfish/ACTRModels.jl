@@ -16,8 +16,10 @@ using Plots
 
 Random.seed!(87545)
 # create chunks of declarative knowledge
-chunks = [Chunk(;name=:Bob, department=:accounting),
-    Chunk(;name=:Alice, department=:HR)]
+chunks = [
+    Chunk(;name=:Bob, department=:accounting),
+    Chunk(;name=:Alice, department=:HR)
+]
 
 # initialize declarative memory
 declarative = Declarative(memory=chunks)
@@ -41,8 +43,10 @@ we can create a vector of chunks using the `Chunk` constructor. Constructor acce
 ```@example examplesetup1
 
 # create chunks of declarative knowledge
-chunks = [Chunk(;name=:Bob, department=:accounting),
-    Chunk(;name=:Alice, department=:HR)]
+chunks = 
+    [Chunk(;name=:Bob, department=:accounting),
+    Chunk(;name=:Alice, department=:HR)
+]
 ```
 
 ## Create a Model
