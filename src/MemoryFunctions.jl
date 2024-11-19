@@ -1318,7 +1318,6 @@ function blend_slots(
     n_unique = length(u_values)
     vals = zeros(n_unique)
     dissm_func = actr.parms.dissim_func
-    println("values $values")
     for i ∈ 1:n_unique
         v = 0.0
         for j ∈ 1:n_vals
