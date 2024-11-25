@@ -566,7 +566,7 @@ using SafeTestsets
         import ACTRModels: blend_slots
 
         function dissim_func(s, x, y, f)
-            if (f(x,:a1) && f(y, :a2)) || (f(y, :a1) && f(x, :a2))
+            if (f(x, :a1) && f(y, :a2)) || (f(y, :a1) && f(x, :a2))
                 return 0.1
             elseif (f(x, :a1) && f(y, :a3)) || (f(y, :a1) && f(x, :a3))
                 return 0.2
@@ -613,7 +613,7 @@ using SafeTestsets
         using Test
 
         function dissim_func(s, x, y, f)
-            if (f(x,:a1) && f(y, :a2)) || (f(y, :a1) && f(x, :a2))
+            if (f(x, :a1) && f(y, :a2)) || (f(y, :a1) && f(x, :a2))
                 return 0.1
             elseif (f(x, :a1) && f(y, :a3)) || (f(y, :a1) && f(x, :a3))
                 return 0.2
@@ -702,8 +702,8 @@ using SafeTestsets
         @test isempty(result)
     end
 
-    @safetestset "negation" begin 
-        @safetestset "with negation" begin 
+    @safetestset "negation" begin
+        @safetestset "with negation" begin
             using ACTRModels
             using Test
 
@@ -711,12 +711,12 @@ using SafeTestsets
                 Chunk(; a = 1, b = 2),
                 Chunk(; a = 2, b = 2),
                 Chunk(; a = 3, b = 2)
-            ]   
+            ]
 
             parms = (
-                mmp = true, 
+                mmp = true,
                 δ = 1,
-                noise = false, 
+                noise = false,
                 τ = -10
             )
 
@@ -726,11 +726,11 @@ using SafeTestsets
             chunk = retrieve(actr; funs = (≠,), a = 1)
 
             @test chunks[1].act_mean ≈ -1
-            @test chunks[2].act_mean ≈  0
-            @test chunks[3].act_mean ≈  0
+            @test chunks[2].act_mean ≈ 0
+            @test chunks[3].act_mean ≈ 0
         end
 
-        @safetestset "no negation" begin 
+        @safetestset "no negation" begin
             using ACTRModels
             using Test
 
@@ -738,12 +738,12 @@ using SafeTestsets
                 Chunk(; a = 1, b = 2),
                 Chunk(; a = 2, b = 2),
                 Chunk(; a = 3, b = 2)
-            ]   
+            ]
 
             parms = (
-                mmp = true, 
+                mmp = true,
                 δ = 1,
-                noise = false, 
+                noise = false,
                 τ = -10
             )
 
@@ -752,12 +752,12 @@ using SafeTestsets
 
             chunk = retrieve(actr; a = 1)
 
-            @test chunks[1].act_mean ≈  0
+            @test chunks[1].act_mean ≈ 0
             @test chunks[2].act_mean ≈ -1
             @test chunks[3].act_mean ≈ -1
         end
 
-        @safetestset "no negation requested" begin 
+        @safetestset "no negation requested" begin
             using ACTRModels
             using Test
 
@@ -765,12 +765,12 @@ using SafeTestsets
                 Chunk(; a = 1, b = 2),
                 Chunk(; a = 2, b = 2),
                 Chunk(; a = 3, b = 2)
-            ]   
+            ]
 
             parms = (
-                mmp = true, 
+                mmp = true,
                 δ = 1,
-                noise = false, 
+                noise = false,
                 τ = -10
             )
 
@@ -782,7 +782,7 @@ using SafeTestsets
             @test length(requested) == 3
         end
 
-        @safetestset "negation requested" begin 
+        @safetestset "negation requested" begin
             using ACTRModels
             using Test
 
@@ -790,12 +790,12 @@ using SafeTestsets
                 Chunk(; a = 1, b = 2),
                 Chunk(; a = 2, b = 2),
                 Chunk(; a = 3, b = 2)
-            ]   
+            ]
 
             parms = (
-                mmp = true, 
+                mmp = true,
                 δ = 1,
-                noise = false, 
+                noise = false,
                 τ = -10
             )
 
@@ -807,7 +807,7 @@ using SafeTestsets
             @test length(requested) == 3
         end
 
-        @safetestset "no negation requested mmp false" begin 
+        @safetestset "no negation requested mmp false" begin
             using ACTRModels
             using Test
 
@@ -815,12 +815,12 @@ using SafeTestsets
                 Chunk(; a = 1, b = 2),
                 Chunk(; a = 2, b = 2),
                 Chunk(; a = 3, b = 2)
-            ]   
+            ]
 
             parms = (
-                mmp = false, 
+                mmp = false,
                 δ = 1,
-                noise = false, 
+                noise = false,
                 τ = -10
             )
 
@@ -833,7 +833,7 @@ using SafeTestsets
             @test requested[1].slots.a == 1
         end
 
-        @safetestset "negation requested mmp false" begin 
+        @safetestset "negation requested mmp false" begin
             using ACTRModels
             using Test
 
@@ -841,12 +841,12 @@ using SafeTestsets
                 Chunk(; a = 1, b = 2),
                 Chunk(; a = 2, b = 2),
                 Chunk(; a = 3, b = 2)
-            ]   
+            ]
 
             parms = (
-                mmp = false, 
+                mmp = false,
                 δ = 1,
-                noise = false, 
+                noise = false,
                 τ = -10
             )
 
@@ -860,20 +860,21 @@ using SafeTestsets
             @test requested[2].slots.a == 3
         end
 
-        @safetestset "blending" begin 
+        @safetestset "blending" begin
             using ACTRModels, Test, Random, Distributions
             Random.seed!(652)
             chunks = [Chunk(; a = 2, b = 0), Chunk(; a = 1, b = 3)]
             parms = (mmp = true, δ = 1.0, noise = true, s = 0.2)
             declarative = Declarative(; memory = chunks)
             actr = ACTR(; declarative, parms...)
-    
+
             request = (a = 2,)
             funs = (≠,)
             blended_slots = :b
             n_sim = 10_000
             mean_value1 =
-                map(_ -> blend_chunks(actr, blended_slots; funs, request...), 1:n_sim) |> mean
+                map(_ -> blend_chunks(actr, blended_slots; funs, request...), 1:n_sim) |>
+                mean
             # should be weighted more towards 3 than 0
             @test mean_value1 ≈ 2.75 atol = 0.01
         end
@@ -885,15 +886,15 @@ using SafeTestsets
             parms = (mmp = true, δ = 1.0, noise = true, s = 0.2)
             declarative = Declarative(; memory = chunks)
             actr = ACTR(; declarative, parms...)
-    
+
             request = (a = :a,)
             funs = (≠,)
-            blended_slots = [:a,:b]
+            blended_slots = [:a, :b]
             n_sim = 10_000
             blended_values =
                 map(_ -> blend_chunks(actr, blended_slots; funs, request...), 1:n_sim)
             # should be weighted more towards 3 than 0
-            @test mean(map(x -> x[1] == :c, blended_values)) ≥ .90 
+            @test mean(map(x -> x[1] == :c, blended_values)) ≥ 0.90
             @test mean(map(x -> x[2], blended_values)) ≥ 1.5
         end
     end
