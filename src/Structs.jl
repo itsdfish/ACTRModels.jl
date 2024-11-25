@@ -512,8 +512,9 @@ A default dissimilarity function which returns 1 for a mismatch and 0 otherwise.
 - `s`: the slot
 - `v1`: slot value 1
 - `v2`: slot value 2
+- `f`: function for evaluating v1 ≠ v2. Use `!` for negation
 """
-default_dissim_func(s, v1, v2) = v1 ≠ v2 ? 1.0 : 0.0
+default_dissim_func(s, v1, v2, f) = !f(v1, v2) ? 1.0 : 0.0
 
 Broadcast.broadcastable(x::Declarative) = Ref(x)
 

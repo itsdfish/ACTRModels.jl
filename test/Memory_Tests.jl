@@ -565,15 +565,15 @@ using SafeTestsets
         using ACTRModels, Test, Random
         import ACTRModels: blend_slots
 
-        function dissim_func(s, x, y)
-            if (x == :a1 && y == :a2) || (y == :a1 && x == :a2)
+        function dissim_func(s, x, y, f)
+            if (f(x,:a1) && f(y, :a2)) || (f(y, :a1) && f(x, :a2))
                 return 0.1
-            elseif (x == :a1 && y == :a3) || (y == :a1 && x == :a3)
+            elseif (f(x, :a1) && f(y, :a3)) || (f(y, :a1) && f(x, :a3))
                 return 0.2
-            elseif (x == :a2 && y == :a3) || (y == :a2 && x == :a3)
+            elseif (f(x, :a2) && f(y, :a3)) || (f(y, :a2) && f(x, :a3))
                 return 0.1
             end
-            return x ≠ y ? 1.0 : 0.0
+            return !f(x, y) ? 1.0 : 0.0
         end
 
         chunks = [
@@ -591,6 +591,7 @@ using SafeTestsets
 
         blended_slots = :a
         request = (b = :b1,)
+        funs = (==,)
 
         probs = [0.40, 0.35, 0.15, 0.10]
         values = map(c -> c.slots[blended_slots], chunks)
@@ -611,15 +612,15 @@ using SafeTestsets
         using ACTRModels
         using Test
 
-        function dissim_func(s, x, y)
-            if (x == :a1 && y == :a2) || (y == :a1 && x == :a2)
+        function dissim_func(s, x, y, f)
+            if (f(x,:a1) && f(y, :a2)) || (f(y, :a1) && f(x, :a2))
                 return 0.1
-            elseif (x == :a1 && y == :a3) || (y == :a1 && x == :a3)
+            elseif (f(x, :a1) && f(y, :a3)) || (f(y, :a1) && f(x, :a3))
                 return 0.2
-            elseif (x == :a2 && y == :a3) || (y == :a2 && x == :a3)
+            elseif (f(x, :a2) && f(y, :a3)) || (f(y, :a2) && f(x, :a3))
                 return 0.1
             end
-            return x ≠ y ? 1.0 : 0.0
+            return !f(x, y) ? 1.0 : 0.0
         end
 
         chunks = [
@@ -699,5 +700,201 @@ using SafeTestsets
 
         result = get_chunks_exact(declarative; a = 1)
         @test isempty(result)
+    end
+
+    @safetestset "negation" begin 
+        @safetestset "with negation" begin 
+            using ACTRModels
+            using Test
+
+            chunks = [
+                Chunk(; a = 1, b = 2),
+                Chunk(; a = 2, b = 2),
+                Chunk(; a = 3, b = 2)
+            ]   
+
+            parms = (
+                mmp = true, 
+                δ = 1,
+                noise = false, 
+                τ = -10
+            )
+
+            declarative = Declarative(; memory = chunks)
+            actr = ACTR(; declarative, parms...)
+
+            chunk = retrieve(actr; funs = (≠,), a = 1)
+
+            @test chunks[1].act_mean ≈ -1
+            @test chunks[2].act_mean ≈  0
+            @test chunks[3].act_mean ≈  0
+        end
+
+        @safetestset "no negation" begin 
+            using ACTRModels
+            using Test
+
+            chunks = [
+                Chunk(; a = 1, b = 2),
+                Chunk(; a = 2, b = 2),
+                Chunk(; a = 3, b = 2)
+            ]   
+
+            parms = (
+                mmp = true, 
+                δ = 1,
+                noise = false, 
+                τ = -10
+            )
+
+            declarative = Declarative(; memory = chunks)
+            actr = ACTR(; declarative, parms...)
+
+            chunk = retrieve(actr; a = 1)
+
+            @test chunks[1].act_mean ≈  0
+            @test chunks[2].act_mean ≈ -1
+            @test chunks[3].act_mean ≈ -1
+        end
+
+        @safetestset "no negation requested" begin 
+            using ACTRModels
+            using Test
+
+            chunks = [
+                Chunk(; a = 1, b = 2),
+                Chunk(; a = 2, b = 2),
+                Chunk(; a = 3, b = 2)
+            ]   
+
+            parms = (
+                mmp = true, 
+                δ = 1,
+                noise = false, 
+                τ = -10
+            )
+
+            declarative = Declarative(; memory = chunks)
+            actr = ACTR(; declarative, parms...)
+
+            requested = retrieval_request(actr; a = 1)
+
+            @test length(requested) == 3
+        end
+
+        @safetestset "negation requested" begin 
+            using ACTRModels
+            using Test
+
+            chunks = [
+                Chunk(; a = 1, b = 2),
+                Chunk(; a = 2, b = 2),
+                Chunk(; a = 3, b = 2)
+            ]   
+
+            parms = (
+                mmp = true, 
+                δ = 1,
+                noise = false, 
+                τ = -10
+            )
+
+            declarative = Declarative(; memory = chunks)
+            actr = ACTR(; declarative, parms...)
+
+            requested = retrieval_request(actr; funs = (≠,), a = 1)
+
+            @test length(requested) == 3
+        end
+
+        @safetestset "no negation requested mmp false" begin 
+            using ACTRModels
+            using Test
+
+            chunks = [
+                Chunk(; a = 1, b = 2),
+                Chunk(; a = 2, b = 2),
+                Chunk(; a = 3, b = 2)
+            ]   
+
+            parms = (
+                mmp = false, 
+                δ = 1,
+                noise = false, 
+                τ = -10
+            )
+
+            declarative = Declarative(; memory = chunks)
+            actr = ACTR(; declarative, parms...)
+
+            requested = retrieval_request(actr; a = 1)
+
+            @test length(requested) == 1
+            @test requested[1].slots.a == 1
+        end
+
+        @safetestset "negation requested mmp false" begin 
+            using ACTRModels
+            using Test
+
+            chunks = [
+                Chunk(; a = 1, b = 2),
+                Chunk(; a = 2, b = 2),
+                Chunk(; a = 3, b = 2)
+            ]   
+
+            parms = (
+                mmp = false, 
+                δ = 1,
+                noise = false, 
+                τ = -10
+            )
+
+            declarative = Declarative(; memory = chunks)
+            actr = ACTR(; declarative, parms...)
+
+            requested = retrieval_request(actr; funs = (≠,), a = 1)
+
+            @test length(requested) == 2
+            @test requested[1].slots.a == 2
+            @test requested[2].slots.a == 3
+        end
+
+        @safetestset "blending" begin 
+            using ACTRModels, Test, Random, Distributions
+            Random.seed!(652)
+            chunks = [Chunk(; a = 2, b = 0), Chunk(; a = 1, b = 3)]
+            parms = (mmp = true, δ = 1.0, noise = true, s = 0.2)
+            declarative = Declarative(; memory = chunks)
+            actr = ACTR(; declarative, parms...)
+    
+            request = (a = 2,)
+            funs = (≠,)
+            blended_slots = :b
+            n_sim = 10_000
+            mean_value1 =
+                map(_ -> blend_chunks(actr, blended_slots; funs, request...), 1:n_sim) |> mean
+            # should be weighted more towards 3 than 0
+            @test mean_value1 ≈ 2.75 atol = 0.01
+        end
+
+        @safetestset "blend_slots non-numeric" begin
+            using ACTRModels, Test, Random, Distributions
+            Random.seed!(652)
+            chunks = [Chunk(; a = :a, b = 0), Chunk(; a = :c, b = 3)]
+            parms = (mmp = true, δ = 1.0, noise = true, s = 0.2)
+            declarative = Declarative(; memory = chunks)
+            actr = ACTR(; declarative, parms...)
+    
+            request = (a = :a,)
+            funs = (≠,)
+            blended_slots = [:a,:b]
+            n_sim = 10_000
+            blended_values =
+                map(_ -> blend_chunks(actr, blended_slots; funs, request...), 1:n_sim)
+            # should be weighted more towards 3 than 0
+            @test mean(map(x -> x[1] == :c, blended_values)) ≥ .90 
+            @test mean(map(x -> x[2], blended_values)) ≥ 1.5
+        end
     end
 end
