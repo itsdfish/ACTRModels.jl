@@ -137,7 +137,12 @@ with `get_time`.
 
 - `request...`: optional keywords for the retrieval request
 """
-function compute_activation!(actr::AbstractACTR, chunk::AbstractChunk; funs = (), request...)
+function compute_activation!(
+    actr::AbstractACTR,
+    chunk::AbstractChunk;
+    funs = (),
+    request...
+)
     return compute_activation!(actr, chunk, get_time(actr); funs, request...)
 end
 
@@ -208,7 +213,13 @@ Computes the activation of a chunk
 
 - `request...`: optional keywords for the retrieval request
 """
-function activation!(actr::AbstractACTR, chunk::AbstractChunk, cur_time = 0.0; funs = (), request...)
+function activation!(
+    actr::AbstractACTR,
+    chunk::AbstractChunk,
+    cur_time = 0.0;
+    funs = (),
+    request...
+)
     memory = actr.declarative
     (; sa_fun, bll, mmp, sa, noise, blc, τ) = actr.parms
     reset_activation!(chunk)
@@ -508,7 +519,13 @@ Uses the softmax approximation to compute the retrieval probability of retrievin
 
 - `request...`: optional keyword pairs representing a retrieval request
 """
-function retrieval_prob(actr::AbstractACTR, chunk::AbstractChunk, cur_time; funs = (), request...)
+function retrieval_prob(
+    actr::AbstractACTR,
+    chunk::AbstractChunk,
+    cur_time;
+    funs = (),
+    request...
+)
     (; τ, s, noise) = actr.parms
     σ = s * sqrt(2)
     _funs = isempty(funs) ? fill(==, length(request)) : funs
@@ -1272,7 +1289,7 @@ function blend_slots(
     actr::AbstractACTR,
     chunks::Vector{<:AbstractChunk},
     probs::Vector{<:Real},
-    blended_slots,
+    blended_slots
 )
     return map(s -> blend_slots(actr, chunks, probs, s), blended_slots)
 end

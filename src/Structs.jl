@@ -312,16 +312,11 @@ function Chunk(;
     recent = [0.0],
     reps = 0,
     lags = Float64[],
-    bl = zero(typeof(act)),
+    bl = 0.0,
     slots...
 )
-    T = typeof(act)
-    act_mean = zero(T)
-    act_pm = zero(T)
-    act_blc = zero(T)
-    act_bll = zero(T)
-    act_noise = zero(T)
-    act_sa = zero(T)
+    act, act_mean, act_pm, act_blc, act_bll, act_noise, act_sa, bl =
+        promote(act, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, bl)
     return Chunk(
         N,
         L,
@@ -387,16 +382,11 @@ function Chunk(
     recent = [0.0],
     reps = 0,
     lags = Float64[],
-    bl = zero(typeof(act)),
+    bl = 0.0,
     slots...
 )
-    T = typeof(act)
-    act_mean = zero(T)
-    act_pm = zero(T)
-    act_blc = zero(T)
-    act_bll = zero(T)
-    act_noise = zero(T)
-    act_sa = zero(T)
+    act, act_mean, act_pm, act_blc, act_bll, act_noise, act_sa, bl =
+        promote(act, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, bl)
     slots = Dict(k => v for (k, v) in pairs(slots))
     return Chunk(
         N,
