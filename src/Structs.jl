@@ -202,21 +202,24 @@ function Parms(;
 end
 
 function Base.show(io::IO, ::MIME"text/plain", parms::Parms)
-    values = [getfield(parms, f) for f in fieldnames(Parms)]
+    values = [getfield(parms, f) for f in fieldnames(typeof(parms))]
     values = map(x -> typeof(x) == Bool ? string(x) : x, values)
+    T = typeof(parms)
+    model_name = string(T.name)
     return pretty_table(
         io,
         values;
-        title = "Model Parameters",
-        row_label_column_title = "Parameter",
+        title = model_name,
+        column_labels = ["Value"],
+        stubhead_label = "Parameter",
         compact_printing = false,
-        header = ["Value"],
-        row_label_alignment = :l,
-        row_labels = [fieldnames(Parms)...],
-        formatters = ft_printf("%5.2f"),
+        row_label_column_alignment = :l,
+        row_labels = [fieldnames(typeof(parms))...],
+        formatters = [fmt__printf("%5.2f", [2,])],
         alignment = :l
     )
 end
+
 
 abstract type AbstractChunk end
 
@@ -431,17 +434,20 @@ function chunk_values(chunk)
 end
 
 function Base.show(io::IO, ::MIME"text/plain", chunk::AbstractChunk)
-    values = chunk_values(chunk)
+    values = [getfield(chunk, f) for f in fieldnames(typeof(chunk))]
+    values = map(x -> typeof(x) == Bool ? string(x) : x, values)
+    T = typeof(chunk)
+    model_name = string(T.name)
     return pretty_table(
         io,
         values;
-        title = "Chunk",
-        row_label_column_title = "Property",
+        title = model_name,
+        column_labels = ["Property"],
+        stubhead_label = "Parameter",
         compact_printing = false,
-        header = ["Value"],
-        row_label_alignment = :l,
-        row_labels = [chunk_fields...],
-        formatters = ft_printf("%5.2f"),
+        row_label_column_alignment = :l,
+        row_labels = [fieldnames(typeof(chunk))...],
+        formatters = [fmt__printf("%5.2f", [2,])],
         alignment = :l
     )
 end
@@ -456,15 +462,15 @@ function Base.show(io::IO, ::MIME"text/plain", chunks::Vector{<:Chunk})
         io,
         table;
         title = "Chunks",
-        # row_name_column_title="Parameter",
+        column_labels = [chunk_fields...],
+        stubhead_label = "Parameter",
         compact_printing = false,
-        header = [chunk_fields...],
-        row_label_alignment = :l,
-        formatters = ft_printf("%5.2f"),
+        row_label_column_alignment = :l,
+        #row_labels = [fieldnames(typeof(chunk))...],
+        formatters = [fmt__printf("%5.2f", [2,])],
         alignment = :l
     )
 end
-
 abstract type Mod end
 
 """

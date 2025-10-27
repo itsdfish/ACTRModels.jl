@@ -1,7 +1,7 @@
 name = "ACTRModels"
 uuid = "c095b0ea-a6ca-5cbd-afed-dbab2e976880"
+version = "0.13.7"
 authors = ["itsdfish"]
-version = "0.13.6"
 
 [deps]
 ConcreteStructs = "2569d6c7-a4a2-43d3-a901-331e8e4be471"
@@ -14,7 +14,7 @@ Test = "8dfed614-e22c-5e08-85e1-65c5234f0b40"
 [compat]
 ConcreteStructs = "v0.2.0"
 Distributions = "^0.22.0, 0.23, 0.24, 0.25"
-PrettyTables = "1.1.0,2.0"
+PrettyTables = "3.0"
 Random = "1.9"
 SafeTestsets = "0.0.1,0.1.0"
 julia = "^1.0"
